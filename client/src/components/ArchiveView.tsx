@@ -279,7 +279,7 @@ export default function ArchiveView() {
         </table>
 
         <div class="footer">
-          تم إنشاء هذا التقرير بواسطة نظام إدارة الوقت - V POWER TUNING<br>
+          تم إنشاء هذا التقرير بواسطة نظام توزيع المهام - V POWER TUNING<br>
           جميع الحقوق محفوظة © 2025
         </div>
       </body>

@@ -1,8 +1,8 @@
-# Worker Time Tracking System
+# نظام توزيع المهام - Task Distribution System
 
 ## Overview
 
-This is a full-stack web application designed to track work time for automotive technicians across multiple car brands (Audi, Seat, Skoda, Volkswagen). The system provides real-time task management, time tracking, and worker status monitoring with Arabic language support.
+This is a full-stack web application designed for task distribution and time tracking for automotive technicians across multiple car brands (Audi, Seat, Skoda, Volkswagen). The system provides real-time task management, time tracking, and worker status monitoring with Arabic language support.
 
 ## System Architecture
 

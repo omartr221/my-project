@@ -154,7 +154,7 @@ export default function Dashboard() {
             <div className="flex items-center space-x-reverse space-x-4">
               <Clock className="h-6 w-6" />
               <div>
-                <h1 className="text-xl font-bold">نظام مراقبة وقت العمال</h1>
+                <h1 className="text-xl font-bold">توزيع المهام</h1>
                 <p className="text-blue-200 text-sm">V POWER TUNING</p>
               </div>
             </div>
