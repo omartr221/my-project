@@ -14,6 +14,7 @@ import { z } from "zod";
 
 const taskFormSchema = insertTaskSchema.extend({
   workerId: z.string().min(1, "يجب اختيار العامل"),
+  workerRole: z.string().min(1, "يجب اختيار صفة العامل"),
   description: z.string().min(1, "يجب إدخال وصف المهمة"),
   carBrand: z.string().min(1, "يجب اختيار نوع السيارة"),
   carModel: z.string().min(1, "يجب إدخال موديل السيارة"),
@@ -42,6 +43,13 @@ const carBrands = [
   { value: "volkswagen", label: "فولكس فاجن" },
 ];
 
+const workerRoles = [
+  { value: "assistant", label: "مساعد" },
+  { value: "technician", label: "فني" },
+  { value: "supervisor", label: "مشرف" },
+  { value: "engineer", label: "مهندس" },
+];
+
 export default function NewTaskForm() {
   const { toast } = useToast();
 
@@ -57,6 +65,7 @@ export default function NewTaskForm() {
     resolver: zodResolver(taskFormSchema),
     defaultValues: {
       workerId: "",
+      workerRole: "",
       description: "",
       carBrand: "",
       carModel: "",
@@ -183,6 +192,31 @@ export default function NewTaskForm() {
                               );
                             }
                           })}
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="workerRole"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>صفة العامل</FormLabel>
+                    <FormControl>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="اختر صفة العامل" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {workerRoles.map((role) => (
+                            <SelectItem key={role.value} value={role.value}>
+                              {role.label}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </FormControl>
