@@ -214,19 +214,19 @@ export class DatabaseStorage implements IStorage {
   async pauseTask(taskId: number, reason?: string, notes?: string): Promise<Task> {
     const now = new Date();
     
-    // Update task status
-    const [task] = await db
-      .update(tasks)
-      .set({
-        status: "paused",
-        pausedAt: now,
-        pauseReason: reason,
-        pauseNotes: notes,
-      })
+    // Get current task to calculate accumulated work time
+    const [currentTask] = await db
+      .select()
+      .from(tasks)
       .where(eq(tasks.id, taskId))
-      .returning();
+      .limit(1);
 
-    // End current time entry
+    if (!currentTask) {
+      throw new Error("Task not found");
+    }
+
+    // Calculate current session work time
+    let currentSessionTime = 0;
     const [currentEntry] = await db
       .select()
       .from(timeEntries)
@@ -240,15 +240,34 @@ export class DatabaseStorage implements IStorage {
       .limit(1);
 
     if (currentEntry) {
-      const duration = Math.floor((now.getTime() - currentEntry.startTime.getTime()) / 1000);
+      currentSessionTime = Math.floor((now.getTime() - currentEntry.startTime.getTime()) / 1000);
+      
+      // End current time entry
       await db
         .update(timeEntries)
         .set({
           endTime: now,
-          duration,
+          duration: currentSessionTime,
         })
         .where(eq(timeEntries.id, currentEntry.id));
     }
+
+    // Calculate total accumulated work time
+    const previousWorkTime = currentTask.totalPausedDuration || 0;
+    const newAccumulatedTime = previousWorkTime + currentSessionTime;
+
+    // Update task status and store accumulated work time
+    const [task] = await db
+      .update(tasks)
+      .set({
+        status: "paused",
+        pausedAt: now,
+        pauseReason: reason,
+        pauseNotes: notes,
+        totalPausedDuration: newAccumulatedTime, // Store accumulated work time
+      })
+      .where(eq(tasks.id, taskId))
+      .returning();
 
     return task;
   }
