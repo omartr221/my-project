@@ -9,8 +9,9 @@ import ActiveTimers from "@/components/ActiveTimers";
 import NewTaskForm from "@/components/NewTaskForm";
 import TaskHistoryTable from "@/components/TaskHistoryTable";
 import ArchiveView from "@/components/ArchiveView";
+import AddWorkerForm from "@/components/AddWorkerForm";
 
-type TabType = "dashboard" | "timers" | "history" | "archive";
+type TabType = "dashboard" | "timers" | "history" | "archive" | "addworker";
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<TabType>("dashboard");
@@ -144,6 +145,9 @@ export default function Dashboard() {
       case "archive":
         return <ArchiveView />;
       
+      case "addworker":
+        return <AddWorkerForm />;
+      
       default:
         return null;
     }
@@ -224,6 +228,15 @@ export default function Dashboard() {
             >
               <Archive className="ml-2 h-4 w-4" />
               الأرشيف
+            </Button>
+
+            <Button
+              variant={activeTab === "addworker" ? "default" : "ghost"}
+              onClick={() => setActiveTab("addworker")}
+              className="font-medium"
+            >
+              <UserCheck className="ml-2 h-4 w-4" />
+              إضافة عامل
             </Button>
           </nav>
         </div>
