@@ -138,7 +138,11 @@ export default function ArchiveView() {
   const isLoading = searchTerm.length > 2 ? loadingSearch : loadingArchive;
 
   const handlePrint = () => {
+    console.log('بدء الطباعة');
+    console.log('المهام المعروضة:', displayTasks);
+    
     if (!displayTasks || displayTasks.length === 0) {
+      console.log('لا توجد مهام للطباعة');
       toast({
         title: "لا يوجد بيانات للطباعة",
         description: "لا توجد مهام مؤرشفة لطباعتها",
@@ -148,8 +152,11 @@ export default function ArchiveView() {
     }
 
     try {
-      const printWindow = window.open('', '_blank');
+      console.log('محاولة فتح نافذة جديدة');
+      const printWindow = window.open('', '_blank', 'width=800,height=600');
+      
       if (!printWindow) {
+        console.log('فشل في فتح النافذة');
         toast({
           title: "فشل في فتح نافذة الطباعة",
           description: "تأكد من السماح للنوافذ المنبثقة في المتصفح",
@@ -158,24 +165,71 @@ export default function ArchiveView() {
         return;
       }
 
-      const printContent = generatePrintContent(displayTasks);
-      printWindow.document.write(printContent);
-      printWindow.document.close();
+      console.log('نافذة مفتوحة، إنشاء المحتوى');
       
-      setTimeout(() => {
-        printWindow.print();
-        setTimeout(() => printWindow.close(), 1000);
-      }, 500);
+      // محتوى مبسط للاختبار
+      const simpleContent = `
+        <!DOCTYPE html>
+        <html dir="rtl" lang="ar">
+        <head>
+          <meta charset="UTF-8">
+          <title>تقرير الأرشيف</title>
+          <style>
+            body { font-family: Arial, sans-serif; direction: rtl; padding: 20px; }
+            h1 { color: #2563eb; text-align: center; }
+            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+            th, td { border: 1px solid #ddd; padding: 8px; text-align: right; }
+            th { background-color: #f8f9fa; }
+          </style>
+        </head>
+        <body>
+          <h1>V POWER TUNING - تقرير الأرشيف</h1>
+          <p>عدد المهام: ${displayTasks.length}</p>
+          <table>
+            <thead>
+              <tr>
+                <th>العامل</th>
+                <th>المهمة</th>
+                <th>السيارة</th>
+                <th>التاريخ</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${displayTasks.map(task => `
+                <tr>
+                  <td>${task.worker.name}</td>
+                  <td>${task.description}</td>
+                  <td>${getCarBrandInArabic(task.carBrand)} - ${task.carModel}</td>
+                  <td>${task.archivedAt ? new Date(task.archivedAt).toLocaleDateString() : '--'}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+          <script>
+            window.onload = function() {
+              setTimeout(() => {
+                window.print();
+              }, 1000);
+            };
+          </script>
+        </body>
+        </html>
+      `;
+
+      console.log('كتابة المحتوى في النافذة');
+      printWindow.document.write(simpleContent);
+      printWindow.document.close();
       
       toast({
         title: "تم تحضير التقرير للطباعة",
-        description: "تحقق من نافذة الطباعة الجديدة",
+        description: "تحقق من النافذة الجديدة",
       });
+      
     } catch (error) {
       console.error('خطأ في الطباعة:', error);
       toast({
-        title: "خطأ في الطباعة",
-        description: "حاول مرة أخرى",
+        title: "خطأ في الطباعة", 
+        description: `خطأ: ${error.message}`,
         variant: "destructive",
       });
     }
@@ -300,23 +354,42 @@ export default function ArchiveView() {
             </tr>
           </thead>
           <tbody>
-            ${tasks.map(task => `
-              <tr>
-                <td>${task.worker.name}</td>
-                <td>
-                  ${task.description}
-                  ${task.archiveNotes ? `<br><small>ملاحظات: ${task.archiveNotes}</small>` : ''}
-                </td>
-                <td>
-                  ${getCarBrandInArabic(task.carBrand)}<br>
-                  <small>${task.carModel} - ${task.licensePlate}</small>
-                </td>
-                <td>${formatDuration(task.totalDuration)}</td>
-                <td>${task.archivedAt ? format(utcToZonedTime(new Date(task.archivedAt), 'Asia/Damascus'), 'dd/MM/yyyy HH:mm') : '--'}</td>
-                <td>${task.archivedBy || '--'}</td>
-                <td class="status-${task.status}">${getTaskStatusInArabic(task.status)}</td>
-              </tr>
-            `).join('')}
+            ${tasks.map(task => {
+              // تنسيق التاريخ بشكل آمن
+              let archiveDate = '--';
+              if (task.archivedAt) {
+                try {
+                  const date = new Date(task.archivedAt);
+                  archiveDate = date.toLocaleDateString('ar-EG', {
+                    day: 'numeric',
+                    month: 'numeric',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  });
+                } catch (e) {
+                  archiveDate = new Date(task.archivedAt).toLocaleDateString();
+                }
+              }
+              
+              return `
+                <tr>
+                  <td>${task.worker.name}</td>
+                  <td>
+                    ${task.description}
+                    ${task.archiveNotes ? `<br><small>ملاحظات: ${task.archiveNotes}</small>` : ''}
+                  </td>
+                  <td>
+                    ${getCarBrandInArabic(task.carBrand)}<br>
+                    <small>${task.carModel} - ${task.licensePlate}</small>
+                  </td>
+                  <td>${formatDuration(task.totalDuration)}</td>
+                  <td>${archiveDate}</td>
+                  <td>${task.archivedBy || '--'}</td>
+                  <td class="status-${task.status}">${getTaskStatusInArabic(task.status)}</td>
+                </tr>
+              `;
+            }).join('')}
           </tbody>
         </table>
 
