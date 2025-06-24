@@ -148,14 +148,14 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gray-50 arabic-font">
       {/* Header */}
-      <header className="bg-primary text-white shadow-lg">
+      <header className="bg-gradient-to-r from-red-600 to-gray-600 text-white shadow-lg">
         <div className="container mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-reverse space-x-4">
               <Clock className="h-6 w-6" />
               <div>
                 <h1 className="text-xl font-bold">توزيع المهام</h1>
-                <p className="text-blue-200 text-sm">V POWER TUNING</p>
+                <p className="text-red-200 text-sm">V POWER TUNING</p>
               </div>
             </div>
             <div className="flex items-center space-x-reverse space-x-4">
