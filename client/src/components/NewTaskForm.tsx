@@ -18,6 +18,19 @@ const taskFormSchema = insertTaskSchema.extend({
   carBrand: z.string().min(1, "يجب اختيار نوع السيارة"),
   carModel: z.string().min(1, "يجب إدخال موديل السيارة"),
   licensePlate: z.string().min(1, "يجب إدخال رقم اللوحة"),
+  estimatedDuration: z.number().optional(),
+}).omit({
+  id: true,
+  status: true,
+  startTime: true,
+  endTime: true,
+  pausedAt: true,
+  totalPausedDuration: true,
+  isArchived: true,
+  archivedAt: true,
+  archivedBy: true,
+  archiveNotes: true,
+  createdAt: true,
 });
 
 type TaskFormData = z.infer<typeof taskFormSchema>;
@@ -48,6 +61,7 @@ export default function NewTaskForm() {
       carBrand: "",
       carModel: "",
       licensePlate: "",
+      estimatedDuration: undefined,
     },
   });
 

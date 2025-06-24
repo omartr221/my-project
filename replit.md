@@ -106,6 +106,7 @@ Changelog:
 - June 24, 2025. Initial setup
 - June 24, 2025. Added archive functionality with search capabilities for task management
 - June 24, 2025. Enhanced archive with date filtering and print functionality for reporting
+- June 24, 2025. Added estimated time tracking and worker team details display
 
 ## User Preferences
 
