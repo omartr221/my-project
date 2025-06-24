@@ -52,6 +52,8 @@ const workerRoles = [
 
 export default function NewTaskForm() {
   const { toast } = useToast();
+  const [showTeamDialog, setShowTeamDialog] = useState(false);
+  const [selectedRole, setSelectedRole] = useState<string>("");
 
   const { data: workers } = useQuery({
     queryKey: ['/api/workers'],
@@ -147,6 +149,17 @@ export default function NewTaskForm() {
   // Use worker names from API, fallback to predefined if needed
   const predefinedWorkerNames = workerNames?.filter(name => name !== "عامل جديد") || 
     ["غدير", "يحيى", "حسام", "مصطفى", "زياد", "سليمان", "علي", "حسن"];
+
+  // Handle role change to show team dialog
+  const handleRoleChange = (role: string) => {
+    form.setValue("workerRole", role);
+    setSelectedRole(role);
+    
+    // Show dialog for technician, supervisor, or assistant roles
+    if (["technician", "supervisor", "assistant"].includes(role)) {
+      setShowTeamDialog(true);
+    }
+  };
 
   return (
     <Card>
@@ -333,6 +346,82 @@ export default function NewTaskForm() {
           </form>
         </Form>
       </CardContent>
+
+      {/* Team Information Dialog */}
+      <Dialog open={showTeamDialog} onOpenChange={setShowTeamDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>معلومات الفريق</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <FormField
+              control={form.control}
+              name="engineerName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>اسم المهندس</FormLabel>
+                  <FormControl>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="اختر المهندس" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {predefinedWorkerNames.map((name, index) => (
+                          <SelectItem key={`engineer-${index}`} value={name}>
+                            {name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="supervisorName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>اسم المشرف</FormLabel>
+                  <FormControl>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="اختر المشرف" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {predefinedWorkerNames.map((name, index) => (
+                          <SelectItem key={`supervisor-${index}`} value={name}>
+                            {name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="flex gap-2 pt-4">
+              <Button 
+                onClick={() => setShowTeamDialog(false)}
+                className="flex-1"
+              >
+                تأكيد
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => setShowTeamDialog(false)}
+              >
+                إلغاء
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
