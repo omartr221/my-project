@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { formatDuration, formatTime, getCarBrandInArabic, getWorkerCategoryInArabic, getTaskStatusInArabic, getTaskStatusColor } from "@/lib/utils";
 import { type TaskWithWorker } from "@shared/schema";
 import { useState, useEffect } from "react";
+import PauseTaskDialog from "./PauseTaskDialog";
 
 interface ActiveTimersProps {
   tasks: TaskWithWorker[];
