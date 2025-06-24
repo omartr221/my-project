@@ -127,13 +127,14 @@ export default function NewTaskForm() {
     });
   };
 
-  // Get available workers (not currently busy)
-  const availableWorkers = workers?.filter(worker => worker.isAvailable) || [];
+  // Predefined worker names
+  const predefinedWorkerNames = ["غدير", "يحيى", "حسام", "مصطفى", "زياد", "سليمان", "علي", "حسن"];
   
-  // Filter worker names to only show available workers
-  const availableWorkerNames = workerNames?.filter(name => 
-    name === "عامل جديد" || availableWorkers.some(worker => worker.name === name)
-  ) || [];
+  // Get all workers
+  const allWorkers = workers || [];
+  
+  // Show predefined names always
+  const availableWorkerNames = predefinedWorkerNames;
 
   return (
     <Card>
@@ -155,30 +156,31 @@ export default function NewTaskForm() {
                     <FormLabel>العامل</FormLabel>
                     <FormControl>
                       <Select 
-                        onValueChange={(value) => field.onChange(parseInt(value))} 
-                        value={field.value?.toString()}
+                        onValueChange={field.onChange} 
+                        value={field.value}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="اختر العامل" />
                         </SelectTrigger>
                         <SelectContent>
-                          {availableWorkerNames.length === 0 ? (
-                            <SelectItem value="0" disabled>
-                              لا يوجد عمال متاحين
-                            </SelectItem>
-                          ) : (
-                            availableWorkerNames
-                              .filter(name => name !== "عامل جديد")
-                              .map((workerName, index) => {
-                                const worker = availableWorkers.find(w => w.name === workerName);
-                                return worker ? (
-                                  <SelectItem key={`${worker.id}-${index}`} value={worker.id.toString()}>
-                                    {worker.name}
-                                  </SelectItem>
-                                ) : null;
-                              })
-                              .filter(Boolean)
-                          )}
+                          {availableWorkerNames.map((workerName, index) => {
+                            // Check if worker exists in database
+                            const existingWorker = allWorkers.find(w => w.name === workerName);
+                            if (existingWorker) {
+                              return (
+                                <SelectItem key={`existing-${existingWorker.id}`} value={existingWorker.id.toString()}>
+                                  {existingWorker.name}
+                                </SelectItem>
+                              );
+                            } else {
+                              // Worker doesn't exist, will be created when task is submitted
+                              return (
+                                <SelectItem key={`new-${workerName}-${index}`} value={`create-${workerName}`}>
+                                  {workerName}
+                                </SelectItem>
+                              );
+                            }
+                          })}
                         </SelectContent>
                       </Select>
                     </FormControl>
