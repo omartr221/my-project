@@ -5,6 +5,7 @@ import { eq, desc, and, isNull } from "drizzle-orm";
 export interface IStorage {
   // Worker management
   getWorkers(): Promise<WorkerWithTasks[]>;
+  getAllWorkerNames(): Promise<string[]>;
   getWorker(id: number): Promise<Worker | undefined>;
   createWorker(worker: InsertWorker): Promise<Worker>;
   updateWorker(id: number, updates: Partial<InsertWorker>): Promise<Worker>;
@@ -58,10 +59,31 @@ export class DatabaseStorage implements IStorage {
     return worker || undefined;
   }
 
+  async getAllWorkerNames(): Promise<string[]> {
+    const predefinedNames = ["مصطفى", "حسام", "زياد", "حسن", "يحيى", "محمد العلي", "سليمان", "علي"];
+    
+    // Get custom worker names from database
+    const customWorkers = await db
+      .select({ name: workers.name })
+      .from(workers)
+      .where(eq(workers.isPredefined, false));
+    
+    const customNames = customWorkers.map(w => w.name);
+    
+    // Combine predefined and custom names, then add "عامل جديد"
+    return [...predefinedNames, ...customNames, "عامل جديد"];
+  }
+
   async createWorker(insertWorker: InsertWorker): Promise<Worker> {
+    const predefinedNames = ["مصطفى", "حسام", "زياد", "حسن", "يحيى", "محمد العلي", "سليمان", "علي"];
+    const isPredefined = predefinedNames.includes(insertWorker.name);
+    
     const [worker] = await db
       .insert(workers)
-      .values(insertWorker)
+      .values({
+        ...insertWorker,
+        isPredefined
+      })
       .returning();
     return worker;
   }

@@ -14,6 +14,7 @@ export const workers = pgTable("workers", {
   phoneNumber: varchar("phone_number", { length: 20 }),
   address: varchar("address", { length: 255 }),
   isActive: boolean("is_active").default(true),
+  isPredefined: boolean("is_predefined").default(false),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

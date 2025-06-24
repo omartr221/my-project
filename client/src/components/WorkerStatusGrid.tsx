@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { insertWorkerSchema, type WorkerWithTasks, type InsertWorker } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -20,7 +20,7 @@ interface WorkerStatusGridProps {
 }
 
 const predefinedWorkers = [
-  "مصطفى", "حسام", "زياد", "حسن", "يحيى", "محمد العلي", "سليمان", "علي", "عامل جديد"
+  "مصطفى", "حسام", "زياد", "حسن", "يحيى", "محمد العلي", "سليمان", "علي"
 ];
 
 const workerCategories = [
@@ -36,6 +36,10 @@ export default function WorkerStatusGrid({
 }: WorkerStatusGridProps) {
   const { toast } = useToast();
   const [isNewWorker, setIsNewWorker] = useState(false);
+
+  const { data: workerNames } = useQuery({
+    queryKey: ['/api/workers/names'],
+  });
   
   const form = useForm<InsertWorker>({
     resolver: zodResolver(insertWorkerSchema),
@@ -57,13 +61,15 @@ export default function WorkerStatusGrid({
       const response = await apiRequest("POST", "/api/workers", data);
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (newWorker) => {
       queryClient.invalidateQueries({ queryKey: ['/api/workers'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/workers/names'] });
       queryClient.invalidateQueries({ queryKey: ['/api/stats'] });
       form.reset();
+      setIsNewWorker(false);
       toast({
         title: "تم إنشاء العامل بنجاح",
-        description: `تم تسجيل العامل ${form.getValues('name')} بنجاح`,
+        description: `تم إضافة العامل ${newWorker.name} إلى قائمة الأسماء`,
       });
     },
     onError: (error) => {
@@ -129,7 +135,7 @@ export default function WorkerStatusGrid({
                                   <SelectValue placeholder="اختر العامل" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  {predefinedWorkers.map((name) => (
+                                  {(workerNames || predefinedWorkers).map((name) => (
                                     <SelectItem key={name} value={name}>
                                       {name}
                                     </SelectItem>

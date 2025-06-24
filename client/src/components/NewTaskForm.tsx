@@ -36,6 +36,10 @@ export default function NewTaskForm() {
     queryKey: ['/api/workers'],
   });
 
+  const { data: workerNames } = useQuery({
+    queryKey: ['/api/workers/names'],
+  });
+
   const form = useForm<TaskFormData>({
     resolver: zodResolver(taskFormSchema),
     defaultValues: {
@@ -78,6 +82,11 @@ export default function NewTaskForm() {
 
   // Get available workers (not currently busy)
   const availableWorkers = workers?.filter(worker => worker.isAvailable) || [];
+  
+  // Filter worker names to only show available workers
+  const availableWorkerNames = workerNames?.filter(name => 
+    name === "عامل جديد" || availableWorkers.some(worker => worker.name === name)
+  ) || [];
 
   return (
     <Card>
@@ -106,16 +115,21 @@ export default function NewTaskForm() {
                           <SelectValue placeholder="اختر العامل" />
                         </SelectTrigger>
                         <SelectContent>
-                          {availableWorkers.length === 0 ? (
+                          {availableWorkerNames.length === 0 ? (
                             <SelectItem value="0" disabled>
                               لا يوجد عمال متاحين
                             </SelectItem>
                           ) : (
-                            availableWorkers.map((worker) => (
-                              <SelectItem key={worker.id} value={worker.id.toString()}>
-                                {worker.name}
-                              </SelectItem>
-                            ))
+                            availableWorkerNames
+                              .filter(name => name !== "عامل جديد")
+                              .map((workerName) => {
+                                const worker = availableWorkers.find(w => w.name === workerName);
+                                return worker ? (
+                                  <SelectItem key={worker.id} value={worker.id.toString()}>
+                                    {worker.name}
+                                  </SelectItem>
+                                ) : null;
+                              })
                           )}
                         </SelectContent>
                       </Select>

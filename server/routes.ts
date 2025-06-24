@@ -24,6 +24,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get all worker names (for dropdown)
+  app.get("/api/workers/names", async (req, res) => {
+    try {
+      const workers = await storage.getAllWorkerNames();
+      res.json(workers);
+    } catch (error) {
+      console.error("Error fetching worker names:", error);
+      res.status(500).json({ message: "Failed to fetch worker names" });
+    }
+  });
+
   app.post("/api/workers", async (req, res) => {
     try {
       const workerData = insertWorkerSchema.parse(req.body);
