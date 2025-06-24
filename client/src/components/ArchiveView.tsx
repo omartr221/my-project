@@ -6,15 +6,19 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
-import { Archive, Search, Download, FolderArchive } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Archive, Search, Download, FolderArchive, Calendar as CalendarIcon, Printer, FileText } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { formatDuration, formatTime, formatDate, getCarBrandInArabic, getTaskStatusInArabic, getTaskStatusColor } from "@/lib/utils";
+import { formatDuration, formatTime, formatDate, getCarBrandInArabic, getTaskStatusInArabic, getTaskStatusColor, cn } from "@/lib/utils";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { type TaskHistory } from "@shared/schema";
+import { format } from "date-fns";
+import { ar } from "date-fns/locale";
 
 const archiveFormSchema = z.object({
   archivedBy: z.string().min(1, "يجب إدخال اسم المؤرشف"),
@@ -27,6 +31,12 @@ export default function ArchiveView() {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [dateRange, setDateRange] = useState<{from: Date | undefined, to: Date | undefined}>({
+    from: undefined,
+    to: undefined
+  });
+  const [viewMode, setViewMode] = useState<"all" | "date" | "range">("all");
 
   // Fetch archived tasks
   const { data: archivedTasks, isLoading: loadingArchive } = useQuery({
@@ -96,8 +106,186 @@ export default function ArchiveView() {
   };
 
   const completedTasks = taskHistory?.filter(task => task.status === 'completed') || [];
-  const displayTasks = searchTerm.length > 2 ? searchResults : archivedTasks;
+  
+  // Filter tasks based on view mode
+  const getFilteredTasks = () => {
+    let baseTasks = searchTerm.length > 2 ? searchResults : archivedTasks;
+    if (!baseTasks) return [];
+
+    switch (viewMode) {
+      case "date":
+        if (!selectedDate) return baseTasks;
+        return baseTasks.filter(task => {
+          if (!task.archivedAt) return false;
+          const taskDate = new Date(task.archivedAt);
+          return taskDate.toDateString() === selectedDate.toDateString();
+        });
+      
+      case "range":
+        if (!dateRange.from || !dateRange.to) return baseTasks;
+        return baseTasks.filter(task => {
+          if (!task.archivedAt) return false;
+          const taskDate = new Date(task.archivedAt);
+          return taskDate >= dateRange.from! && taskDate <= dateRange.to!;
+        });
+      
+      default:
+        return baseTasks;
+    }
+  };
+
+  const displayTasks = getFilteredTasks();
   const isLoading = searchTerm.length > 2 ? loadingSearch : loadingArchive;
+
+  const handlePrint = () => {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+
+    const printContent = generatePrintContent(displayTasks);
+    printWindow.document.write(printContent);
+    printWindow.document.close();
+    printWindow.print();
+  };
+
+  const generatePrintContent = (tasks: TaskHistory[]) => {
+    const currentDate = format(new Date(), 'PPP', { locale: ar });
+    const totalTasks = tasks.length;
+    const totalDuration = tasks.reduce((sum, task) => sum + task.totalDuration, 0);
+
+    return `
+      <!DOCTYPE html>
+      <html dir="rtl" lang="ar">
+      <head>
+        <meta charset="UTF-8">
+        <title>تقرير الأرشيف - V POWER TUNING</title>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            color: #333;
+            direction: rtl;
+          }
+          .header {
+            text-align: center;
+            border-bottom: 2px solid #333;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+          }
+          .company-name {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1a365d;
+            margin-bottom: 10px;
+          }
+          .report-title {
+            font-size: 18px;
+            color: #2d3748;
+            margin-bottom: 5px;
+          }
+          .report-date {
+            color: #718096;
+            font-size: 14px;
+          }
+          .summary {
+            background-color: #f7fafc;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+          }
+          .summary-item {
+            display: inline-block;
+            margin-left: 30px;
+            font-weight: bold;
+          }
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+          }
+          th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: right;
+          }
+          th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+          }
+          tr:nth-child(even) {
+            background-color: #f9f9f9;
+          }
+          .status-active { background-color: #fed7d7; color: #c53030; }
+          .status-paused { background-color: #fefcbf; color: #d69e2e; }
+          .status-completed { background-color: #c6f6d5; color: #2f855a; }
+          .status-archived { background-color: #bee3f8; color: #2b6cb0; }
+          .footer {
+            margin-top: 30px;
+            text-align: center;
+            color: #718096;
+            font-size: 12px;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 15px;
+          }
+          @media print {
+            body { margin: 0; }
+            .no-print { display: none; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div class="company-name">V POWER TUNING</div>
+          <div class="report-title">تقرير أرشيف المهام</div>
+          <div class="report-date">تاريخ التقرير: ${currentDate}</div>
+        </div>
+        
+        <div class="summary">
+          <span class="summary-item">إجمالي المهام: ${totalTasks}</span>
+          <span class="summary-item">إجمالي الوقت: ${formatDuration(totalDuration)}</span>
+          <span class="summary-item">النوع: ${viewMode === 'all' ? 'جميع المهام' : viewMode === 'date' ? 'يوم محدد' : 'فترة زمنية'}</span>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>العامل</th>
+              <th>المهمة</th>
+              <th>السيارة</th>
+              <th>المدة</th>
+              <th>تاريخ الأرشفة</th>
+              <th>المؤرشف بواسطة</th>
+              <th>الحالة</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${tasks.map(task => `
+              <tr>
+                <td>${task.worker.name}</td>
+                <td>
+                  ${task.description}
+                  ${task.archiveNotes ? `<br><small>ملاحظات: ${task.archiveNotes}</small>` : ''}
+                </td>
+                <td>
+                  ${getCarBrandInArabic(task.carBrand)}<br>
+                  <small>${task.carModel} - ${task.licensePlate}</small>
+                </td>
+                <td>${formatDuration(task.totalDuration)}</td>
+                <td>${task.archivedAt ? format(new Date(task.archivedAt), 'PP', { locale: ar }) : '--'}</td>
+                <td>${task.archivedBy || '--'}</td>
+                <td class="status-${task.status}">${getTaskStatusInArabic(task.status)}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+
+        <div class="footer">
+          تم إنشاء هذا التقرير بواسطة نظام إدارة الوقت - V POWER TUNING<br>
+          جميع الحقوق محفوظة © 2025
+        </div>
+      </body>
+      </html>
+    `;
+  };
 
   return (
     <div className="space-y-6">
@@ -199,32 +387,153 @@ export default function ArchiveView() {
           </CardContent>
         </Card>
 
-        {/* Search Archive */}
+        {/* Search and Filter Archive */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center">
               <Search className="ml-2 h-5 w-5" />
-              البحث في الأرشيف
+              البحث والتصفية
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSearch} className="space-y-4">
-              <div className="flex space-x-reverse space-x-2">
-                <Input
-                  type="text"
-                  placeholder="ابحث في الوصف، الموديل، رقم اللوحة، أو الملاحظات..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="flex-1"
-                />
-                <Button type="submit" disabled={searchTerm.length < 3}>
-                  <Search className="h-4 w-4" />
+            <div className="space-y-4">
+              {/* Search */}
+              <form onSubmit={handleSearch}>
+                <div className="flex space-x-reverse space-x-2">
+                  <Input
+                    type="text"
+                    placeholder="ابحث في الوصف، الموديل، رقم اللوحة، أو الملاحظات..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="flex-1"
+                  />
+                  <Button type="submit" disabled={searchTerm.length < 3}>
+                    <Search className="h-4 w-4" />
+                  </Button>
+                </div>
+              </form>
+
+              {/* Date Filter Buttons */}
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  variant={viewMode === "all" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setViewMode("all")}
+                >
+                  جميع المهام
+                </Button>
+                <Button
+                  variant={viewMode === "date" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setViewMode("date")}
+                >
+                  يوم محدد
+                </Button>
+                <Button
+                  variant={viewMode === "range" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setViewMode("range")}
+                >
+                  فترة زمنية
                 </Button>
               </div>
-              <p className="text-xs text-gray-500">
-                أدخل على الأقل 3 أحرف للبحث
-              </p>
-            </form>
+
+              {/* Date Pickers */}
+              {viewMode === "date" && (
+                <div className="flex items-center space-x-reverse space-x-2">
+                  <label className="text-sm font-medium">التاريخ:</label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "justify-start text-right font-normal",
+                          !selectedDate && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="ml-2 h-4 w-4" />
+                        {selectedDate ? (
+                          format(selectedDate, "PPP", { locale: ar })
+                        ) : (
+                          <span>اختر التاريخ</span>
+                        )}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={selectedDate}
+                        onSelect={setSelectedDate}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              )}
+
+              {viewMode === "range" && (
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">من:</label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "justify-start text-right font-normal w-full",
+                            !dateRange.from && "text-muted-foreground"
+                          )}
+                        >
+                          <CalendarIcon className="ml-2 h-4 w-4" />
+                          {dateRange.from ? (
+                            format(dateRange.from, "PPP", { locale: ar })
+                          ) : (
+                            <span>التاريخ الأول</span>
+                          )}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={dateRange.from}
+                          onSelect={(date) => setDateRange(prev => ({ ...prev, from: date }))}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">إلى:</label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "justify-start text-right font-normal w-full",
+                            !dateRange.to && "text-muted-foreground"
+                          )}
+                        >
+                          <CalendarIcon className="ml-2 h-4 w-4" />
+                          {dateRange.to ? (
+                            format(dateRange.to, "PPP", { locale: ar })
+                          ) : (
+                            <span>التاريخ الثاني</span>
+                          )}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={dateRange.to}
+                          onSelect={(date) => setDateRange(prev => ({ ...prev, to: date }))}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                </div>
+              )}
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -233,14 +542,29 @@ export default function ArchiveView() {
       <Card>
         <CardHeader>
           <div className="flex justify-between items-center">
-            <CardTitle className="flex items-center">
-              <Archive className="ml-2 h-5 w-5" />
-              {searchTerm.length > 2 ? `نتائج البحث: "${searchTerm}"` : "الأرشيف"}
-            </CardTitle>
-            <Button className="bg-green-600 hover:bg-green-700">
-              <Download className="ml-2 h-4 w-4" />
-              تصدير الأرشيف
-            </Button>
+            <div>
+              <CardTitle className="flex items-center">
+                <Archive className="ml-2 h-5 w-5" />
+                {searchTerm.length > 2 ? `نتائج البحث: "${searchTerm}"` : "الأرشيف"}
+              </CardTitle>
+              <p className="text-sm text-gray-600 mt-1">
+                {displayTasks?.length || 0} مهمة
+                {viewMode === "date" && selectedDate && ` - ${format(selectedDate, "PPP", { locale: ar })}`}
+                {viewMode === "range" && dateRange.from && dateRange.to && 
+                  ` - من ${format(dateRange.from, "PP", { locale: ar })} إلى ${format(dateRange.to, "PP", { locale: ar })}`
+                }
+              </p>
+            </div>
+            <div className="flex space-x-reverse space-x-2">
+              <Button onClick={handlePrint} className="bg-blue-600 hover:bg-blue-700">
+                <Printer className="ml-2 h-4 w-4" />
+                طباعة التقرير
+              </Button>
+              <Button className="bg-green-600 hover:bg-green-700">
+                <Download className="ml-2 h-4 w-4" />
+                تصدير Excel
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
