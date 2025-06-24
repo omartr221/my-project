@@ -662,7 +662,13 @@ export default function ArchiveView() {
                         )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {task.archivedAt ? formatDate(new Date(task.archivedAt)) : '--'}
+                        {task.archivedAt ? new Date(task.archivedAt).toLocaleDateString('ar-EG', {
+                          day: 'numeric',
+                          month: 'numeric',
+                          year: 'numeric',
+                          calendar: 'gregory',
+                          timeZone: 'Asia/Damascus'
+                        }) : '--'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {task.archivedBy || '--'}
