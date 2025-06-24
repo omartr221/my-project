@@ -10,6 +10,9 @@ export const workers = pgTable("workers", {
   supervisor: varchar("supervisor", { length: 100 }),
   assistant: varchar("assistant", { length: 100 }),
   engineer: varchar("engineer", { length: 100 }),
+  nationalId: varchar("national_id", { length: 20 }),
+  phoneNumber: varchar("phone_number", { length: 20 }),
+  address: varchar("address", { length: 255 }),
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -19,6 +22,8 @@ export const tasks = pgTable("tasks", {
   workerId: integer("worker_id").notNull().references(() => workers.id),
   description: varchar("description", { length: 500 }).notNull(),
   carBrand: varchar("car_brand", { length: 50 }).notNull(), // audi, seat, skoda, volkswagen
+  carModel: varchar("car_model", { length: 100 }).notNull(),
+  licensePlate: varchar("license_plate", { length: 20 }).notNull(),
   status: varchar("status", { length: 20 }).notNull().default("active"), // active, paused, completed
   startTime: timestamp("start_time").defaultNow(),
   endTime: timestamp("end_time"),
@@ -61,12 +66,19 @@ export const timeEntriesRelations = relations(timeEntries, ({ one }) => ({
 export const insertWorkerSchema = createInsertSchema(workers).omit({
   id: true,
   createdAt: true,
+}).extend({
+  nationalId: z.string().optional(),
+  phoneNumber: z.string().optional(),
+  address: z.string().optional(),
 });
 
 export const insertTaskSchema = createInsertSchema(tasks).omit({
   id: true,
   createdAt: true,
   startTime: true,
+}).extend({
+  carModel: z.string().min(1, "يجب إدخال موديل السيارة"),
+  licensePlate: z.string().min(1, "يجب إدخال رقم اللوحة"),
 });
 
 export const insertTimeEntrySchema = createInsertSchema(timeEntries).omit({

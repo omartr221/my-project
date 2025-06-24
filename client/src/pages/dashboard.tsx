@@ -55,6 +55,14 @@ export default function Dashboard() {
                       <p className="text-2xl font-bold text-primary">
                         {stats?.totalWorkers || 0}
                       </p>
+                      {workers && workers.length > 0 && (
+                        <div className="mt-2">
+                          <p className="text-xs text-gray-500">الأسماء:</p>
+                          <p className="text-xs text-gray-600">
+                            {workers.map(w => w.name).join('، ')}
+                          </p>
+                        </div>
+                      )}
                     </div>
                     <Users className="h-8 w-8 text-primary opacity-20" />
                   </div>

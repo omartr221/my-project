@@ -141,6 +141,9 @@ export default function ActiveTimers({
                       <p className="text-sm text-gray-600">
                         {task.description} - {getCarBrandInArabic(task.carBrand)}
                       </p>
+                      <p className="text-xs text-gray-500">
+                        {task.carModel} - {task.licensePlate}
+                      </p>
                     </div>
                     <div className="text-left">
                       <p className={`timer-display ${isActive ? 'error' : 'warning'}`}>

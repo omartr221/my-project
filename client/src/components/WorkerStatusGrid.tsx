@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Users, Plus } from "lucide-react";
@@ -19,7 +20,7 @@ interface WorkerStatusGridProps {
 }
 
 const predefinedWorkers = [
-  "مصطفى", "حسام", "زياد", "حسن", "يحيى", "محمد العلي", "سليمان", "علي"
+  "مصطفى", "حسام", "زياد", "حسن", "يحيى", "محمد العلي", "سليمان", "علي", "عامل جديد"
 ];
 
 const workerCategories = [
@@ -34,6 +35,7 @@ export default function WorkerStatusGrid({
   showManagement = false 
 }: WorkerStatusGridProps) {
   const { toast } = useToast();
+  const [isNewWorker, setIsNewWorker] = useState(false);
   
   const form = useForm<InsertWorker>({
     resolver: zodResolver(insertWorkerSchema),
@@ -43,6 +45,9 @@ export default function WorkerStatusGrid({
       supervisor: "",
       assistant: "",
       engineer: "",
+      nationalId: "",
+      phoneNumber: "",
+      address: "",
       isActive: true,
     },
   });
@@ -103,18 +108,35 @@ export default function WorkerStatusGrid({
                         <FormItem>
                           <FormLabel>اسم العامل</FormLabel>
                           <FormControl>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                              <SelectTrigger>
-                                <SelectValue placeholder="اختر العامل" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {predefinedWorkers.map((name) => (
-                                  <SelectItem key={name} value={name}>
-                                    {name}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+                            {isNewWorker ? (
+                              <Input 
+                                placeholder="أدخل اسم العامل الجديد" 
+                                {...field} 
+                              />
+                            ) : (
+                              <Select 
+                                onValueChange={(value) => {
+                                  if (value === "عامل جديد") {
+                                    setIsNewWorker(true);
+                                    field.onChange("");
+                                  } else {
+                                    field.onChange(value);
+                                  }
+                                }} 
+                                defaultValue={field.value}
+                              >
+                                <SelectTrigger>
+                                  <SelectValue placeholder="اختر العامل" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {predefinedWorkers.map((name) => (
+                                    <SelectItem key={name} value={name}>
+                                      {name}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            )}
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -188,7 +210,66 @@ export default function WorkerStatusGrid({
                       )}
                     />
 
+                    {isNewWorker && (
+                      <>
+                        <FormField
+                          control={form.control}
+                          name="nationalId"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>الرقم الوطني</FormLabel>
+                              <FormControl>
+                                <Input placeholder="الرقم الوطني" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="phoneNumber"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>رقم الهاتف</FormLabel>
+                              <FormControl>
+                                <Input placeholder="رقم الهاتف" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="address"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>عنوان السكن</FormLabel>
+                              <FormControl>
+                                <Input placeholder="عنوان السكن" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </>
+                    )}
+
                     <div className="flex space-x-reverse space-x-3 pt-4">
+                      {isNewWorker && (
+                        <Button 
+                          type="button"
+                          variant="outline"
+                          onClick={() => {
+                            setIsNewWorker(false);
+                            form.reset();
+                          }}
+                          className="flex-1"
+                        >
+                          عودة للقائمة
+                        </Button>
+                      )}
                       <Button 
                         type="submit" 
                         disabled={createWorkerMutation.isPending}

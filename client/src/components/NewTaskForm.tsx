@@ -16,6 +16,8 @@ const taskFormSchema = insertTaskSchema.extend({
   workerId: z.number().min(1, "يجب اختيار العامل"),
   description: z.string().min(1, "يجب إدخال وصف المهمة"),
   carBrand: z.string().min(1, "يجب اختيار نوع السيارة"),
+  carModel: z.string().min(1, "يجب إدخال موديل السيارة"),
+  licensePlate: z.string().min(1, "يجب إدخال رقم اللوحة"),
 });
 
 type TaskFormData = z.infer<typeof taskFormSchema>;
@@ -40,6 +42,8 @@ export default function NewTaskForm() {
       workerId: 0,
       description: "",
       carBrand: "",
+      carModel: "",
+      licensePlate: "",
     },
   });
 
@@ -86,7 +90,7 @@ export default function NewTaskForm() {
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <FormField
                 control={form.control}
                 name="workerId"
@@ -140,6 +144,40 @@ export default function NewTaskForm() {
                           ))}
                         </SelectContent>
                       </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="carModel"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>موديل السيارة</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="مثال: A4 2020" 
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="licensePlate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>رقم اللوحة</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="مثال: أ ب ج 1234" 
+                        {...field} 
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
