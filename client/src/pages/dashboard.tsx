@@ -41,6 +41,10 @@ export default function Dashboard() {
     queryKey: ['/api/tasks/active'],
   });
 
+  const { data: allTasks } = useQuery({
+    queryKey: ['/api/tasks/history'],
+  });
+
   const renderTabContent = () => {
     switch (activeTab) {
       case "dashboard":

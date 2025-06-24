@@ -108,6 +108,7 @@ Changelog:
 - June 24, 2025. Enhanced archive with date filtering and print functionality for reporting
 - June 24, 2025. Added estimated time tracking and worker team details display
 - June 24, 2025. Updated timezone to Syria local time (Damascus/UTC+3) for all dates and times
+- June 24, 2025. Changed header color from blue to red-gray gradient and added task names display in dashboard
 
 ## User Preferences
 
