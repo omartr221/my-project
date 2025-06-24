@@ -170,7 +170,15 @@ export default function Dashboard() {
                 </span>
               </div>
               <span className="text-sm">{formatTime(currentTime)}</span>
-              <span className="text-sm">{formatDate(currentTime)}</span>
+              <span className="text-sm">
+                {new Intl.DateTimeFormat('ar-EG', {
+                  day: 'numeric',
+                  month: 'numeric',
+                  year: 'numeric',
+                  calendar: 'gregory',
+                  timeZone: 'Asia/Damascus'
+                }).format(currentTime)}
+              </span>
             </div>
           </div>
         </div>
