@@ -161,16 +161,10 @@ export default function ActiveTimers({
                   {showControls && (
                     <div className="flex space-x-reverse space-x-2">
                       {isActive ? (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => pauseTaskMutation.mutate(task.id)}
+                        <PauseTaskDialog 
+                          taskId={task.id} 
                           disabled={pauseTaskMutation.isPending}
-                          className="warning-bg"
-                        >
-                          <Pause className="ml-1 h-3 w-3" />
-                          إيقاف
-                        </Button>
+                        />
                       ) : (
                         <Button
                           size="sm"
