@@ -104,9 +104,12 @@ export default function PausedTasksList({ tasks }: PausedTasksListProps) {
                   )}
                   
                   {task.pausedAt && (
-                    <p className="text-xs text-gray-500 mt-1">
-                      تم الإيقاف في: {formatTime(new Date(task.pausedAt))}
-                    </p>
+                    <div className="text-xs text-gray-500 mt-1">
+                      <p>تم الإيقاف في: {formatTime(new Date(task.pausedAt))}</p>
+                      <p className="text-orange-600 font-medium">
+                        ⏸️ المؤقت متوقف - اضغط "بدء المهمة" للاستمرار
+                      </p>
+                    </div>
                   )}
                 </div>
                 

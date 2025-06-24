@@ -106,9 +106,21 @@ export default function ActiveTimers({
     if (!task.startTime) return 0;
     
     const startTime = new Date(task.startTime).getTime();
+    
+    // If task is paused, don't count time since pause
+    if (task.status === "paused") {
+      if (task.pausedAt) {
+        const pausedAt = new Date(task.pausedAt).getTime();
+        const timeUntilPause = Math.floor((pausedAt - startTime) / 1000);
+        const previousPausedDuration = task.totalPausedDuration || 0;
+        return Math.max(0, timeUntilPause - previousPausedDuration);
+      }
+      return 0;
+    }
+    
+    // For active tasks, calculate total time minus paused durations
     const elapsed = Math.floor((currentTime - startTime) / 1000);
     const pausedDuration = task.totalPausedDuration || 0;
-    
     return Math.max(0, elapsed - pausedDuration);
   };
 
