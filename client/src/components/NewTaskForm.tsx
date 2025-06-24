@@ -137,9 +137,6 @@ export default function NewTaskForm() {
   
   // Get all workers
   const allWorkers = workers || [];
-  
-  // Show predefined names always
-  const availableWorkerNames = predefinedWorkerNames;
 
   return (
     <Card>
@@ -168,7 +165,7 @@ export default function NewTaskForm() {
                           <SelectValue placeholder="اختر العامل" />
                         </SelectTrigger>
                         <SelectContent>
-                          {availableWorkerNames.map((workerName, index) => {
+                          {predefinedWorkerNames.map((workerName, index) => {
                             // Check if worker exists in database
                             const existingWorker = allWorkers.find(w => w.name === workerName);
                             if (existingWorker) {
@@ -261,7 +258,7 @@ export default function NewTaskForm() {
                     <FormLabel>وصف المهمة</FormLabel>
                     <FormControl>
                       <Input 
-                        placeholder="مثال: صيانة دورية" 
+                        placeholder="مثال: صيانة دورية - تغيير زيت" 
                         {...field} 
                       />
                     </FormControl>
@@ -275,13 +272,12 @@ export default function NewTaskForm() {
                 name="estimatedDuration"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>الوقت المقدر (دقيقة) - اختياري</FormLabel>
+                    <FormLabel>الوقت المقدر (بالدقائق)</FormLabel>
                     <FormControl>
                       <Input 
-                        type="number" 
-                        placeholder="60" 
-                        min="1"
-                        value={field.value || ""}
+                        type="number"
+                        placeholder="60"
+                        {...field}
                         onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
                       />
                     </FormControl>
@@ -289,18 +285,16 @@ export default function NewTaskForm() {
                   </FormItem>
                 )}
               />
-
-              <div className="flex items-end">
-                <Button 
-                  type="submit" 
-                  disabled={createTaskMutation.isPending || availableWorkers.length === 0}
-                  className="w-full"
-                >
-                  <Play className="ml-2 h-4 w-4" />
-                  {createTaskMutation.isPending ? "جاري البدء..." : "بدء المهمة"}
-                </Button>
-              </div>
             </div>
+
+            <Button 
+              type="submit" 
+              className="w-full" 
+              disabled={createTaskMutation.isPending}
+            >
+              <Play className="ml-2 h-4 w-4" />
+              {createTaskMutation.isPending ? "جاري الإنشاء..." : "بدء المهمة"}
+            </Button>
           </form>
         </Form>
       </CardContent>
