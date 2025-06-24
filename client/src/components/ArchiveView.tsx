@@ -167,44 +167,191 @@ export default function ArchiveView() {
 
       console.log('نافذة مفتوحة، إنشاء المحتوى');
       
-      // محتوى مبسط للاختبار
-      const simpleContent = `
+      // تقرير شامل مع جميع الخانات
+      const currentDate = new Date().toLocaleDateString('ar-EG', {
+        day: 'numeric',
+        month: 'long', 
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+      
+      const totalDuration = displayTasks.reduce((sum, task) => sum + task.totalDuration, 0);
+      
+      const comprehensiveContent = `
         <!DOCTYPE html>
         <html dir="rtl" lang="ar">
         <head>
           <meta charset="UTF-8">
-          <title>تقرير الأرشيف</title>
+          <title>تقرير الأرشيف الكامل - V POWER TUNING</title>
           <style>
-            body { font-family: Arial, sans-serif; direction: rtl; padding: 20px; }
-            h1 { color: #2563eb; text-align: center; }
-            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-            th, td { border: 1px solid #ddd; padding: 8px; text-align: right; }
-            th { background-color: #f8f9fa; }
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { 
+              font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+              direction: rtl; 
+              padding: 20px; 
+              background: white;
+              color: #333;
+              line-height: 1.4;
+            }
+            .header {
+              text-align: center;
+              border-bottom: 3px solid #2563eb;
+              padding-bottom: 20px;
+              margin-bottom: 30px;
+            }
+            .company-name {
+              font-size: 28px;
+              font-weight: bold;
+              color: #2563eb;
+              margin-bottom: 8px;
+            }
+            .report-title {
+              font-size: 20px;
+              color: #1f2937;
+              margin-bottom: 8px;
+            }
+            .report-date {
+              font-size: 14px;
+              color: #6b7280;
+            }
+            .summary {
+              background: #f8fafc;
+              padding: 15px;
+              border-radius: 8px;
+              margin-bottom: 25px;
+              text-align: center;
+              border: 1px solid #e2e8f0;
+            }
+            .summary-item {
+              display: inline-block;
+              margin: 0 15px;
+              font-weight: bold;
+              color: #1f2937;
+              font-size: 14px;
+            }
+            table { 
+              width: 100%; 
+              border-collapse: collapse; 
+              margin-top: 20px;
+              font-size: 11px;
+            }
+            th, td { 
+              border: 1px solid #ddd; 
+              padding: 6px; 
+              text-align: right;
+              vertical-align: top;
+            }
+            th { 
+              background-color: #f8f9fa; 
+              font-weight: bold;
+              font-size: 12px;
+            }
+            tr:nth-child(even) { background-color: #f9f9f9; }
+            .status-completed { background-color: #d4edda; color: #155724; font-weight: bold; }
+            .status-archived { background-color: #d1ecf1; color: #0c5460; font-weight: bold; }
+            .performance-good { color: #28a745; font-weight: bold; }
+            .performance-delayed { color: #dc3545; font-weight: bold; }
+            .footer {
+              margin-top: 25px;
+              text-align: center;
+              color: #718096;
+              font-size: 11px;
+              border-top: 1px solid #e2e8f0;
+              padding-top: 15px;
+            }
+            @media print {
+              body { margin: 0; padding: 15px; }
+              .no-print { display: none; }
+            }
           </style>
         </head>
         <body>
-          <h1>V POWER TUNING - تقرير الأرشيف</h1>
-          <p>عدد المهام: ${displayTasks.length}</p>
+          <div class="header">
+            <div class="company-name">V POWER TUNING</div>
+            <div class="report-title">تقرير أرشيف المهام الكامل</div>
+            <div class="report-date">تاريخ التقرير: ${currentDate}</div>
+          </div>
+          
+          <div class="summary">
+            <span class="summary-item">إجمالي المهام: ${displayTasks.length}</span>
+            <span class="summary-item">إجمالي الوقت: ${formatDuration(totalDuration)}</span>
+            <span class="summary-item">متوسط الوقت للمهمة: ${displayTasks.length > 0 ? formatDuration(Math.round(totalDuration / displayTasks.length)) : '0'}</span>
+          </div>
+
           <table>
             <thead>
               <tr>
-                <th>العامل</th>
-                <th>المهمة</th>
-                <th>السيارة</th>
-                <th>التاريخ</th>
+                <th style="width: 12%;">العامل</th>
+                <th style="width: 20%;">وصف المهمة</th>
+                <th style="width: 15%;">تفاصيل السيارة</th>
+                <th style="width: 10%;">الوقت المقدر</th>
+                <th style="width: 10%;">الوقت الفعلي</th>
+                <th style="width: 8%;">الأداء</th>
+                <th style="width: 12%;">تاريخ الأرشفة</th>
+                <th style="width: 8%;">المؤرشف بواسطة</th>
+                <th style="width: 5%;">الحالة</th>
               </tr>
             </thead>
             <tbody>
-              ${displayTasks.map(task => `
-                <tr>
-                  <td>${task.worker.name}</td>
-                  <td>${task.description}</td>
-                  <td>${getCarBrandInArabic(task.carBrand)} - ${task.carModel}</td>
-                  <td>${task.archivedAt ? new Date(task.archivedAt).toLocaleDateString() : '--'}</td>
-                </tr>
-              `).join('')}
+              ${displayTasks.map(task => {
+                // حساب الأداء
+                let performance = 'غير محدد';
+                let performanceClass = '';
+                if (task.estimatedDuration && task.estimatedDuration > 0) {
+                  const estimatedSeconds = task.estimatedDuration * 60;
+                  if (task.totalDuration <= estimatedSeconds) {
+                    performance = 'في الوقت المحدد';
+                    performanceClass = 'performance-good';
+                  } else {
+                    const delay = task.totalDuration - estimatedSeconds;
+                    performance = `متأخر بـ ${formatDuration(delay)}`;
+                    performanceClass = 'performance-delayed';
+                  }
+                }
+                
+                // تنسيق التاريخ
+                let archiveDate = '--';
+                if (task.archivedAt) {
+                  try {
+                    archiveDate = new Date(task.archivedAt).toLocaleDateString('ar-EG', {
+                      day: 'numeric',
+                      month: 'numeric',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    });
+                  } catch (e) {
+                    archiveDate = new Date(task.archivedAt).toLocaleDateString();
+                  }
+                }
+                
+                return `
+                  <tr>
+                    <td><strong>${task.worker.name}</strong><br>
+                        <small>${getWorkerCategoryInArabic(task.worker.category)}</small></td>
+                    <td>${task.description}
+                        ${task.archiveNotes ? `<br><small style="color: #666;">ملاحظات: ${task.archiveNotes}</small>` : ''}</td>
+                    <td><strong>${getCarBrandInArabic(task.carBrand)}</strong><br>
+                        ${task.carModel}<br>
+                        <small>لوحة: ${task.licensePlate}</small></td>
+                    <td>${task.estimatedDuration ? formatDuration(task.estimatedDuration * 60) : 'غير محدد'}</td>
+                    <td><strong>${formatDuration(task.totalDuration)}</strong></td>
+                    <td class="${performanceClass}">${performance}</td>
+                    <td>${archiveDate}</td>
+                    <td>${task.archivedBy || '--'}</td>
+                    <td class="status-${task.status}">${getTaskStatusInArabic(task.status)}</td>
+                  </tr>
+                `;
+              }).join('')}
             </tbody>
           </table>
+
+          <div class="footer">
+            تم إنشاء هذا التقرير بواسطة نظام توزيع المهام - V POWER TUNING<br>
+            جميع الحقوق محفوظة © 2025 | طُبع في: ${new Date().toLocaleString('ar-EG')}
+          </div>
+          
           <script>
             window.onload = function() {
               setTimeout(() => {
@@ -217,7 +364,7 @@ export default function ArchiveView() {
       `;
 
       console.log('كتابة المحتوى في النافذة');
-      printWindow.document.write(simpleContent);
+      printWindow.document.write(comprehensiveContent);
       printWindow.document.close();
       
       toast({
