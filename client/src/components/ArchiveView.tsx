@@ -270,7 +270,7 @@ export default function ArchiveView() {
                   <small>${task.carModel} - ${task.licensePlate}</small>
                 </td>
                 <td>${formatDuration(task.totalDuration)}</td>
-                <td>${task.archivedAt ? format(utcToZonedTime(new Date(task.archivedAt), 'Asia/Damascus'), 'PP', { locale: ar }) : '--'}</td>
+                <td>${task.archivedAt ? format(utcToZonedTime(new Date(task.archivedAt), 'Asia/Damascus'), 'dd/MM/yyyy HH:mm') : '--'}</td>
                 <td>${task.archivedBy || '--'}</td>
                 <td class="status-${task.status}">${getTaskStatusInArabic(task.status)}</td>
               </tr>
