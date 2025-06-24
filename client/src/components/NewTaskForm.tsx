@@ -362,72 +362,74 @@ export default function NewTaskForm() {
             <DialogTitle>معلومات الفريق</DialogTitle>
           </DialogHeader>
           
-          <div className="space-y-4">
-            <FormField
-              control={form.control}
-              name="engineerName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>اسم المهندس</FormLabel>
-                  <FormControl>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="اختر المهندس" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {predefinedWorkerNames.map((name, index) => (
-                          <SelectItem key={`engineer-${index}`} value={name}>
-                            {name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+          <Form {...form}>
+            <div className="space-y-4">
+              <FormField
+                control={form.control}
+                name="engineerName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>اسم المهندس</FormLabel>
+                    <FormControl>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="اختر المهندس" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {predefinedWorkerNames.map((name, index) => (
+                            <SelectItem key={`engineer-${index}`} value={name}>
+                              {name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <FormField
-              control={form.control}
-              name="supervisorName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>اسم المشرف</FormLabel>
-                  <FormControl>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="اختر المشرف" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {predefinedWorkerNames.map((name, index) => (
-                          <SelectItem key={`supervisor-${index}`} value={name}>
-                            {name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+              <FormField
+                control={form.control}
+                name="supervisorName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>اسم المشرف</FormLabel>
+                    <FormControl>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="اختر المشرف" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {predefinedWorkerNames.map((name, index) => (
+                            <SelectItem key={`supervisor-${index}`} value={name}>
+                              {name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <div className="flex gap-2 pt-4">
-              <Button 
-                onClick={() => setShowTeamDialog(false)}
-                className="flex-1"
-              >
-                تأكيد
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={() => setShowTeamDialog(false)}
-              >
-                إلغاء
-              </Button>
+              <div className="flex gap-2 pt-4">
+                <Button 
+                  onClick={() => setShowTeamDialog(false)}
+                  className="flex-1"
+                >
+                  تأكيد
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShowTeamDialog(false)}
+                >
+                  إلغاء
+                </Button>
+              </div>
             </div>
-          </div>
+          </Form>
         </DialogContent>
       </Dialog>
     </Card>
