@@ -13,7 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
 
 const taskFormSchema = insertTaskSchema.extend({
-  workerId: z.number().min(1, "يجب اختيار العامل"),
+  workerId: z.string().min(1, "يجب اختيار العامل"),
   description: z.string().min(1, "يجب إدخال وصف المهمة"),
   carBrand: z.string().min(1, "يجب اختيار نوع السيارة"),
   carModel: z.string().min(1, "يجب إدخال موديل السيارة"),
@@ -123,7 +123,7 @@ export default function NewTaskForm() {
     
     createTaskMutation.mutate({
       ...data,
-      workerId
+      workerId: parseInt(workerId)
     });
   };
 
