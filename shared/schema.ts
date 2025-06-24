@@ -25,6 +25,7 @@ export const tasks = pgTable("tasks", {
   carBrand: varchar("car_brand", { length: 50 }).notNull(), // audi, seat, skoda, volkswagen
   carModel: varchar("car_model", { length: 100 }).notNull(),
   licensePlate: varchar("license_plate", { length: 20 }).notNull(),
+  estimatedDuration: integer("estimated_duration"), // in minutes
   status: varchar("status", { length: 20 }).notNull().default("active"), // active, paused, completed, archived
   startTime: timestamp("start_time").defaultNow(),
   endTime: timestamp("end_time"),

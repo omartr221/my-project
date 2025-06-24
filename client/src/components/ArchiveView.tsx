@@ -594,6 +594,9 @@ export default function ArchiveView() {
                       المدة
                     </th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      الأداء
+                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                       تاريخ الأرشفة
                     </th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -639,6 +642,24 @@ export default function ArchiveView() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                         {formatDuration(task.totalDuration)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {task.estimatedDuration ? (
+                          <div className="space-y-1">
+                            <div className="text-xs text-gray-500">
+                              مقدر: {formatDuration(task.estimatedDuration * 60)}
+                            </div>
+                            <div className={`text-xs ${
+                              task.totalDuration > task.estimatedDuration * 60 
+                                ? 'text-red-600' 
+                                : 'text-green-600'
+                            }`}>
+                              {task.totalDuration > task.estimatedDuration * 60 ? 'متأخر' : 'في الوقت'}
+                            </div>
+                          </div>
+                        ) : (
+                          <span className="text-gray-400">غير محدد</span>
+                        )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {task.archivedAt ? formatDate(new Date(task.archivedAt)) : '--'}
