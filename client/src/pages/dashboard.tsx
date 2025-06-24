@@ -10,6 +10,7 @@ import NewTaskForm from "@/components/NewTaskForm";
 import TaskHistoryTable from "@/components/TaskHistoryTable";
 import ArchiveView from "@/components/ArchiveView";
 import AddWorkerForm from "@/components/AddWorkerForm";
+import PausedTasksList from "@/components/PausedTasksList";
 
 type TabType = "dashboard" | "timers" | "history" | "archive" | "addworker";
 
@@ -123,8 +124,9 @@ export default function Dashboard() {
 
 
             {/* Active Timers */}
-            <div className="mt-8">
+            <div className="mt-8 space-y-4">
               <ActiveTimers tasks={activeTasks || []} />
+              <PausedTasksList tasks={activeTasks || []} />
             </div>
           </div>
         );
@@ -134,6 +136,7 @@ export default function Dashboard() {
           <div className="space-y-6">
             <NewTaskForm />
             <ActiveTimers tasks={activeTasks || []} showControls />
+            <PausedTasksList tasks={activeTasks || []} />
           </div>
         );
       
