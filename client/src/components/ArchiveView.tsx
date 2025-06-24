@@ -147,133 +147,100 @@ export default function ArchiveView() {
       return;
     }
 
-    try {
-      // إنشاء محتوى مبسط وآمن للطباعة
-      const currentDate = new Date().toLocaleDateString('ar-EG');
-      const totalDuration = displayTasks.reduce((sum, task) => sum + task.totalDuration, 0);
-      
-      let tableRows = '';
-      displayTasks.forEach(task => {
-        // حساب الأداء
-        let performance = 'غير محدد';
-        if (task.estimatedDuration && task.estimatedDuration > 0) {
-          const estimatedSeconds = task.estimatedDuration * 60;
-          if (task.totalDuration <= estimatedSeconds) {
-            performance = 'في الوقت المحدد';
-          } else {
-            const delay = task.totalDuration - estimatedSeconds;
-            performance = 'متأخر بـ ' + formatDuration(delay);
-          }
-        }
+    // استخدام طريقة CSS للطباعة بدلاً من فتح نافذة جديدة
+    const printStyles = `
+      <style media="print">
+        * { font-family: Arial, sans-serif !important; }
+        body { margin: 0; padding: 10px; direction: rtl; }
+        .no-print { display: none !important; }
+        .print-only { display: block !important; }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        th, td { border: 1px solid #000; padding: 4px; text-align: right; }
+        th { background-color: #f0f0f0; font-weight: bold; }
+        @page { margin: 1cm; }
+      </style>
+    `;
+
+    const currentDate = new Date().toLocaleDateString('ar-EG');
+    const totalDuration = displayTasks.reduce((sum, task) => sum + task.totalDuration, 0);
+    
+    const printContent = `
+      <div class="print-only" style="display: none;">
+        <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 10px;">
+          <h1 style="color: #2563eb; margin: 0;">V POWER TUNING</h1>
+          <h2 style="margin: 5px 0;">تقرير أرشيف المهام الكامل</h2>
+          <p>تاريخ التقرير: ${currentDate}</p>
+        </div>
         
-        // تنسيق التاريخ
-        const archiveDate = task.archivedAt ? 
-          new Date(task.archivedAt).toLocaleDateString('ar-EG') : '--';
+        <div style="text-align: center; margin: 15px 0; padding: 10px; background: #f8f9fa;">
+          <strong>إجمالي المهام: ${displayTasks.length}</strong> | 
+          <strong>إجمالي الوقت: ${formatDuration(totalDuration)}</strong>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>العامل</th>
+              <th>المهمة</th>
+              <th>السيارة</th>
+              <th>الوقت المقدر</th>
+              <th>الوقت الفعلي</th>
+              <th>الأداء</th>
+              <th>التاريخ</th>
+              <th>المؤرشف</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${displayTasks.map(task => {
+              let performance = 'غير محدد';
+              if (task.estimatedDuration && task.estimatedDuration > 0) {
+                const estimatedSeconds = task.estimatedDuration * 60;
+                performance = task.totalDuration <= estimatedSeconds ? 'في الوقت' : 'متأخر';
+              }
+              
+              const archiveDate = task.archivedAt ? 
+                new Date(task.archivedAt).toLocaleDateString('ar-EG') : '--';
+              
+              return `
+                <tr>
+                  <td>${task.worker.name}</td>
+                  <td>${task.description}</td>
+                  <td>${getCarBrandInArabic(task.carBrand)} ${task.carModel}</td>
+                  <td>${task.estimatedDuration ? formatDuration(task.estimatedDuration * 60) : 'غير محدد'}</td>
+                  <td>${formatDuration(task.totalDuration)}</td>
+                  <td>${performance}</td>
+                  <td>${archiveDate}</td>
+                  <td>${task.archivedBy || '--'}</td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>
         
-        tableRows += `
-          <tr>
-            <td>${task.worker.name}<br><small>${getWorkerCategoryInArabic(task.worker.category)}</small></td>
-            <td>${task.description}</td>
-            <td>${getCarBrandInArabic(task.carBrand)}<br>${task.carModel}<br>لوحة: ${task.licensePlate}</td>
-            <td>${task.estimatedDuration ? formatDuration(task.estimatedDuration * 60) : 'غير محدد'}</td>
-            <td>${formatDuration(task.totalDuration)}</td>
-            <td style="color: ${task.estimatedDuration && task.totalDuration > task.estimatedDuration * 60 ? '#dc3545' : '#28a745'}">${performance}</td>
-            <td>${archiveDate}</td>
-            <td>${task.archivedBy || '--'}</td>
-            <td>${getTaskStatusInArabic(task.status)}</td>
-          </tr>
-        `;
-      });
+        <div style="margin-top: 20px; text-align: center; font-size: 10px;">
+          نظام توزيع المهام - V POWER TUNING © 2025
+        </div>
+      </div>
+    `;
 
-      const printContent = `
-        <!DOCTYPE html>
-        <html dir="rtl" lang="ar">
-        <head>
-          <meta charset="UTF-8">
-          <title>تقرير الأرشيف - V POWER TUNING</title>
-          <style>
-            body { font-family: Arial, sans-serif; direction: rtl; padding: 20px; }
-            .header { text-align: center; border-bottom: 2px solid #2563eb; padding-bottom: 20px; margin-bottom: 30px; }
-            .company-name { font-size: 24px; font-weight: bold; color: #2563eb; }
-            .report-title { font-size: 18px; margin: 10px 0; }
-            .summary { background: #f8f9fa; padding: 15px; margin: 20px 0; text-align: center; border-radius: 5px; }
-            table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 10px; }
-            th, td { border: 1px solid #ddd; padding: 5px; text-align: right; }
-            th { background-color: #f8f9fa; font-weight: bold; }
-            tr:nth-child(even) { background-color: #f9f9f9; }
-            .footer { margin-top: 30px; text-align: center; font-size: 10px; color: #666; }
-            @media print { body { margin: 0; padding: 10px; } }
-          </style>
-        </head>
-        <body>
-          <div class="header">
-            <div class="company-name">V POWER TUNING</div>
-            <div class="report-title">تقرير أرشيف المهام الكامل</div>
-            <div>تاريخ التقرير: ${currentDate}</div>
-          </div>
-          
-          <div class="summary">
-            <strong>إجمالي المهام: ${displayTasks.length}</strong> |
-            <strong>إجمالي الوقت: ${formatDuration(totalDuration)}</strong> |
-            <strong>متوسط الوقت: ${displayTasks.length > 0 ? formatDuration(Math.round(totalDuration / displayTasks.length)) : '0'}</strong>
-          </div>
+    // إضافة المحتوى إلى الصفحة الحالية
+    const printDiv = document.createElement('div');
+    printDiv.innerHTML = printStyles + printContent;
+    document.body.appendChild(printDiv);
 
-          <table>
-            <thead>
-              <tr>
-                <th>العامل</th>
-                <th>وصف المهمة</th>
-                <th>تفاصيل السيارة</th>
-                <th>الوقت المقدر</th>
-                <th>الوقت الفعلي</th>
-                <th>الأداء</th>
-                <th>تاريخ الأرشفة</th>
-                <th>المؤرشف بواسطة</th>
-                <th>الحالة</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${tableRows}
-            </tbody>
-          </table>
+    // طباعة الصفحة
+    setTimeout(() => {
+      window.print();
+      // إزالة المحتوى بعد الطباعة
+      setTimeout(() => {
+        document.body.removeChild(printDiv);
+      }, 1000);
+    }, 100);
 
-          <div class="footer">
-            تم إنشاء هذا التقرير بواسطة نظام توزيع المهام - V POWER TUNING<br>
-            جميع الحقوق محفوظة © 2025
-          </div>
-          
-          <script>
-            setTimeout(() => { window.print(); }, 500);
-          </script>
-        </body>
-        </html>
-      `;
-
-      const printWindow = window.open('', '_blank');
-      if (printWindow) {
-        printWindow.document.write(printContent);
-        printWindow.document.close();
-        
-        toast({
-          title: "تم فتح التقرير للطباعة",
-          description: "تحقق من النافذة الجديدة",
-        });
-      } else {
-        toast({
-          title: "فشل في فتح نافذة الطباعة",
-          description: "تأكد من السماح للنوافذ المنبثقة",
-          variant: "destructive",
-        });
-      }
-      
-    } catch (error) {
-      console.error('خطأ في الطباعة:', error);
-      toast({
-        title: "خطأ في الطباعة",
-        description: "حاول مرة أخرى",
-        variant: "destructive",
-      });
-    }
+    toast({
+      title: "جاري تحضير التقرير للطباعة",
+      description: "ستظهر نافذة الطباعة قريباً",
+    });
   };
 
   const generatePrintContent = (tasks: TaskHistory[]) => {
