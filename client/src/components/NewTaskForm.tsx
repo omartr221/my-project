@@ -90,8 +90,41 @@ export default function NewTaskForm() {
     },
   });
 
-  const onSubmit = (data: TaskFormData) => {
-    createTaskMutation.mutate(data);
+  const onSubmit = async (data: TaskFormData) => {
+    let workerId = data.workerId;
+    
+    // Check if we need to create a new worker
+    if (workerId.startsWith('create-')) {
+      const workerName = workerId.replace('create-', '');
+      
+      // Create the worker first
+      try {
+        const response = await apiRequest("POST", "/api/workers", {
+          name: workerName,
+          category: "technician", // Default category
+          supervisor: "",
+          assistant: "",
+          engineer: "",
+          nationalId: "",
+          phoneNumber: "",
+          isActive: true
+        });
+        
+        const newWorker = await response.json();
+        workerId = newWorker.id.toString();
+        
+        // Invalidate workers query to refresh the list
+        queryClient.invalidateQueries({ queryKey: ['/api/workers'] });
+      } catch (error) {
+        console.error("Error creating worker:", error);
+        return;
+      }
+    }
+    
+    createTaskMutation.mutate({
+      ...data,
+      workerId
+    });
   };
 
   // Get available workers (not currently busy)
