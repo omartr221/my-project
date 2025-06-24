@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { PlusCircle, Play } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -77,6 +79,8 @@ export default function NewTaskForm() {
       carModel: "",
       licensePlate: "",
       estimatedDuration: 60,
+      engineerName: "",
+      supervisorName: "",
     },
   });
 
@@ -225,7 +229,7 @@ export default function NewTaskForm() {
                   <FormItem>
                     <FormLabel>صفة العامل</FormLabel>
                     <FormControl>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select onValueChange={handleRoleChange} value={field.value}>
                         <SelectTrigger>
                           <SelectValue placeholder="اختر صفة العامل" />
                         </SelectTrigger>
