@@ -69,7 +69,7 @@ export default function AddWorkerForm() {
       form.reset();
       toast({
         title: "تم إضافة العامل بنجاح",
-        description: `تم إضافة العامل ${newWorker.name} إلى النظام`,
+        description: `تم إضافة العامل ${newWorker.name} إلى النظام وأصبح متاحاً في قائمة المؤقتات`,
       });
     },
     onError: (error) => {

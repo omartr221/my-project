@@ -141,11 +141,12 @@ export default function NewTaskForm() {
     });
   };
 
-  // Predefined worker names
-  const predefinedWorkerNames = ["غدير", "يحيى", "حسام", "مصطفى", "زياد", "سليمان", "علي", "حسن"];
-  
   // Get all workers
   const allWorkers = workers || [];
+  
+  // Use worker names from API, fallback to predefined if needed
+  const predefinedWorkerNames = workerNames?.filter(name => name !== "عامل جديد") || 
+    ["غدير", "يحيى", "حسام", "مصطفى", "زياد", "سليمان", "علي", "حسن"];
 
   return (
     <Card>

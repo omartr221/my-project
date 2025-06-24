@@ -65,18 +65,25 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAllWorkerNames(): Promise<string[]> {
-    const predefinedNames = ["غدير", "يحيى", "حسام", "سليمان", "علي", "زياد", "حسن"];
+    const predefinedNames = ["غدير", "يحيى", "حسام", "مصطفى", "زياد", "سليمان", "علي", "حسن"];
     
-    // Get custom worker names from database
-    const customWorkers = await db
+    // Get all worker names from database (both predefined and custom)
+    const allWorkers = await db
       .select({ name: workers.name })
       .from(workers)
-      .where(eq(workers.isPredefined, false));
+      .orderBy(workers.name);
     
-    const customNames = customWorkers.map(w => w.name);
+    const allWorkerNames = allWorkers.map(w => w.name);
     
-    // Combine predefined and custom names, then add "عامل جديد"
-    return [...predefinedNames, ...customNames, "عامل جديد"];
+    // Combine all names and remove duplicates, keep predefined order first
+    const uniqueNames = [...predefinedNames];
+    allWorkerNames.forEach(name => {
+      if (!uniqueNames.includes(name)) {
+        uniqueNames.push(name);
+      }
+    });
+    
+    return [...uniqueNames, "عامل جديد"];
   }
 
   async createWorker(insertWorker: InsertWorker): Promise<Worker> {
