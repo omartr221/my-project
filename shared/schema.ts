@@ -21,6 +21,7 @@ export const workers = pgTable("workers", {
 export const tasks = pgTable("tasks", {
   id: serial("id").primaryKey(),
   workerId: integer("worker_id").notNull().references(() => workers.id),
+  workerRole: varchar("worker_role", { length: 50 }).notNull().default("technician"), // assistant, technician, supervisor, engineer
   description: varchar("description", { length: 500 }).notNull(),
   carBrand: varchar("car_brand", { length: 50 }).notNull(), // audi, seat, skoda, volkswagen
   carModel: varchar("car_model", { length: 100 }).notNull(),
@@ -30,6 +31,8 @@ export const tasks = pgTable("tasks", {
   startTime: timestamp("start_time").defaultNow(),
   endTime: timestamp("end_time"),
   pausedAt: timestamp("paused_at"),
+  pauseReason: varchar("pause_reason", { length: 100 }),
+  pauseNotes: varchar("pause_notes", { length: 500 }),
   totalPausedDuration: integer("total_paused_duration").default(0), // in seconds
   isArchived: boolean("is_archived").default(false),
   archivedAt: timestamp("archived_at"),

@@ -205,7 +205,7 @@ export class DatabaseStorage implements IStorage {
     return timeEntry;
   }
 
-  async pauseTask(taskId: number): Promise<Task> {
+  async pauseTask(taskId: number, reason?: string, notes?: string): Promise<Task> {
     const now = new Date();
     
     // Update task status
@@ -214,6 +214,8 @@ export class DatabaseStorage implements IStorage {
       .set({
         status: "paused",
         pausedAt: now,
+        pauseReason: reason,
+        pauseNotes: notes,
       })
       .where(eq(tasks.id, taskId))
       .returning();
