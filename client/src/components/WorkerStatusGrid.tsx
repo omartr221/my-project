@@ -143,75 +143,104 @@ export default function WorkerStatusGrid({
                       )}
                     />
 
-                    <FormField
-                      control={form.control}
-                      name="category"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>التصنيف</FormLabel>
-                          <FormControl>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                              <SelectTrigger>
-                                <SelectValue placeholder="اختر التصنيف" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {workerCategories.map((category) => (
-                                  <SelectItem key={category.value} value={category.value}>
-                                    {category.label}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    {!isNewWorker && (
+                      <>
+                        <FormField
+                          control={form.control}
+                          name="category"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>التصنيف</FormLabel>
+                              <FormControl>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="اختر التصنيف" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {workerCategories.map((category) => (
+                                      <SelectItem key={category.value} value={category.value}>
+                                        {category.label}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
 
-                    <FormField
-                      control={form.control}
-                      name="supervisor"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>المشرف</FormLabel>
-                          <FormControl>
-                            <Input placeholder="اسم المشرف" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                        <FormField
+                          control={form.control}
+                          name="supervisor"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>المشرف</FormLabel>
+                              <FormControl>
+                                <Input placeholder="اسم المشرف" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
 
-                    <FormField
-                      control={form.control}
-                      name="assistant"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>المساعد</FormLabel>
-                          <FormControl>
-                            <Input placeholder="اسم المساعد" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                        <FormField
+                          control={form.control}
+                          name="assistant"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>المساعد</FormLabel>
+                              <FormControl>
+                                <Input placeholder="اسم المساعد" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
 
-                    <FormField
-                      control={form.control}
-                      name="engineer"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>المهندس</FormLabel>
-                          <FormControl>
-                            <Input placeholder="اسم المهندس" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                        <FormField
+                          control={form.control}
+                          name="engineer"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>المهندس</FormLabel>
+                              <FormControl>
+                                <Input placeholder="اسم المهندس" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </>
+                    )}
 
                     {isNewWorker && (
                       <>
+                        <FormField
+                          control={form.control}
+                          name="category"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>التصنيف</FormLabel>
+                              <FormControl>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="اختر التصنيف" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {workerCategories.map((category) => (
+                                      <SelectItem key={category.value} value={category.value}>
+                                        {category.label}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
                         <FormField
                           control={form.control}
                           name="nationalId"
