@@ -230,6 +230,26 @@ export default function NewTaskForm() {
                 )}
               />
 
+              <FormField
+                control={form.control}
+                name="estimatedDuration"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>الوقت المقدر (دقيقة) - اختياري</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="number" 
+                        placeholder="60" 
+                        min="1"
+                        value={field.value || ""}
+                        onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
               <div className="flex items-end">
                 <Button 
                   type="submit" 

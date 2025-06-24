@@ -163,6 +163,26 @@ export default function TaskHistoryTable() {
                         formatDuration(task.totalDuration)
                       )}
                     </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {task.estimatedDuration ? (
+                        <div className="space-y-1">
+                          <div className="text-xs text-gray-500">
+                            مقدر: {formatDuration(task.estimatedDuration * 60)}
+                          </div>
+                          {task.status === 'completed' && (
+                            <div className={`text-xs ${
+                              task.totalDuration > task.estimatedDuration * 60 
+                                ? 'text-red-600' 
+                                : 'text-green-600'
+                            }`}>
+                              {task.totalDuration > task.estimatedDuration * 60 ? 'تأخير' : 'في الوقت'}
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-gray-400">غير محدد</span>
+                      )}
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <Badge className={getTaskStatusColor(task.status)}>
                         {getTaskStatusInArabic(task.status)}
