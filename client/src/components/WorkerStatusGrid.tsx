@@ -135,8 +135,8 @@ export default function WorkerStatusGrid({
                                   <SelectValue placeholder="اختر العامل" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  {(workerNames || predefinedWorkers).map((name) => (
-                                    <SelectItem key={name} value={name}>
+                                  {(workerNames || predefinedWorkers).map((name, index) => (
+                                    <SelectItem key={`${name}-${index}`} value={name || `item-${index}`}>
                                       {name}
                                     </SelectItem>
                                   ))}
@@ -158,7 +158,7 @@ export default function WorkerStatusGrid({
                             <FormItem>
                               <FormLabel>التصنيف</FormLabel>
                               <FormControl>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <Select onValueChange={field.onChange} value={field.value}>
                                   <SelectTrigger>
                                     <SelectValue placeholder="اختر التصنيف" />
                                   </SelectTrigger>
@@ -229,7 +229,7 @@ export default function WorkerStatusGrid({
                             <FormItem>
                               <FormLabel>التصنيف</FormLabel>
                               <FormControl>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <Select onValueChange={field.onChange} value={field.value}>
                                   <SelectTrigger>
                                     <SelectValue placeholder="اختر التصنيف" />
                                   </SelectTrigger>

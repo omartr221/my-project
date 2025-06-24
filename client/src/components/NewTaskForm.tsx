@@ -122,14 +122,15 @@ export default function NewTaskForm() {
                           ) : (
                             availableWorkerNames
                               .filter(name => name !== "عامل جديد")
-                              .map((workerName) => {
+                              .map((workerName, index) => {
                                 const worker = availableWorkers.find(w => w.name === workerName);
                                 return worker ? (
-                                  <SelectItem key={worker.id} value={worker.id.toString()}>
+                                  <SelectItem key={`${worker.id}-${index}`} value={worker.id.toString()}>
                                     {worker.name}
                                   </SelectItem>
                                 ) : null;
                               })
+                              .filter(Boolean)
                           )}
                         </SelectContent>
                       </Select>
