@@ -138,17 +138,59 @@ export default function ArchiveView() {
   const isLoading = searchTerm.length > 2 ? loadingSearch : loadingArchive;
 
   const handlePrint = () => {
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) return;
+    if (!displayTasks || displayTasks.length === 0) {
+      toast({
+        title: "لا يوجد بيانات للطباعة",
+        description: "لا توجد مهام مؤرشفة لطباعتها",
+        variant: "destructive",
+      });
+      return;
+    }
 
-    const printContent = generatePrintContent(displayTasks);
-    printWindow.document.write(printContent);
-    printWindow.document.close();
-    printWindow.print();
+    try {
+      const printWindow = window.open('', '_blank');
+      if (!printWindow) {
+        toast({
+          title: "فشل في فتح نافذة الطباعة",
+          description: "تأكد من السماح للنوافذ المنبثقة في المتصفح",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const printContent = generatePrintContent(displayTasks);
+      printWindow.document.write(printContent);
+      printWindow.document.close();
+      
+      setTimeout(() => {
+        printWindow.print();
+        setTimeout(() => printWindow.close(), 1000);
+      }, 500);
+      
+      toast({
+        title: "تم تحضير التقرير للطباعة",
+        description: "تحقق من نافذة الطباعة الجديدة",
+      });
+    } catch (error) {
+      console.error('خطأ في الطباعة:', error);
+      toast({
+        title: "خطأ في الطباعة",
+        description: "حاول مرة أخرى",
+        variant: "destructive",
+      });
+    }
   };
 
   const generatePrintContent = (tasks: TaskHistory[]) => {
-    const currentDate = format(new Date(), 'PPP', { locale: ar });
+    const currentDate = new Date().toLocaleDateString('ar-EG', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      calendar: 'gregory',
+      timeZone: 'Asia/Damascus'
+    });
     const totalTasks = tasks.length;
     const totalDuration = tasks.reduce((sum, task) => sum + task.totalDuration, 0);
 
