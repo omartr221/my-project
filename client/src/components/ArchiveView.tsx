@@ -138,11 +138,7 @@ export default function ArchiveView() {
   const isLoading = searchTerm.length > 2 ? loadingSearch : loadingArchive;
 
   const handlePrint = () => {
-    console.log('بدء الطباعة');
-    console.log('المهام المعروضة:', displayTasks);
-    
     if (!displayTasks || displayTasks.length === 0) {
-      console.log('لا توجد مهام للطباعة');
       toast({
         title: "لا يوجد بيانات للطباعة",
         description: "لا توجد مهام مؤرشفة لطباعتها",
@@ -152,231 +148,129 @@ export default function ArchiveView() {
     }
 
     try {
-      console.log('محاولة فتح نافذة جديدة');
-      const printWindow = window.open('', '_blank', 'width=800,height=600');
-      
-      if (!printWindow) {
-        console.log('فشل في فتح النافذة');
-        toast({
-          title: "فشل في فتح نافذة الطباعة",
-          description: "تأكد من السماح للنوافذ المنبثقة في المتصفح",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      console.log('نافذة مفتوحة، إنشاء المحتوى');
-      
-      // تقرير شامل مع جميع الخانات
-      const currentDate = new Date().toLocaleDateString('ar-EG', {
-        day: 'numeric',
-        month: 'long', 
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-      
+      // إنشاء محتوى مبسط وآمن للطباعة
+      const currentDate = new Date().toLocaleDateString('ar-EG');
       const totalDuration = displayTasks.reduce((sum, task) => sum + task.totalDuration, 0);
       
-      const comprehensiveContent = `
+      let tableRows = '';
+      displayTasks.forEach(task => {
+        // حساب الأداء
+        let performance = 'غير محدد';
+        if (task.estimatedDuration && task.estimatedDuration > 0) {
+          const estimatedSeconds = task.estimatedDuration * 60;
+          if (task.totalDuration <= estimatedSeconds) {
+            performance = 'في الوقت المحدد';
+          } else {
+            const delay = task.totalDuration - estimatedSeconds;
+            performance = 'متأخر بـ ' + formatDuration(delay);
+          }
+        }
+        
+        // تنسيق التاريخ
+        const archiveDate = task.archivedAt ? 
+          new Date(task.archivedAt).toLocaleDateString('ar-EG') : '--';
+        
+        tableRows += `
+          <tr>
+            <td>${task.worker.name}<br><small>${getWorkerCategoryInArabic(task.worker.category)}</small></td>
+            <td>${task.description}</td>
+            <td>${getCarBrandInArabic(task.carBrand)}<br>${task.carModel}<br>لوحة: ${task.licensePlate}</td>
+            <td>${task.estimatedDuration ? formatDuration(task.estimatedDuration * 60) : 'غير محدد'}</td>
+            <td>${formatDuration(task.totalDuration)}</td>
+            <td style="color: ${task.estimatedDuration && task.totalDuration > task.estimatedDuration * 60 ? '#dc3545' : '#28a745'}">${performance}</td>
+            <td>${archiveDate}</td>
+            <td>${task.archivedBy || '--'}</td>
+            <td>${getTaskStatusInArabic(task.status)}</td>
+          </tr>
+        `;
+      });
+
+      const printContent = `
         <!DOCTYPE html>
         <html dir="rtl" lang="ar">
         <head>
           <meta charset="UTF-8">
-          <title>تقرير الأرشيف الكامل - V POWER TUNING</title>
+          <title>تقرير الأرشيف - V POWER TUNING</title>
           <style>
-            * { margin: 0; padding: 0; box-sizing: border-box; }
-            body { 
-              font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-              direction: rtl; 
-              padding: 20px; 
-              background: white;
-              color: #333;
-              line-height: 1.4;
-            }
-            .header {
-              text-align: center;
-              border-bottom: 3px solid #2563eb;
-              padding-bottom: 20px;
-              margin-bottom: 30px;
-            }
-            .company-name {
-              font-size: 28px;
-              font-weight: bold;
-              color: #2563eb;
-              margin-bottom: 8px;
-            }
-            .report-title {
-              font-size: 20px;
-              color: #1f2937;
-              margin-bottom: 8px;
-            }
-            .report-date {
-              font-size: 14px;
-              color: #6b7280;
-            }
-            .summary {
-              background: #f8fafc;
-              padding: 15px;
-              border-radius: 8px;
-              margin-bottom: 25px;
-              text-align: center;
-              border: 1px solid #e2e8f0;
-            }
-            .summary-item {
-              display: inline-block;
-              margin: 0 15px;
-              font-weight: bold;
-              color: #1f2937;
-              font-size: 14px;
-            }
-            table { 
-              width: 100%; 
-              border-collapse: collapse; 
-              margin-top: 20px;
-              font-size: 11px;
-            }
-            th, td { 
-              border: 1px solid #ddd; 
-              padding: 6px; 
-              text-align: right;
-              vertical-align: top;
-            }
-            th { 
-              background-color: #f8f9fa; 
-              font-weight: bold;
-              font-size: 12px;
-            }
+            body { font-family: Arial, sans-serif; direction: rtl; padding: 20px; }
+            .header { text-align: center; border-bottom: 2px solid #2563eb; padding-bottom: 20px; margin-bottom: 30px; }
+            .company-name { font-size: 24px; font-weight: bold; color: #2563eb; }
+            .report-title { font-size: 18px; margin: 10px 0; }
+            .summary { background: #f8f9fa; padding: 15px; margin: 20px 0; text-align: center; border-radius: 5px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 10px; }
+            th, td { border: 1px solid #ddd; padding: 5px; text-align: right; }
+            th { background-color: #f8f9fa; font-weight: bold; }
             tr:nth-child(even) { background-color: #f9f9f9; }
-            .status-completed { background-color: #d4edda; color: #155724; font-weight: bold; }
-            .status-archived { background-color: #d1ecf1; color: #0c5460; font-weight: bold; }
-            .performance-good { color: #28a745; font-weight: bold; }
-            .performance-delayed { color: #dc3545; font-weight: bold; }
-            .footer {
-              margin-top: 25px;
-              text-align: center;
-              color: #718096;
-              font-size: 11px;
-              border-top: 1px solid #e2e8f0;
-              padding-top: 15px;
-            }
-            @media print {
-              body { margin: 0; padding: 15px; }
-              .no-print { display: none; }
-            }
+            .footer { margin-top: 30px; text-align: center; font-size: 10px; color: #666; }
+            @media print { body { margin: 0; padding: 10px; } }
           </style>
         </head>
         <body>
           <div class="header">
             <div class="company-name">V POWER TUNING</div>
             <div class="report-title">تقرير أرشيف المهام الكامل</div>
-            <div class="report-date">تاريخ التقرير: ${currentDate}</div>
+            <div>تاريخ التقرير: ${currentDate}</div>
           </div>
           
           <div class="summary">
-            <span class="summary-item">إجمالي المهام: ${displayTasks.length}</span>
-            <span class="summary-item">إجمالي الوقت: ${formatDuration(totalDuration)}</span>
-            <span class="summary-item">متوسط الوقت للمهمة: ${displayTasks.length > 0 ? formatDuration(Math.round(totalDuration / displayTasks.length)) : '0'}</span>
+            <strong>إجمالي المهام: ${displayTasks.length}</strong> |
+            <strong>إجمالي الوقت: ${formatDuration(totalDuration)}</strong> |
+            <strong>متوسط الوقت: ${displayTasks.length > 0 ? formatDuration(Math.round(totalDuration / displayTasks.length)) : '0'}</strong>
           </div>
 
           <table>
             <thead>
               <tr>
-                <th style="width: 12%;">العامل</th>
-                <th style="width: 20%;">وصف المهمة</th>
-                <th style="width: 15%;">تفاصيل السيارة</th>
-                <th style="width: 10%;">الوقت المقدر</th>
-                <th style="width: 10%;">الوقت الفعلي</th>
-                <th style="width: 8%;">الأداء</th>
-                <th style="width: 12%;">تاريخ الأرشفة</th>
-                <th style="width: 8%;">المؤرشف بواسطة</th>
-                <th style="width: 5%;">الحالة</th>
+                <th>العامل</th>
+                <th>وصف المهمة</th>
+                <th>تفاصيل السيارة</th>
+                <th>الوقت المقدر</th>
+                <th>الوقت الفعلي</th>
+                <th>الأداء</th>
+                <th>تاريخ الأرشفة</th>
+                <th>المؤرشف بواسطة</th>
+                <th>الحالة</th>
               </tr>
             </thead>
             <tbody>
-              ${displayTasks.map(task => {
-                // حساب الأداء
-                let performance = 'غير محدد';
-                let performanceClass = '';
-                if (task.estimatedDuration && task.estimatedDuration > 0) {
-                  const estimatedSeconds = task.estimatedDuration * 60;
-                  if (task.totalDuration <= estimatedSeconds) {
-                    performance = 'في الوقت المحدد';
-                    performanceClass = 'performance-good';
-                  } else {
-                    const delay = task.totalDuration - estimatedSeconds;
-                    performance = `متأخر بـ ${formatDuration(delay)}`;
-                    performanceClass = 'performance-delayed';
-                  }
-                }
-                
-                // تنسيق التاريخ
-                let archiveDate = '--';
-                if (task.archivedAt) {
-                  try {
-                    archiveDate = new Date(task.archivedAt).toLocaleDateString('ar-EG', {
-                      day: 'numeric',
-                      month: 'numeric',
-                      year: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    });
-                  } catch (e) {
-                    archiveDate = new Date(task.archivedAt).toLocaleDateString();
-                  }
-                }
-                
-                return `
-                  <tr>
-                    <td><strong>${task.worker.name}</strong><br>
-                        <small>${getWorkerCategoryInArabic(task.worker.category)}</small></td>
-                    <td>${task.description}
-                        ${task.archiveNotes ? `<br><small style="color: #666;">ملاحظات: ${task.archiveNotes}</small>` : ''}</td>
-                    <td><strong>${getCarBrandInArabic(task.carBrand)}</strong><br>
-                        ${task.carModel}<br>
-                        <small>لوحة: ${task.licensePlate}</small></td>
-                    <td>${task.estimatedDuration ? formatDuration(task.estimatedDuration * 60) : 'غير محدد'}</td>
-                    <td><strong>${formatDuration(task.totalDuration)}</strong></td>
-                    <td class="${performanceClass}">${performance}</td>
-                    <td>${archiveDate}</td>
-                    <td>${task.archivedBy || '--'}</td>
-                    <td class="status-${task.status}">${getTaskStatusInArabic(task.status)}</td>
-                  </tr>
-                `;
-              }).join('')}
+              ${tableRows}
             </tbody>
           </table>
 
           <div class="footer">
             تم إنشاء هذا التقرير بواسطة نظام توزيع المهام - V POWER TUNING<br>
-            جميع الحقوق محفوظة © 2025 | طُبع في: ${new Date().toLocaleString('ar-EG')}
+            جميع الحقوق محفوظة © 2025
           </div>
           
           <script>
-            window.onload = function() {
-              setTimeout(() => {
-                window.print();
-              }, 1000);
-            };
+            setTimeout(() => { window.print(); }, 500);
           </script>
         </body>
         </html>
       `;
 
-      console.log('كتابة المحتوى في النافذة');
-      printWindow.document.write(comprehensiveContent);
-      printWindow.document.close();
-      
-      toast({
-        title: "تم تحضير التقرير للطباعة",
-        description: "تحقق من النافذة الجديدة",
-      });
+      const printWindow = window.open('', '_blank');
+      if (printWindow) {
+        printWindow.document.write(printContent);
+        printWindow.document.close();
+        
+        toast({
+          title: "تم فتح التقرير للطباعة",
+          description: "تحقق من النافذة الجديدة",
+        });
+      } else {
+        toast({
+          title: "فشل في فتح نافذة الطباعة",
+          description: "تأكد من السماح للنوافذ المنبثقة",
+          variant: "destructive",
+        });
+      }
       
     } catch (error) {
       console.error('خطأ في الطباعة:', error);
       toast({
-        title: "خطأ في الطباعة", 
-        description: `خطأ: ${error.message}`,
+        title: "خطأ في الطباعة",
+        description: "حاول مرة أخرى",
         variant: "destructive",
       });
     }
