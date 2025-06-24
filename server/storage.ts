@@ -125,7 +125,13 @@ export class DatabaseStorage implements IStorage {
 
   async getActiveTasks(): Promise<TaskWithWorker[]> {
     const tasksData = await db.query.tasks.findMany({
-      where: eq(tasks.status, "active"),
+      where: and(
+        eq(tasks.isArchived, false),
+        or(
+          eq(tasks.status, "active"),
+          eq(tasks.status, "paused")
+        )
+      ),
       with: {
         worker: true,
       },
