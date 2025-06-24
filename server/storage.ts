@@ -65,7 +65,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAllWorkerNames(): Promise<string[]> {
-    const predefinedNames = ["مصطفى", "حسام", "زياد", "حسن", "يحيى", "محمد العلي", "سليمان", "علي"];
+    const predefinedNames = ["غدير", "يحيى", "حسام", "سليمان", "علي", "زياد", "حسن"];
     
     // Get custom worker names from database
     const customWorkers = await db
@@ -80,7 +80,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createWorker(insertWorker: InsertWorker): Promise<Worker> {
-    const predefinedNames = ["مصطفى", "حسام", "زياد", "حسن", "يحيى", "محمد العلي", "سليمان", "علي"];
+    const predefinedNames = ["غدير", "يحيى", "حسام", "سليمان", "علي", "زياد", "حسن"];
     const isPredefined = predefinedNames.includes(insertWorker.name);
     
     const [worker] = await db
