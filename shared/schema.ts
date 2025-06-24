@@ -25,11 +25,15 @@ export const tasks = pgTable("tasks", {
   carBrand: varchar("car_brand", { length: 50 }).notNull(), // audi, seat, skoda, volkswagen
   carModel: varchar("car_model", { length: 100 }).notNull(),
   licensePlate: varchar("license_plate", { length: 20 }).notNull(),
-  status: varchar("status", { length: 20 }).notNull().default("active"), // active, paused, completed
+  status: varchar("status", { length: 20 }).notNull().default("active"), // active, paused, completed, archived
   startTime: timestamp("start_time").defaultNow(),
   endTime: timestamp("end_time"),
   pausedAt: timestamp("paused_at"),
   totalPausedDuration: integer("total_paused_duration").default(0), // in seconds
+  isArchived: boolean("is_archived").default(false),
+  archivedAt: timestamp("archived_at"),
+  archivedBy: varchar("archived_by", { length: 100 }),
+  archiveNotes: varchar("archive_notes", { length: 1000 }),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

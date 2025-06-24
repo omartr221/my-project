@@ -104,6 +104,7 @@ This is a full-stack web application designed to track work time for automotive 
 
 Changelog:
 - June 24, 2025. Initial setup
+- June 24, 2025. Added archive functionality with search capabilities for task management
 
 ## User Preferences
 

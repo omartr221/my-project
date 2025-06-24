@@ -160,6 +160,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Archive routes
+  app.post("/api/tasks/:id/archive", async (req, res) => {
+    try {
+      const taskId = parseInt(req.params.id);
+      const { archivedBy, notes } = req.body;
+      
+      if (!archivedBy) {
+        return res.status(400).json({ message: "archivedBy is required" });
+      }
+      
+      const task = await storage.archiveTask(taskId, archivedBy, notes);
+      broadcastUpdate("task_archived", task);
+      res.json(task);
+    } catch (error) {
+      console.error("Error archiving task:", error);
+      res.status(500).json({ message: "Failed to archive task" });
+    }
+  });
+
+  app.get("/api/archive", async (req, res) => {
+    try {
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : 100;
+      const archive = await storage.getArchivedTasks(limit);
+      res.json(archive);
+    } catch (error) {
+      console.error("Error fetching archive:", error);
+      res.status(500).json({ message: "Failed to fetch archive" });
+    }
+  });
+
+  app.get("/api/archive/search", async (req, res) => {
+    try {
+      const searchTerm = req.query.q as string;
+      if (!searchTerm) {
+        return res.status(400).json({ message: "Search term is required" });
+      }
+      
+      const results = await storage.searchArchive(searchTerm);
+      res.json(results);
+    } catch (error) {
+      console.error("Error searching archive:", error);
+      res.status(500).json({ message: "Failed to search archive" });
+    }
+  });
+
   const httpServer = createServer(app);
 
   // WebSocket server setup

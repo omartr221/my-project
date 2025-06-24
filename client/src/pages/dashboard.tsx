@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Clock, Users, UserCheck, Watch, ListTodo } from "lucide-react";
+import { Clock, Users, UserCheck, Watch, ListTodo, Archive } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
@@ -9,8 +9,9 @@ import WorkerStatusGrid from "@/components/WorkerStatusGrid";
 import ActiveTimers from "@/components/ActiveTimers";
 import NewTaskForm from "@/components/NewTaskForm";
 import TaskHistoryTable from "@/components/TaskHistoryTable";
+import ArchiveView from "@/components/ArchiveView";
 
-type TabType = "dashboard" | "timers" | "workers" | "history";
+type TabType = "dashboard" | "timers" | "workers" | "history" | "archive";
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<TabType>("dashboard");
@@ -136,6 +137,9 @@ export default function Dashboard() {
       case "history":
         return <TaskHistoryTable />;
       
+      case "archive":
+        return <ArchiveView />;
+      
       default:
         return null;
     }
@@ -207,6 +211,14 @@ export default function Dashboard() {
             >
               <Clock className="ml-2 h-4 w-4" />
               سجل المهام
+            </Button>
+            <Button
+              variant={activeTab === "archive" ? "default" : "ghost"}
+              onClick={() => setActiveTab("archive")}
+              className="font-medium"
+            >
+              <Archive className="ml-2 h-4 w-4" />
+              الأرشيف
             </Button>
           </nav>
         </div>

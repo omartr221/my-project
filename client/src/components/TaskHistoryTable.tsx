@@ -1,15 +1,44 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { History, Filter, Download } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { History, Filter, Download, Archive } from "lucide-react";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { formatDuration, formatTime, getCarBrandInArabic, getTaskStatusInArabic, getTaskStatusColor } from "@/lib/utils";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 import { type TaskHistory } from "@shared/schema";
 
 export default function TaskHistoryTable() {
+  const { toast } = useToast();
+  
   const { data: taskHistory, isLoading } = useQuery({
     queryKey: ['/api/tasks/history'],
     refetchInterval: 30000, // Refresh every 30 seconds
+  });
+
+  const quickArchiveMutation = useMutation({
+    mutationFn: async (taskId: number) => {
+      const response = await apiRequest("POST", `/api/tasks/${taskId}/archive`, {
+        archivedBy: "نظام سريع",
+        notes: "أرشفة سريعة من سجل المهام",
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/tasks/history'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/archive'] });
+      toast({
+        title: "تم أرشفة المهمة",
+        description: "تم نقل المهمة إلى الأرشيف بنجاح",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "خطأ في الأرشفة",
+        description: "حاول مرة أخرى",
+        variant: "destructive",
+      });
+    },
   });
 
   if (isLoading) {
@@ -79,6 +108,9 @@ export default function TaskHistoryTable() {
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                     الحالة
                   </th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    إجراءات
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -132,6 +164,20 @@ export default function TaskHistoryTable() {
                       <Badge className={getTaskStatusColor(task.status)}>
                         {getTaskStatusInArabic(task.status)}
                       </Badge>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {task.status === 'completed' && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => quickArchiveMutation.mutate(task.id)}
+                          disabled={quickArchiveMutation.isPending}
+                          className="text-blue-600 hover:text-blue-800"
+                        >
+                          <Archive className="ml-1 h-3 w-3" />
+                          أرشف
+                        </Button>
+                      )}
                     </td>
                   </tr>
                 ))}

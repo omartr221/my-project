@@ -1,6 +1,6 @@
 import { workers, tasks, timeEntries, type Worker, type InsertWorker, type Task, type InsertTask, type TimeEntry, type InsertTimeEntry, type WorkerWithTasks, type TaskWithWorker, type TaskHistory } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, isNull } from "drizzle-orm";
+import { eq, desc, and, isNull, or, like } from "drizzle-orm";
 
 export interface IStorage {
   // Worker management
@@ -22,6 +22,11 @@ export interface IStorage {
   pauseTask(taskId: number): Promise<Task>;
   resumeTask(taskId: number): Promise<TimeEntry>;
   finishTask(taskId: number): Promise<Task>;
+  
+  // Archive management
+  archiveTask(taskId: number, archivedBy: string, notes?: string): Promise<Task>;
+  getArchivedTasks(limit?: number): Promise<TaskHistory[]>;
+  searchArchive(searchTerm: string): Promise<TaskHistory[]>;
   
   // History and reporting  
   getTaskHistory(limit?: number): Promise<TaskHistory[]>;
@@ -279,12 +284,77 @@ export class DatabaseStorage implements IStorage {
 
   async getTaskHistory(limit: number = 50): Promise<TaskHistory[]> {
     const tasksData = await db.query.tasks.findMany({
+      where: eq(tasks.isArchived, false),
       with: {
         worker: true,
         timeEntries: true,
       },
       orderBy: [desc(tasks.createdAt)],
       limit,
+    });
+
+    return tasksData.map(task => ({
+      ...task,
+      totalDuration: task.timeEntries.reduce((total, entry) => {
+        return total + (entry.duration || 0);
+      }, 0),
+    }));
+  }
+
+  async archiveTask(taskId: number, archivedBy: string, notes?: string): Promise<Task> {
+    const now = new Date();
+    
+    const [task] = await db
+      .update(tasks)
+      .set({
+        isArchived: true,
+        archivedAt: now,
+        archivedBy,
+        archiveNotes: notes,
+        status: "archived",
+      })
+      .where(eq(tasks.id, taskId))
+      .returning();
+
+    return task;
+  }
+
+  async getArchivedTasks(limit: number = 100): Promise<TaskHistory[]> {
+    const tasksData = await db.query.tasks.findMany({
+      where: eq(tasks.isArchived, true),
+      with: {
+        worker: true,
+        timeEntries: true,
+      },
+      orderBy: [desc(tasks.archivedAt)],
+      limit,
+    });
+
+    return tasksData.map(task => ({
+      ...task,
+      totalDuration: task.timeEntries.reduce((total, entry) => {
+        return total + (entry.duration || 0);
+      }, 0),
+    }));
+  }
+
+  async searchArchive(searchTerm: string): Promise<TaskHistory[]> {
+    const tasksData = await db.query.tasks.findMany({
+      where: and(
+        eq(tasks.isArchived, true),
+        or(
+          like(tasks.description, `%${searchTerm}%`),
+          like(tasks.carModel, `%${searchTerm}%`),
+          like(tasks.licensePlate, `%${searchTerm}%`),
+          like(tasks.archiveNotes, `%${searchTerm}%`)
+        )
+      ),
+      with: {
+        worker: true,
+        timeEntries: true,
+      },
+      orderBy: [desc(tasks.archivedAt)],
+      limit: 50,
     });
 
     return tasksData.map(task => ({
