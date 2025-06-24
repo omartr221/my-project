@@ -56,12 +56,12 @@ export default function NewTaskForm() {
   const form = useForm<TaskFormData>({
     resolver: zodResolver(taskFormSchema),
     defaultValues: {
-      workerId: 0,
+      workerId: "",
       description: "",
       carBrand: "",
       carModel: "",
       licensePlate: "",
-      estimatedDuration: undefined,
+      estimatedDuration: 60,
     },
   });
 
@@ -94,14 +94,14 @@ export default function NewTaskForm() {
     let workerId = data.workerId;
     
     // Check if we need to create a new worker
-    if (workerId.startsWith('create-')) {
+    if (typeof workerId === 'string' && workerId.startsWith('create-')) {
       const workerName = workerId.replace('create-', '');
       
       // Create the worker first
       try {
         const response = await apiRequest("POST", "/api/workers", {
           name: workerName,
-          category: "technician", // Default category
+          category: "technician",
           supervisor: "",
           assistant: "",
           engineer: "",
@@ -117,13 +117,18 @@ export default function NewTaskForm() {
         queryClient.invalidateQueries({ queryKey: ['/api/workers'] });
       } catch (error) {
         console.error("Error creating worker:", error);
+        toast({
+          title: "خطأ في إنشاء العامل",
+          description: "حاول مرة أخرى",
+          variant: "destructive",
+        });
         return;
       }
     }
     
     createTaskMutation.mutate({
       ...data,
-      workerId: parseInt(workerId)
+      workerId: parseInt(workerId.toString())
     });
   };
 
