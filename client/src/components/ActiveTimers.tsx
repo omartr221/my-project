@@ -22,10 +22,12 @@ export default function ActiveTimers({
   const { toast } = useToast();
   const [currentTime, setCurrentTime] = useState(Date.now());
 
-  // Update timer every second
+  // Update timer every second with Syria time
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentTime(Date.now());
+      const now = new Date();
+      const syriaTime = new Date(now.getTime() + (3 * 60 * 60 * 1000));
+      setCurrentTime(syriaTime.getTime());
     }, 1000);
 
     return () => clearInterval(interval);

@@ -107,6 +107,7 @@ Changelog:
 - June 24, 2025. Added archive functionality with search capabilities for task management
 - June 24, 2025. Enhanced archive with date filtering and print functionality for reporting
 - June 24, 2025. Added estimated time tracking and worker team details display
+- June 24, 2025. Updated timezone to Syria local time (Damascus/UTC+3) for all dates and times
 
 ## User Preferences
 
