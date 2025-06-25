@@ -92,16 +92,29 @@ export default function NewTaskForm() {
         description: "تم بدء المهمة وتشغيل العداد",
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
+      console.error("Task creation error:", error);
       toast({
-        title: "خطأ في إنشاء المهمة",
-        description: "حدث خطأ أثناء إنشاء المهمة",
+        title: "خطأ في إنشاء المهمة", 
+        description: "تأكد من ملء جميع الحقول المطلوبة",
         variant: "destructive",
       });
     },
   });
 
   const onSubmit = async (data: TaskFormData) => {
+    console.log("Form data:", data);
+    
+    // Validate required fields manually
+    if (!data.assistantName || data.assistantName.trim() === "") {
+      toast({
+        title: "خطأ في البيانات",
+        description: "يجب اختيار المساعد",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     createTaskMutation.mutate(data);
   };
 
