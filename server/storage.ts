@@ -345,6 +345,7 @@ export class DatabaseStorage implements IStorage {
         archivedAt: now,
         archivedBy,
         archiveNotes: notes,
+        rating: rating || null,
         status: "archived",
       })
       .where(eq(tasks.id, taskId))

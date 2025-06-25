@@ -164,13 +164,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/tasks/:id/archive", async (req, res) => {
     try {
       const taskId = parseInt(req.params.id);
-      const { archivedBy, notes } = req.body;
+      const { archivedBy, notes, rating } = req.body;
       
       if (!archivedBy) {
         return res.status(400).json({ message: "archivedBy is required" });
       }
       
-      const task = await storage.archiveTask(taskId, archivedBy, notes);
+      const task = await storage.archiveTask(taskId, archivedBy, notes, rating);
       broadcastUpdate("task_archived", task);
       res.json(task);
     } catch (error) {
