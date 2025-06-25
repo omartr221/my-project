@@ -128,6 +128,7 @@ export default function NewTaskForm() {
 
   const onSubmit = async (data: TaskFormData) => {
     console.log("Form data:", data);
+    console.log("Selected workers state:", selectedWorkers);
     
     // Validate required fields manually
     if (!data.assistantName || data.assistantName.trim() === "") {
@@ -268,7 +269,9 @@ export default function NewTaskForm() {
                         <SelectContent>
                           {workerNames?.filter((name: string) => 
                             name !== "عامل جديد" && 
-                            !Object.values(selectedWorkers).filter(v => v !== "").includes(name)
+                            name !== form.watch("supervisorName") &&
+                            name !== form.watch("engineerName") &&
+                            name !== form.watch("assistantName")
                           ).map((name: string, index: number) => {
                             const realIndex = workerNames?.indexOf(name) || 0;
                             return (
@@ -387,20 +390,30 @@ export default function NewTaskForm() {
                 <h4 className="font-medium mb-3 text-gray-800">الفريق المختار للمهمة:</h4>
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <div className="flex items-center gap-2 p-2 bg-white rounded border">
-                    <span className="font-medium text-blue-600 w-16">المهندس:</span>
-                    <span className="text-gray-800">{selectedWorkers.engineer || "غير محدد"}</span>
+                    <span className="font-medium text-blue-600 w-20">المهندس:</span>
+                    <span className="text-gray-800 bg-yellow-100 px-2 py-1 rounded">
+                      {form.watch("workerId") ? 
+                        workerNames?.[parseInt(form.watch("workerId")) - 17] || "غير محدد" 
+                        : "غير محدد"}
+                    </span>
                   </div>
                   <div className="flex items-center gap-2 p-2 bg-white rounded border">
-                    <span className="font-medium text-green-600 w-16">المشرف:</span>
-                    <span className="text-gray-800">{selectedWorkers.supervisor || "غير محدد"}</span>
+                    <span className="font-medium text-green-600 w-20">المشرف:</span>
+                    <span className="text-gray-800 bg-yellow-100 px-2 py-1 rounded">
+                      {form.watch("supervisorName") || "غير محدد"}
+                    </span>
                   </div>
                   <div className="flex items-center gap-2 p-2 bg-white rounded border">
-                    <span className="font-medium text-orange-600 w-16">الفني:</span>
-                    <span className="text-gray-800">{selectedWorkers.technician || "غير محدد"}</span>
+                    <span className="font-medium text-orange-600 w-20">الفني:</span>
+                    <span className="text-gray-800 bg-yellow-100 px-2 py-1 rounded">
+                      {form.watch("engineerName") || "غير محدد"}
+                    </span>
                   </div>
                   <div className="flex items-center gap-2 p-2 bg-white rounded border">
-                    <span className="font-medium text-purple-600 w-16">المساعد:</span>
-                    <span className="text-gray-800">{selectedWorkers.assistant || "غير محدد"}</span>
+                    <span className="font-medium text-purple-600 w-20">المساعد:</span>
+                    <span className="text-gray-800 bg-yellow-100 px-2 py-1 rounded">
+                      {form.watch("assistantName") || "غير محدد"}
+                    </span>
                   </div>
                 </div>
                 <div className="mt-2 text-xs text-gray-600">
