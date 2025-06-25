@@ -24,7 +24,7 @@ export interface IStorage {
   finishTask(taskId: number): Promise<Task>;
   
   // Archive management
-  archiveTask(taskId: number, archivedBy: string, notes?: string): Promise<Task>;
+  archiveTask(taskId: number, archivedBy: string, notes?: string, rating?: number): Promise<Task>;
   getArchivedTasks(limit?: number): Promise<TaskHistory[]>;
   searchArchive(searchTerm: string): Promise<TaskHistory[]>;
   
@@ -335,7 +335,7 @@ export class DatabaseStorage implements IStorage {
     }));
   }
 
-  async archiveTask(taskId: number, archivedBy: string, notes?: string): Promise<Task> {
+  async archiveTask(taskId: number, archivedBy: string, notes?: string, rating?: number): Promise<Task> {
     const now = new Date();
     
     const [task] = await db
