@@ -290,7 +290,7 @@ export default function ArchiveView() {
               const engineerName = task.engineerName || '--';
               const supervisorName = task.supervisorName || '--';
               const workPercentage = task.estimatedDuration ? 
-                Math.round((task.totalDuration / (task.estimatedDuration * 60)) * 100) + '%' : '--';
+                Math.round(((task.estimatedDuration * 60) / task.totalDuration) * 100) + '%' : '--';
               
               return `
                 <tr>
@@ -433,13 +433,20 @@ export default function ArchiveView() {
                       </div>
                       <div>
                         <span className="font-medium">نسبة العمل المئوية:</span> 
-                        {task.estimatedDuration ? (
-                          <span className={`font-bold ${
-                            task.totalDuration <= (task.estimatedDuration * 60) ? 'text-green-600' : 'text-red-600'
-                          }`}>
-                            {Math.round((task.totalDuration / (task.estimatedDuration * 60)) * 100)}%
-                          </span>
-                        ) : '--'}
+                        {task.estimatedDuration ? (() => {
+                          const estimatedSeconds = task.estimatedDuration * 60;
+                          const actualSeconds = task.totalDuration;
+                          // إذا انتهى قبل الوقت المقدر = كفاءة عالية (أكثر من 100%)
+                          // إذا تجاوز الوقت المقدر = كفاءة منخفضة (أقل من 100%)
+                          const efficiency = Math.round((estimatedSeconds / actualSeconds) * 100);
+                          return (
+                            <span className={`font-bold ${
+                              actualSeconds <= estimatedSeconds ? 'text-green-600' : 'text-red-600'
+                            }`}>
+                              {efficiency}%
+                            </span>
+                          );
+                        })() : '--'}
                       </div>
                       <div>
                         <span className="font-medium">تقييم العمل:</span> 
