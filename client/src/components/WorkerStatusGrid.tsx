@@ -36,6 +36,9 @@ export default function WorkerStatusGrid({
 }: WorkerStatusGridProps) {
   const { toast } = useToast();
   const [isNewWorker, setIsNewWorker] = useState(false);
+  const [showPasswordDialog, setShowPasswordDialog] = useState(false);
+  const [showAddWorkerDialog, setShowAddWorkerDialog] = useState(false);
+  const [password, setPassword] = useState("");
 
   const { data: workerNames } = useQuery({
     queryKey: ['/api/workers/names'],
@@ -81,9 +84,29 @@ export default function WorkerStatusGrid({
     },
   });
 
+  const handlePasswordSubmit = () => {
+    if (password === "0000") {
+      setShowPasswordDialog(false);
+      setShowAddWorkerDialog(true);
+      setPassword("");
+    } else {
+      toast({
+        title: "خطأ في كلمة المرور",
+        description: "كلمة المرور غير صحيحة",
+        variant: "destructive",
+      });
+      setPassword("");
+    }
+  };
+
+  const handleAddWorkerClick = () => {
+    setShowPasswordDialog(true);
+  };
+
   const onSubmit = (data: InsertWorker) => {
     createWorkerMutation.mutate(data);
     setShowAddWorkerDialog(false);
+    setIsNewWorker(false);
     form.reset();
   };
 
