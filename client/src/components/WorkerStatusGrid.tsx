@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Users, Plus } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -70,15 +70,16 @@ export default function WorkerStatusGrid({
       queryClient.invalidateQueries({ queryKey: ['/api/stats'] });
       form.reset();
       setIsNewWorker(false);
+      setShowAddWorkerDialog(false);
       toast({
-        title: "تم إنشاء العامل بنجاح",
-        description: `تم إضافة العامل ${newWorker.name} إلى قائمة الأسماء`,
+        title: "تم تسجيل العامل بنجاح",
+        description: `تم تسجيل ${newWorker.name} بنجاح`,
       });
     },
     onError: (error) => {
       toast({
-        title: "خطأ في إنشاء العامل",
-        description: "حاول مرة أخرى",
+        title: "خطأ في تسجيل العامل",
+        description: "حدث خطأ أثناء تسجيل العامل",
         variant: "destructive",
       });
     },
@@ -105,294 +106,287 @@ export default function WorkerStatusGrid({
 
   const onSubmit = (data: InsertWorker) => {
     createWorkerMutation.mutate(data);
-    setShowAddWorkerDialog(false);
-    setIsNewWorker(false);
-    form.reset();
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex justify-between items-center">
-          <CardTitle className="flex items-center">
-            <Users className="ml-2 h-5 w-5" />
-            حالة العمال
-          </CardTitle>
-          {showManagement && (
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button>
-                  <Plus className="ml-2 h-4 w-4" />
-                  إضافة عامل
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-md">
-                <DialogHeader>
-                  <DialogTitle>تسجيل عامل جديد</DialogTitle>
-                </DialogHeader>
-                <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                    <FormField
-                      control={form.control}
-                      name="name"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>اسم العامل</FormLabel>
-                          <FormControl>
-                            {isNewWorker ? (
-                              <Input 
-                                placeholder="أدخل اسم العامل الجديد" 
-                                {...field} 
-                              />
-                            ) : (
-                              <Select 
-                                onValueChange={(value) => {
-                                  if (value === "عامل جديد") {
-                                    setIsNewWorker(true);
-                                    field.onChange("");
-                                  } else {
-                                    field.onChange(value);
-                                  }
-                                }} 
-                                defaultValue={field.value}
-                              >
-                                <SelectTrigger>
-                                  <SelectValue placeholder="اختر العامل" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {(workerNames || predefinedWorkers).map((name, index) => (
-                                    <SelectItem key={`${name}-${index}`} value={name || `item-${index}`}>
-                                      {name}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            )}
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    {!isNewWorker && (
-                      <>
-                        <FormField
-                          control={form.control}
-                          name="category"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>التصنيف</FormLabel>
-                              <FormControl>
-                                <Select onValueChange={field.onChange} value={field.value}>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="اختر التصنيف" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    {workerCategories.map((category) => (
-                                      <SelectItem key={category.value} value={category.value}>
-                                        {category.label}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={form.control}
-                          name="supervisor"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>المشرف</FormLabel>
-                              <FormControl>
-                                <Input placeholder="اسم المشرف" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={form.control}
-                          name="assistant"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>المساعد</FormLabel>
-                              <FormControl>
-                                <Input placeholder="اسم المساعد" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={form.control}
-                          name="engineer"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>المهندس</FormLabel>
-                              <FormControl>
-                                <Input placeholder="اسم المهندس" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </>
-                    )}
-
-                    {isNewWorker && (
-                      <>
-                        <FormField
-                          control={form.control}
-                          name="category"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>التصنيف</FormLabel>
-                              <FormControl>
-                                <Select onValueChange={field.onChange} value={field.value}>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="اختر التصنيف" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    {workerCategories.map((category) => (
-                                      <SelectItem key={category.value} value={category.value}>
-                                        {category.label}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={form.control}
-                          name="nationalId"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>الرقم الوطني</FormLabel>
-                              <FormControl>
-                                <Input placeholder="الرقم الوطني" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={form.control}
-                          name="phoneNumber"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>رقم الهاتف</FormLabel>
-                              <FormControl>
-                                <Input placeholder="رقم الهاتف" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={form.control}
-                          name="address"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>عنوان السكن</FormLabel>
-                              <FormControl>
-                                <Input placeholder="عنوان السكن" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </>
-                    )}
-
-                    <div className="flex space-x-reverse space-x-3 pt-4">
-                      {isNewWorker && (
-                        <Button 
-                          type="button"
-                          variant="outline"
-                          onClick={() => {
-                            setIsNewWorker(false);
-                            form.reset();
-                          }}
-                          className="flex-1"
-                        >
-                          عودة للقائمة
-                        </Button>
-                      )}
-                      <Button 
-                        type="submit" 
-                        disabled={createWorkerMutation.isPending}
-                        className="flex-1"
-                      >
-                        {createWorkerMutation.isPending ? "جاري الحفظ..." : "حفظ"}
-                      </Button>
-                    </div>
-                  </form>
-                </Form>
-              </DialogContent>
-            </Dialog>
-          )}
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          {workers.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              لا يوجد عمال مسجلين
-            </div>
-          ) : (
-            workers.map((worker) => (
-              <div
-                key={worker.id}
-                className={`flex items-center justify-between p-4 rounded-lg ${
-                  worker.isAvailable ? 'bg-gray-50' : 'bg-red-50'
-                }`}
-              >
-                <div className="flex items-center space-x-reverse space-x-3">
-                  <div
-                    className={`status-indicator ${
-                      worker.isAvailable ? 'status-available' : 'status-busy'
-                    }`}
-                  />
-                  <div>
-                    <p className="font-medium">{worker.name}</p>
-                    <p className="text-sm text-gray-600">
-                      {workerCategories.find(c => c.value === worker.category)?.label || worker.category}
-                    </p>
-                  </div>
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {workers.map((worker) => (
+          <Card key={worker.id} className="h-40">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg flex items-center justify-between">
+                <span>{worker.name}</span>
+                <div className="flex items-center gap-1">
+                  <Users className="w-4 h-4" />
+                  <span className={`w-3 h-3 rounded-full ${
+                    worker.isAvailable ? 'bg-green-500' : 'bg-red-500'
+                  }`} />
                 </div>
-                <div className="text-left">
-                  <p className={`text-sm font-medium ${
-                    worker.isAvailable ? 'text-gray-600' : 'error'
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span>المهام النشطة:</span>
+                  <span className="font-semibold">{worker.tasks.filter(t => t.status === 'active').length}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>وقت العمل:</span>
+                  <span className="font-semibold">{formatDuration(worker.totalWorkTime)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>الحالة:</span>
+                  <span className={`font-semibold ${
+                    worker.isAvailable ? 'text-green-600' : 'text-red-600'
                   }`}>
                     {worker.isAvailable ? 'متاح' : 'مشغول'}
-                  </p>
-                  {worker.currentTask ? (
-                    <p className="text-xs text-gray-500">
-                      {worker.currentTask.description}
-                    </p>
-                  ) : (
-                    <p className="text-xs text-gray-500">
-                      {formatDuration(worker.totalWorkTime)} ساعة
-                    </p>
-                  )}
+                  </span>
                 </div>
               </div>
-            ))
-          )}
-        </div>
-      </CardContent>
-    </Card>
+            </CardContent>
+          </Card>
+        ))}
+
+        {showManagement && (
+          <Button 
+            onClick={handleAddWorkerClick}
+            className="h-40 w-full border-2 border-dashed border-gray-300 hover:border-gray-400"
+            variant="outline"
+          >
+            <div className="flex flex-col items-center gap-2">
+              <Plus className="w-8 h-8" />
+              <span>إضافة عامل</span>
+            </div>
+          </Button>
+        )}
+      </div>
+
+      {/* Password Dialog */}
+      <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>كلمة المرور</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Input
+                type="password"
+                placeholder="أدخل كلمة المرور"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handlePasswordSubmit();
+                  }
+                }}
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button onClick={handlePasswordSubmit} className="flex-1">
+                تأكيد
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setShowPasswordDialog(false);
+                  setPassword("");
+                }}
+              >
+                إلغاء
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Worker Dialog */}
+      <Dialog open={showAddWorkerDialog} onOpenChange={setShowAddWorkerDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>تسجيل عامل جديد</DialogTitle>
+          </DialogHeader>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>اسم العامل</FormLabel>
+                    <FormControl>
+                      {isNewWorker ? (
+                        <Input 
+                          placeholder="أدخل اسم العامل الجديد" 
+                          {...field} 
+                        />
+                      ) : (
+                        <Select 
+                          onValueChange={(value) => {
+                            if (value === "عامل جديد") {
+                              setIsNewWorker(true);
+                              field.onChange("");
+                            } else {
+                              field.onChange(value);
+                            }
+                          }} 
+                          defaultValue={field.value}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="اختر العامل" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {(workerNames || predefinedWorkers).map((name, index) => (
+                              <SelectItem key={`${name}-${index}`} value={name || `item-${index}`}>
+                                {name}
+                              </SelectItem>
+                            ))}
+                            <SelectItem value="عامل جديد">عامل جديد</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      )}
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {!isNewWorker && (
+                <>
+                  <FormField
+                    control={form.control}
+                    name="supervisor"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>المشرف</FormLabel>
+                        <FormControl>
+                          <Input placeholder="اسم المشرف" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="assistant"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>المساعد</FormLabel>
+                        <FormControl>
+                          <Input placeholder="اسم المساعد" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="engineer"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>المهندس</FormLabel>
+                        <FormControl>
+                          <Input placeholder="اسم المهندس" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </>
+              )}
+
+              {isNewWorker && (
+                <>
+                  <FormField
+                    control={form.control}
+                    name="category"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>التصنيف</FormLabel>
+                        <FormControl>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="اختر التصنيف" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {workerCategories.map((category) => (
+                                <SelectItem key={category.value} value={category.value}>
+                                  {category.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="nationalId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>الرقم الوطني</FormLabel>
+                        <FormControl>
+                          <Input placeholder="الرقم الوطني" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="phoneNumber"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>رقم الهاتف</FormLabel>
+                        <FormControl>
+                          <Input placeholder="رقم الهاتف" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="address"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>العنوان</FormLabel>
+                        <FormControl>
+                          <Input placeholder="العنوان" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </>
+              )}
+
+              <div className="flex gap-2 pt-4">
+                <Button type="submit" disabled={createWorkerMutation.isPending} className="flex-1">
+                  {createWorkerMutation.isPending ? "جاري الحفظ..." : "حفظ"}
+                </Button>
+                <Button 
+                  type="button" 
+                  variant="outline"
+                  onClick={() => {
+                    setShowAddWorkerDialog(false);
+                    setIsNewWorker(false);
+                    form.reset();
+                  }}
+                >
+                  إلغاء
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 }
