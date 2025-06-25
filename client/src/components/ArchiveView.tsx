@@ -50,9 +50,10 @@ export default function ArchiveView() {
     enabled: searchTerm.length > 2,
   });
 
-  // Fetch all task history for archiving
+  // Fetch task history for archiving
   const { data: taskHistory } = useQuery({
     queryKey: ['/api/tasks/history'],
+    refetchInterval: 30000,
   });
 
   const form = useForm<ArchiveFormData>({
@@ -64,8 +65,10 @@ export default function ArchiveView() {
   });
 
   const archiveTaskMutation = useMutation({
-    mutationFn: async (data: ArchiveFormData & { taskId: number }) => {
-      const response = await apiRequest("POST", `/api/tasks/${data.taskId}/archive`, {
+    mutationFn: async (data: ArchiveFormData) => {
+      if (!selectedTaskId) throw new Error("لم يتم اختيار مهمة");
+      
+      const response = await apiRequest("POST", `/api/tasks/${selectedTaskId}/archive`, {
         archivedBy: data.archivedBy,
         notes: data.notes,
       });
@@ -74,29 +77,21 @@ export default function ArchiveView() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/archive'] });
       queryClient.invalidateQueries({ queryKey: ['/api/tasks/history'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/tasks'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/stats'] });
       form.reset();
       setSelectedTaskId(null);
       toast({
-        title: "تم أرشفة المهمة بنجاح",
-        description: "تم نقل المهمة إلى الأرشيف",
+        title: "تم أرشفة المهمة",
+        description: "تم أرشفة المهمة بنجاح",
       });
     },
     onError: () => {
       toast({
-        title: "خطأ في أرشفة المهمة",
-        description: "حاول مرة أخرى",
+        title: "خطأ في الأرشفة",
+        description: "حدث خطأ أثناء أرشفة المهمة",
         variant: "destructive",
       });
     },
   });
-
-  const onSubmit = (data: ArchiveFormData) => {
-    if (selectedTaskId) {
-      archiveTaskMutation.mutate({ ...data, taskId: selectedTaskId });
-    }
-  };
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -138,117 +133,19 @@ export default function ArchiveView() {
   const isLoading = searchTerm.length > 2 ? loadingSearch : loadingArchive;
 
   const handlePrint = () => {
-    if (!displayTasks || displayTasks.length === 0) {
-      toast({
-        title: "لا يوجد بيانات للطباعة",
-        description: "لا توجد مهام مؤرشفة لطباعتها",
-        variant: "destructive",
-      });
-      return;
+    const printContent = generatePrintContent(displayTasks || []);
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(printContent);
+      printWindow.document.close();
+      printWindow.focus();
+      printWindow.print();
+      printWindow.close();
     }
+  };
 
-    // استخدام طريقة CSS للطباعة بدلاً من فتح نافذة جديدة
-    const printStyles = `
-      <style media="print">
-        * { font-family: Arial, sans-serif !important; }
-        body { margin: 0; padding: 10px; direction: rtl; }
-        .no-print { display: none !important; }
-        .print-only { display: block !important; }
-        table { width: 100%; border-collapse: collapse; font-size: 12px; }
-        th, td { border: 1px solid #000; padding: 4px; text-align: right; }
-        th { background-color: #f0f0f0; font-weight: bold; }
-        @page { margin: 1cm; }
-      </style>
-    `;
-
-    const currentDate = new Date().toLocaleDateString('ar-EG');
-    const totalDuration = displayTasks.reduce((sum, task) => sum + task.totalDuration, 0);
-    
-    const printContent = `
-      <div class="print-only" style="display: none;">
-        <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 10px;">
-          <h1 style="color: #2563eb; margin: 0;">V POWER TUNING</h1>
-          <h2 style="margin: 5px 0;">تقرير أرشيف المهام الكامل</h2>
-          <p>تاريخ التقرير: ${currentDate}</p>
-        </div>
-        
-        <div style="text-align: center; margin: 15px 0; padding: 10px; background: #f8f9fa;">
-          <strong>إجمالي المهام: ${displayTasks.length}</strong> | 
-          <strong>إجمالي الوقت: ${formatDuration(totalDuration)}</strong>
-        </div>
-
-        <table>
-          <thead>
-            <tr>
-              <th>العامل</th>
-              <th>المهمة</th>
-              <th>السيارة</th>
-              <th>الوقت المقدر</th>
-              <th>الوقت الفعلي</th>
-              <th>الأداء</th>
-              <th>التاريخ</th>
-              <th>المؤرشف</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${displayTasks.map(task => {
-              let performance = 'غير محدد';
-              if (task.estimatedDuration && task.estimatedDuration > 0) {
-                const estimatedSeconds = task.estimatedDuration * 60;
-                performance = task.totalDuration <= estimatedSeconds ? 'في الوقت' : 'متأخر';
-              }
-              
-              const archiveDate = task.archivedAt ? 
-                new Date(task.archivedAt).toLocaleDateString('ar-EG') : '--';
-              
-              const ratingText = task.rating === 1 ? 'مقبول' : task.rating === 2 ? 'جيد' : task.rating === 3 ? 'ممتاز' : '--';
-              const engineerName = task.engineerName || '--';
-              const supervisorName = task.supervisorName || '--';
-              
-              return `
-                <tr>
-                  <td>${task.worker.name}</td>
-                  <td>${task.workerRole || '--'}</td>
-                  <td>${task.description}</td>
-                  <td>${getCarBrandInArabic(task.carBrand)} ${task.carModel}</td>
-                  <td>${task.licensePlate || '--'}</td>
-                  <td>${engineerName}</td>
-                  <td>${supervisorName}</td>
-                  <td>${task.estimatedDuration ? task.estimatedDuration + ' دقيقة' : 'غير محدد'}</td>
-                  <td>${formatDuration(task.totalDuration)}</td>
-                  <td>${ratingText}</td>
-                  <td>${archiveDate}</td>
-                  <td>${task.archivedBy || '--'}</td>
-                </tr>
-              `;
-            }).join('')}
-          </tbody>
-        </table>
-        
-        <div style="margin-top: 20px; text-align: center; font-size: 10px;">
-          نظام توزيع المهام - V POWER TUNING © 2025
-        </div>
-      </div>
-    `;
-
-    // إضافة المحتوى إلى الصفحة الحالية
-    const printDiv = document.createElement('div');
-    printDiv.innerHTML = printStyles + printContent;
-    document.body.appendChild(printDiv);
-
-    // طباعة الصفحة
-    setTimeout(() => {
-      window.print();
-      // إزالة المحتوى بعد الطباعة
-      setTimeout(() => {
-        document.body.removeChild(printDiv);
-      }, 1000);
-    }, 100);
-
-    toast({
-      title: "جاري تحضير التقرير للطباعة",
-      description: "ستظهر نافذة الطباعة قريباً",
-    });
+  const onSubmit = (data: ArchiveFormData) => {
+    archiveTaskMutation.mutate(data);
   };
 
   const generatePrintContent = (tasks: TaskHistory[]) => {
@@ -269,7 +166,7 @@ export default function ArchiveView() {
       <html dir="rtl" lang="ar">
       <head>
         <meta charset="UTF-8">
-        <title>تقرير الأرشيف - V POWER TUNING</title>
+        <title>تقرير الاستلام النهائي - V POWER TUNING</title>
         <style>
           body {
             font-family: Arial, sans-serif;
@@ -318,6 +215,7 @@ export default function ArchiveView() {
             border: 1px solid #ddd;
             padding: 8px;
             text-align: right;
+            font-size: 12px;
           }
           th {
             background-color: #f8f9fa;
@@ -347,7 +245,7 @@ export default function ArchiveView() {
       <body>
         <div class="header">
           <div class="company-name">V POWER TUNING</div>
-          <div class="report-title">تقرير أرشيف المهام</div>
+          <div class="report-title">تقرير الاستلام النهائي</div>
           <div class="report-date">تاريخ التقرير: ${currentDate}</div>
         </div>
         
@@ -376,38 +274,27 @@ export default function ArchiveView() {
           </thead>
           <tbody>
             ${tasks.map(task => {
-              // تنسيق التاريخ بشكل آمن
-              let archiveDate = '--';
-              if (task.archivedAt) {
-                try {
-                  const date = new Date(task.archivedAt);
-                  archiveDate = date.toLocaleDateString('ar-EG', {
-                    day: 'numeric',
-                    month: 'numeric',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  });
-                } catch (e) {
-                  archiveDate = new Date(task.archivedAt).toLocaleDateString();
-                }
-              }
+              const archiveDate = task.archivedAt ? 
+                new Date(task.archivedAt).toLocaleDateString('ar-EG') : '--';
+              
+              const ratingText = task.rating === 1 ? 'مقبول' : task.rating === 2 ? 'جيد' : task.rating === 3 ? 'ممتاز' : '--';
+              const engineerName = task.engineerName || '--';
+              const supervisorName = task.supervisorName || '--';
               
               return `
                 <tr>
                   <td>${task.worker.name}</td>
-                  <td>
-                    ${task.description}
-                    ${task.archiveNotes ? `<br><small>ملاحظات: ${task.archiveNotes}</small>` : ''}
-                  </td>
-                  <td>
-                    ${getCarBrandInArabic(task.carBrand)}<br>
-                    <small>${task.carModel} - ${task.licensePlate}</small>
-                  </td>
+                  <td>${task.workerRole || '--'}</td>
+                  <td>${task.description}</td>
+                  <td>${getCarBrandInArabic(task.carBrand)} ${task.carModel}</td>
+                  <td>${task.licensePlate || '--'}</td>
+                  <td>${engineerName}</td>
+                  <td>${supervisorName}</td>
+                  <td>${task.estimatedDuration ? task.estimatedDuration + ' دقيقة' : 'غير محدد'}</td>
                   <td>${formatDuration(task.totalDuration)}</td>
+                  <td>${ratingText}</td>
                   <td>${archiveDate}</td>
                   <td>${task.archivedBy || '--'}</td>
-                  <td class="status-${task.status}">${getTaskStatusInArabic(task.status)}</td>
                 </tr>
               `;
             }).join('')}
@@ -424,404 +311,155 @@ export default function ArchiveView() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Archive Actions */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Archive Task */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <FolderArchive className="ml-2 h-5 w-5" />
-              أرشفة مهمة
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {completedTasks.length === 0 ? (
-                <p className="text-gray-500 text-center py-4">
-                  لا توجد مهام مكتملة للأرشفة
-                </p>
-              ) : (
-                <div className="space-y-2">
-                  <p className="text-sm text-gray-600 mb-3">اختر مهمة للأرشفة:</p>
-                  {completedTasks.slice(0, 5).map((task) => (
-                    <div
-                      key={task.id}
-                      className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50"
-                    >
-                      <div>
-                        <p className="font-medium">{task.worker.name}</p>
-                        <p className="text-sm text-gray-600">
-                          {task.description} - {getCarBrandInArabic(task.carBrand)}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {task.carModel} - {task.licensePlate}
-                        </p>
-                      </div>
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button
-                            size="sm"
-                            onClick={() => setSelectedTaskId(task.id)}
-                            className="bg-blue-600 hover:bg-blue-700"
-                          >
-                            <Archive className="ml-1 h-3 w-3" />
-                            أرشف
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle>أرشفة المهمة</DialogTitle>
-                          </DialogHeader>
-                          <Form {...form}>
-                            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                              <FormField
-                                control={form.control}
-                                name="archivedBy"
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>اسم المؤرشف</FormLabel>
-                                    <FormControl>
-                                      <Input placeholder="اسم المدير أو المسؤول" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                              <FormField
-                                control={form.control}
-                                name="notes"
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>ملاحظات الأرشفة (اختيارية)</FormLabel>
-                                    <FormControl>
-                                      <Textarea
-                                        placeholder="أي ملاحظات إضافية حول المهمة..."
-                                        {...field}
-                                      />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                              <Button 
-                                type="submit" 
-                                disabled={archiveTaskMutation.isPending}
-                                className="w-full"
-                              >
-                                {archiveTaskMutation.isPending ? "جاري الأرشفة..." : "أرشف المهمة"}
-                              </Button>
-                            </form>
-                          </Form>
-                        </DialogContent>
-                      </Dialog>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Search and Filter Archive */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Search className="ml-2 h-5 w-5" />
-              البحث والتصفية
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {/* Search */}
-              <form onSubmit={handleSearch}>
-                <div className="flex space-x-reverse space-x-2">
-                  <Input
-                    type="text"
-                    placeholder="ابحث في الوصف، الموديل، رقم اللوحة، أو الملاحظات..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="flex-1"
-                  />
-                  <Button type="submit" disabled={searchTerm.length < 3}>
-                    <Search className="h-4 w-4" />
-                  </Button>
-                </div>
-              </form>
-
-              {/* Date Filter Buttons */}
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  variant={viewMode === "all" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setViewMode("all")}
-                >
-                  جميع المهام
-                </Button>
-                <Button
-                  variant={viewMode === "date" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setViewMode("date")}
-                >
-                  يوم محدد
-                </Button>
-                <Button
-                  variant={viewMode === "range" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setViewMode("range")}
-                >
-                  فترة زمنية
-                </Button>
-              </div>
-
-              {/* Date Pickers */}
-              {viewMode === "date" && (
-                <div className="flex items-center space-x-reverse space-x-2">
-                  <label className="text-sm font-medium">التاريخ:</label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "justify-start text-right font-normal",
-                          !selectedDate && "text-muted-foreground"
-                        )}
-                      >
-                        <CalendarIcon className="ml-2 h-4 w-4" />
-                        {selectedDate ? (
-                          format(selectedDate, "PPP", { locale: ar })
-                        ) : (
-                          <span>اختر التاريخ</span>
-                        )}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={selectedDate}
-                        onSelect={setSelectedDate}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-              )}
-
-              {viewMode === "range" && (
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">من:</label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className={cn(
-                            "justify-start text-right font-normal w-full",
-                            !dateRange.from && "text-muted-foreground"
-                          )}
-                        >
-                          <CalendarIcon className="ml-2 h-4 w-4" />
-                          {dateRange.from ? (
-                            format(dateRange.from, "PPP", { locale: ar })
-                          ) : (
-                            <span>التاريخ الأول</span>
-                          )}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={dateRange.from}
-                          onSelect={(date) => setDateRange(prev => ({ ...prev, from: date }))}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">إلى:</label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className={cn(
-                            "justify-start text-right font-normal w-full",
-                            !dateRange.to && "text-muted-foreground"
-                          )}
-                        >
-                          <CalendarIcon className="ml-2 h-4 w-4" />
-                          {dateRange.to ? (
-                            format(dateRange.to, "PPP", { locale: ar })
-                          ) : (
-                            <span>التاريخ الثاني</span>
-                          )}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={dateRange.to}
-                          onSelect={(date) => setDateRange(prev => ({ ...prev, to: date }))}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Archive Table */}
-      <Card>
-        <CardHeader>
-          <div className="flex justify-between items-center">
-            <div>
-              <CardTitle className="flex items-center">
-                <Archive className="ml-2 h-5 w-5" />
-                {searchTerm.length > 2 ? `نتائج البحث: "${searchTerm}"` : "الأرشيف"}
-              </CardTitle>
-              <p className="text-sm text-gray-600 mt-1">
-                {displayTasks?.length || 0} مهمة
-                {viewMode === "date" && selectedDate && ` - ${format(selectedDate, "PPP", { locale: ar })}`}
-                {viewMode === "range" && dateRange.from && dateRange.to && 
-                  ` - من ${format(dateRange.from, "PP", { locale: ar })} إلى ${format(dateRange.to, "PP", { locale: ar })}`
-                }
-              </p>
-            </div>
-            <div className="flex space-x-reverse space-x-2">
-              <Button onClick={handlePrint} className="bg-blue-600 hover:bg-blue-700">
-                <Printer className="ml-2 h-4 w-4" />
-                طباعة التقرير
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Archive className="w-5 h-5" />
+          استلام نهائي
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {/* Search and Filter Section */}
+        <div className="space-y-4">
+          <div className="flex gap-4">
+            <form onSubmit={handleSearch} className="flex gap-2 flex-1">
+              <Input
+                placeholder="ابحث في المهام المؤرشفة..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="flex-1"
+              />
+              <Button type="submit" size="sm">
+                <Search className="w-4 h-4" />
               </Button>
-              <Button className="bg-green-600 hover:bg-green-700">
-                <Download className="ml-2 h-4 w-4" />
-                تصدير Excel
-              </Button>
-            </div>
+            </form>
+            <Button onClick={handlePrint} size="sm" variant="outline">
+              <Printer className="w-4 h-4 ml-1" />
+              طباعة
+            </Button>
           </div>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="text-center py-8 text-gray-500">
-              جاري التحميل...
-            </div>
-          ) : !displayTasks || displayTasks.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              {searchTerm.length > 2 ? "لا توجد نتائج للبحث" : "لا توجد مهام مؤرشفة"}
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      العامل
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      المهمة
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      السيارة
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      المدة
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      الأداء
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      تاريخ الأرشفة
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      المؤرشف بواسطة
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      الحالة
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {displayTasks.map((task) => (
-                    <tr key={task.id}>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="w-2 h-2 rounded-full bg-blue-500 ml-3" />
-                          <div>
-                            <div className="text-sm font-medium text-gray-900">
-                              {task.worker.name}
-                            </div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div>
-                          <div className="text-sm text-gray-900">{task.description}</div>
-                          {task.archiveNotes && (
-                            <div className="text-xs text-gray-500 mt-1">
-                              ملاحظات: {task.archiveNotes}
-                            </div>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div>
-                          <div className="text-sm text-gray-900">
-                            {getCarBrandInArabic(task.carBrand)}
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            {task.carModel} - {task.licensePlate}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {formatDuration(task.totalDuration)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {task.estimatedDuration ? (
-                          <div className="space-y-1">
-                            <div className="text-xs text-gray-500">
-                              مقدر: {formatDuration(task.estimatedDuration * 60)}
-                            </div>
-                            <div className={`text-xs ${
-                              task.totalDuration > task.estimatedDuration * 60 
-                                ? 'text-red-600' 
-                                : 'text-green-600'
-                            }`}>
-                              {task.totalDuration > task.estimatedDuration * 60 ? 'متأخر' : 'في الوقت'}
-                            </div>
-                          </div>
-                        ) : (
-                          <span className="text-gray-400">غير محدد</span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {task.archivedAt ? new Date(task.archivedAt).toLocaleDateString('ar-EG', {
-                          day: 'numeric',
-                          month: 'numeric',
-                          year: 'numeric',
-                          calendar: 'gregory',
-                          timeZone: 'Asia/Damascus'
-                        }) : '--'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {task.archivedBy || '--'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <Badge className={getTaskStatusColor(task.status)}>
-                          {getTaskStatusInArabic(task.status)}
-                        </Badge>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+
+          {/* View Mode Buttons */}
+          <div className="flex gap-2">
+            <Button
+              variant={viewMode === "all" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setViewMode("all")}
+            >
+              جميع المهام
+            </Button>
+            <Button
+              variant={viewMode === "date" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setViewMode("date")}
+            >
+              يوم محدد
+            </Button>
+          </div>
+
+          {/* Date Picker for specific date */}
+          {viewMode === "date" && (
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="w-full justify-start text-left font-normal">
+                  <CalendarIcon className="ml-2 h-4 w-4" />
+                  {selectedDate ? format(selectedDate, "PPP", { locale: ar }) : "اختر تاريخ"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={setSelectedDate}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
           )}
-        </CardContent>
-      </Card>
-    </div>
+        </div>
+
+        {/* Tasks Display */}
+        {isLoading ? (
+          <div className="text-center py-8">جاري تحميل المهام...</div>
+        ) : (
+          <div>
+            {displayTasks.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                لا توجد مهام في الاستلام النهائي
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {displayTasks.map((task) => (
+                  <div key={task.id} className="p-4 border rounded-lg bg-gray-50">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      <div>
+                        <span className="font-medium">العامل:</span> {task.worker.name}
+                      </div>
+                      <div>
+                        <span className="font-medium">دور العامل:</span> {task.workerRole || '--'}
+                      </div>
+                      <div>
+                        <span className="font-medium">المهمة:</span> {task.description}
+                      </div>
+                      <div>
+                        <span className="font-medium">السيارة:</span> {getCarBrandInArabic(task.carBrand)} {task.carModel}
+                      </div>
+                      <div>
+                        <span className="font-medium">رقم اللوحة:</span> {task.licensePlate || '--'}
+                      </div>
+                      <div>
+                        <span className="font-medium">المهندس المشرف:</span> {task.engineerName || '--'}
+                      </div>
+                      <div>
+                        <span className="font-medium">المشرف:</span> {task.supervisorName || '--'}
+                      </div>
+                      <div>
+                        <span className="font-medium">الوقت المقدر:</span> {task.estimatedDuration ? `${task.estimatedDuration} دقيقة` : '--'}
+                      </div>
+                      <div>
+                        <span className="font-medium">المدة الفعلية:</span> {formatDuration(task.totalDuration)}
+                      </div>
+                      <div>
+                        <span className="font-medium">تقييم العمل:</span> 
+                        {task.rating ? (
+                          <div className="flex items-center gap-1 mt-1">
+                            {[1, 2, 3].map((star) => (
+                              <Star 
+                                key={star}
+                                className={`w-4 h-4 ${
+                                  star <= task.rating 
+                                    ? "fill-yellow-400 text-yellow-400" 
+                                    : "fill-gray-200 text-gray-200"
+                                }`}
+                              />
+                            ))}
+                            <span className="text-sm mr-2">
+                              {task.rating === 1 && "مقبول"}
+                              {task.rating === 2 && "جيد"}  
+                              {task.rating === 3 && "ممتاز"}
+                            </span>
+                          </div>
+                        ) : '--'}
+                      </div>
+                      <div>
+                        <span className="font-medium">تاريخ التسليم:</span> {task.archivedAt ? formatDate(new Date(task.archivedAt)) : '--'}
+                      </div>
+                      <div>
+                        <span className="font-medium">تم التسليم بواسطة:</span> {task.archivedBy || '--'}
+                      </div>
+                      {task.archiveNotes && (
+                        <div className="col-span-full">
+                          <span className="font-medium">ملاحظات التسليم:</span> {task.archiveNotes}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
