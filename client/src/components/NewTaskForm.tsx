@@ -61,7 +61,7 @@ export default function NewTaskForm() {
       carBrand: "audi",
       carModel: "",
       licensePlate: "",
-      workerId: undefined,
+      workerId: "",
       workerRole: "assistant",
       estimatedDuration: undefined,
       engineerName: "",
