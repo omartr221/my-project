@@ -198,7 +198,7 @@ export default function TaskHistoryTable() {
                           className="text-blue-600 hover:text-blue-800"
                         >
                           <Archive className="ml-1 h-3 w-3" />
-                          أرشف
+                          استلام نهائي
                         </Button>
                       )}
                     </td>

@@ -230,7 +230,7 @@ export default function Dashboard() {
               className="font-medium"
             >
               <Archive className="ml-2 h-4 w-4" />
-              الأرشيف
+              استلام نهائي
             </Button>
 
             <Button
