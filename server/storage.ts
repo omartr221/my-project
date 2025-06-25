@@ -418,19 +418,26 @@ export class DatabaseStorage implements IStorage {
   private calculateCurrentDuration(task: Task): number {
     if (!task.startTime) return 0;
     
-    const now = new Date();
     const startTime = new Date(task.startTime);
+    let endTime: Date;
     
-    // If task is paused, calculate up to pause time
-    if (task.status === 'paused' && task.pausedAt) {
-      const pausedAt = new Date(task.pausedAt);
-      const timeBeforePause = Math.floor((pausedAt.getTime() - startTime.getTime()) / 1000);
-      return Math.max(0, timeBeforePause - (task.totalPausedDuration || 0));
+    // For completed/archived tasks, use the end time
+    if (task.endTime) {
+      endTime = new Date(task.endTime);
+    }
+    // For paused tasks, calculate up to pause time
+    else if (task.status === 'paused' && task.pausedAt) {
+      endTime = new Date(task.pausedAt);
+    }
+    // For active tasks, use current time
+    else {
+      endTime = new Date();
     }
     
-    // For active tasks, calculate total time minus paused duration
-    const totalDuration = Math.floor((now.getTime() - startTime.getTime()) / 1000);
-    return Math.max(0, totalDuration - (task.totalPausedDuration || 0));
+    const totalDuration = Math.floor((endTime.getTime() - startTime.getTime()) / 1000);
+    const pausedTime = task.totalPausedDuration || 0;
+    
+    return Math.max(0, totalDuration - pausedTime);
   }
 }
 
