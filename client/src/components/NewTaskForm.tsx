@@ -24,7 +24,7 @@ const taskFormSchema = z.object({
   estimatedDuration: z.number().nullable().optional(),
   engineerName: z.string().optional(),
   supervisorName: z.string().optional(),
-  assistantName: z.string().optional(),
+  assistantName: z.string().min(1, "يجب اختيار المساعد"),
 });
 
 type TaskFormData = z.infer<typeof taskFormSchema>;
@@ -301,7 +301,7 @@ export default function NewTaskForm() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {workerNames?.map((name: string, index: number) => (
+                          {workerNames?.filter((name: string) => name !== "عامل جديد").map((name: string, index: number) => (
                             <SelectItem key={index} value={name}>
                               {name}
                             </SelectItem>
