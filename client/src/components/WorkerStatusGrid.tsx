@@ -83,6 +83,8 @@ export default function WorkerStatusGrid({
 
   const onSubmit = (data: InsertWorker) => {
     createWorkerMutation.mutate(data);
+    setShowAddWorkerDialog(false);
+    form.reset();
   };
 
   return (
