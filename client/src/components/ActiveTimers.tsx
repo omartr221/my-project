@@ -105,17 +105,17 @@ export default function ActiveTimers({
   const calculateCurrentDuration = (task: TaskWithWorker) => {
     if (!task.startTime) return 0;
     
-    // If task is paused, return the accumulated work time (frozen)
+    // If task is paused, return the duration at the time it was paused (frozen)
     if (task.status === "paused") {
-      return task.totalPausedDuration || 0;
+      return task.currentDuration || 0;
     }
     
-    // For active tasks, add current session time to accumulated work time
+    // For active tasks, calculate from start time minus any paused time
     const startTime = new Date(task.startTime).getTime();
-    const currentSessionTime = Math.floor((currentTime - startTime) / 1000);
-    const accumulatedWorkTime = task.totalPausedDuration || 0;
+    const totalElapsed = Math.floor((currentTime - startTime) / 1000);
+    const pausedTime = task.totalPausedDuration || 0;
     
-    return Math.max(0, currentSessionTime + accumulatedWorkTime);
+    return Math.max(0, totalElapsed - pausedTime);
   };
 
   return (
