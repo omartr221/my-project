@@ -199,15 +199,6 @@ export default function TaskHistoryTable() {
                       {task.assistantName || '--'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {task.supervisorName || '--'}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {task.engineerName || '--'}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {task.assistantName || '--'}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {task.description}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">

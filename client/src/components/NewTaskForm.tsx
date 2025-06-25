@@ -21,7 +21,7 @@ const taskFormSchema = z.object({
   carBrand: z.string().min(1, "يجب اختيار نوع السيارة"),
   carModel: z.string().min(1, "يجب إدخال موديل السيارة"),
   licensePlate: z.string().min(1, "يجب إدخال رقم اللوحة"),
-  estimatedDuration: z.number().optional(),
+  estimatedDuration: z.number().nullable().optional(),
   engineerName: z.string().optional(),
   supervisorName: z.string().optional(),
   assistantName: z.string().optional(),
@@ -202,7 +202,7 @@ export default function NewTaskForm() {
                           type="number"
                           placeholder="60"
                           value={field.value || ""}
-                          onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                          onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : null)}
                         />
                       </FormControl>
                       <FormMessage />
