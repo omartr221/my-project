@@ -248,7 +248,7 @@ export default function NewTaskForm() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {workerNames?.map((name: string, index: number) => (
+                          {workerNames?.filter((name: string) => name !== "عامل جديد").map((name: string, index: number) => (
                             <SelectItem key={index} value={name}>
                               {name}
                             </SelectItem>
@@ -273,7 +273,7 @@ export default function NewTaskForm() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {workerNames?.map((name: string, index: number) => (
+                          {workerNames?.filter((name: string) => name !== "عامل جديد").map((name: string, index: number) => (
                             <SelectItem key={index} value={name}>
                               {name}
                             </SelectItem>
