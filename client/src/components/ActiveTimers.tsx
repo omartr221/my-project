@@ -153,6 +153,12 @@ export default function ActiveTimers({
                       <p className="text-xs text-gray-500">
                         {task.carModel} - {task.licensePlate}
                       </p>
+                      <div className="text-xs text-gray-600 mt-1">
+                        المهندس: {task.worker.name} |
+                        المشرف: {task.supervisorName || '--'} |
+                        الفني: {task.engineerName || '--'} |
+                        المساعد: {task.assistantName || '--'}
+                      </div>
                     </div>
                     <div className="text-left">
                       <p className={`timer-display ${isActive ? 'error' : 'warning'}`}>

@@ -209,7 +209,7 @@ export default function NewTaskForm() {
                         <Input
                           type="number"
                           placeholder="60"
-                          {...field}
+                          value={field.value || ""}
                           onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
                         />
                       </FormControl>
@@ -224,7 +224,7 @@ export default function NewTaskForm() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>المهندس</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value?.toString()}>
+                      <Select onValueChange={field.onChange} value={field.value || ""}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="اختر المهندس" />
