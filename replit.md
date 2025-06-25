@@ -112,6 +112,9 @@ Changelog:
 - June 24, 2025. Added worker attendance tracking with check buttons for present/absent status in dashboard
 - June 24, 2025. Updated worker names list with: حسام، حسن، يحيى، غدير، سليمان، علي، زياد
 - June 24, 2025. Removed worker management functionality from the system per user request
+- June 25, 2025. Implemented delivery system with 3-star rating (مقبول، جيد، ممتاز) replacing archive functionality
+- June 25, 2025. Changed "الأرشيف" to "استلام نهائي" and "أرشف" to "تسليم" throughout the system
+- June 25, 2025. Added rating field to database and integrated with task completion workflow
 
 ## User Preferences
 
