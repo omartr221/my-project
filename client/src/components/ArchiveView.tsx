@@ -290,7 +290,7 @@ export default function ArchiveView() {
               const engineerName = task.engineerName || '--';
               const supervisorName = task.supervisorName || '--';
               const workPercentage = task.estimatedDuration ? 
-                Math.round(((task.estimatedDuration * 60) / task.totalDuration) * 100) + '%' : '--';
+                Math.round((task.totalDuration / (task.estimatedDuration * 60)) * 100) + '%' : '--';
               
               return `
                 <tr>
@@ -435,9 +435,9 @@ export default function ArchiveView() {
                         <span className="font-medium">نسبة العمل المئوية:</span> 
                         {task.estimatedDuration ? (
                           <span className={`font-bold ${
-                            (task.estimatedDuration * 60) >= task.totalDuration ? 'text-green-600' : 'text-red-600'
+                            task.totalDuration <= (task.estimatedDuration * 60) ? 'text-green-600' : 'text-red-600'
                           }`}>
-                            {Math.round(((task.estimatedDuration * 60) / task.totalDuration) * 100)}%
+                            {Math.round((task.totalDuration / (task.estimatedDuration * 60)) * 100)}%
                           </span>
                         ) : '--'}
                       </div>
