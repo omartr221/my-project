@@ -266,12 +266,15 @@ export default function NewTaskForm() {
                         <SelectContent>
                           {workerNames?.filter((name: string) => 
                             name !== "عامل جديد" && 
-                            !Object.values(selectedWorkers).includes(name)
-                          ).map((name: string, index: number) => (
-                            <SelectItem key={index} value={(index + 17).toString()}>
-                              {name}
-                            </SelectItem>
-                          ))}
+                            !Object.values(selectedWorkers).filter(v => v !== "").includes(name)
+                          ).map((name: string, index: number) => {
+                            const realIndex = workerNames?.indexOf(name) || 0;
+                            return (
+                              <SelectItem key={index} value={(realIndex + 17).toString()}>
+                                {name}
+                              </SelectItem>
+                            );
+                          })}
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -373,6 +376,39 @@ export default function NewTaskForm() {
                   )}
                 />
               </div>
+
+              {/* عرض الأشخاص المختارين */}
+              {(selectedWorkers.engineer || selectedWorkers.supervisor || selectedWorkers.technician || selectedWorkers.assistant) && (
+                <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                  <h4 className="font-medium mb-2">الأشخاص المختارون:</h4>
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    {selectedWorkers.engineer && (
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-blue-600">المهندس:</span>
+                        <span>{selectedWorkers.engineer}</span>
+                      </div>
+                    )}
+                    {selectedWorkers.supervisor && (
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-green-600">المشرف:</span>
+                        <span>{selectedWorkers.supervisor}</span>
+                      </div>
+                    )}
+                    {selectedWorkers.technician && (
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-orange-600">الفني:</span>
+                        <span>{selectedWorkers.technician}</span>
+                      </div>
+                    )}
+                    {selectedWorkers.assistant && (
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-purple-600">المساعد:</span>
+                        <span>{selectedWorkers.assistant}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
 
               <div className="flex gap-4">
                 <Button 
