@@ -405,10 +405,7 @@ export default function ArchiveView() {
                   <div key={task.id} className="p-4 border rounded-lg bg-gray-50">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                       <div>
-                        <span className="font-medium">العامل:</span> {task.worker.name}
-                      </div>
-                      <div>
-                        <span className="font-medium">دور العامل:</span> {task.workerRole || '--'}
+                        <span className="font-medium">المهندس:</span> {task.worker.name}
                       </div>
                       <div>
                         <span className="font-medium">المهمة:</span> {task.description}
@@ -420,10 +417,13 @@ export default function ArchiveView() {
                         <span className="font-medium">رقم اللوحة:</span> {task.licensePlate || '--'}
                       </div>
                       <div>
-                        <span className="font-medium">المهندس المشرف:</span> {task.engineerName || '--'}
+                        <span className="font-medium">المشرف:</span> {task.supervisorName || '--'}
                       </div>
                       <div>
-                        <span className="font-medium">المشرف:</span> {task.supervisorName || '--'}
+                        <span className="font-medium">الفني:</span> {task.engineerName || '--'}
+                      </div>
+                      <div>
+                        <span className="font-medium">المساعد:</span> {task.assistantName || '--'}
                       </div>
                       <div>
                         <span className="font-medium">الوقت المقدر:</span> {task.estimatedDuration ? `${task.estimatedDuration} دقيقة` : '--'}

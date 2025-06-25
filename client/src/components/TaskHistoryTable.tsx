@@ -177,11 +177,17 @@ export default function TaskHistoryTable() {
                           <div className="text-sm font-medium text-gray-900">
                             {task.worker.name}
                           </div>
-                          <div className="text-sm text-gray-500">
-                            {task.worker.category}
-                          </div>
                         </div>
                       </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {task.supervisorName || '--'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {task.engineerName || '--'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {task.assistantName || '--'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {task.description}
