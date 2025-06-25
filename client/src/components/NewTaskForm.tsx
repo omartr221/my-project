@@ -38,6 +38,12 @@ const carBrands = [
 
 export default function NewTaskForm() {
   const [open, setOpen] = useState(false);
+  const [selectedWorkers, setSelectedWorkers] = useState({
+    engineer: "",
+    supervisor: "", 
+    technician: "",
+    assistant: ""
+  });
   const { toast } = useToast();
 
   const form = useForm<TaskFormData>({
@@ -102,6 +108,7 @@ export default function NewTaskForm() {
       queryClient.invalidateQueries({ queryKey: ["/api/workers"] });
       queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
       form.reset();
+      setSelectedWorkers({ engineer: "", supervisor: "", technician: "", assistant: "" });
       setOpen(false);
       toast({
         title: "تم إنشاء المهمة بنجاح",
@@ -246,14 +253,21 @@ export default function NewTaskForm() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>المهندس</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value || ""}>
+                      <Select onValueChange={(value) => {
+                        field.onChange(value);
+                        const selectedName = workerNames?.find((_, index) => (index + 17).toString() === value);
+                        setSelectedWorkers(prev => ({ ...prev, engineer: selectedName || "" }));
+                      }} value={field.value || ""}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="اختر المهندس" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {workerNames?.filter((name: string) => name !== "عامل جديد").map((name: string, index: number) => (
+                          {workerNames?.filter((name: string) => 
+                            name !== "عامل جديد" && 
+                            !Object.values(selectedWorkers).includes(name)
+                          ).map((name: string, index: number) => (
                             <SelectItem key={index} value={(index + 17).toString()}>
                               {name}
                             </SelectItem>
@@ -271,14 +285,20 @@ export default function NewTaskForm() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>المشرف</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value || ""}>
+                      <Select onValueChange={(value) => {
+                        field.onChange(value);
+                        setSelectedWorkers(prev => ({ ...prev, supervisor: value }));
+                      }} value={field.value || ""}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="اختر المشرف" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {workerNames?.filter((name: string) => name !== "عامل جديد").map((name: string, index: number) => (
+                          {workerNames?.filter((name: string) => 
+                            name !== "عامل جديد" && 
+                            !Object.values(selectedWorkers).includes(name)
+                          ).map((name: string, index: number) => (
                             <SelectItem key={index} value={name}>
                               {name}
                             </SelectItem>
@@ -296,14 +316,20 @@ export default function NewTaskForm() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>الفني</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value || ""}>
+                      <Select onValueChange={(value) => {
+                        field.onChange(value);
+                        setSelectedWorkers(prev => ({ ...prev, technician: value }));
+                      }} value={field.value || ""}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="اختر الفني" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {workerNames?.filter((name: string) => name !== "عامل جديد").map((name: string, index: number) => (
+                          {workerNames?.filter((name: string) => 
+                            name !== "عامل جديد" && 
+                            !Object.values(selectedWorkers).includes(name)
+                          ).map((name: string, index: number) => (
                             <SelectItem key={index} value={name}>
                               {name}
                             </SelectItem>
@@ -324,6 +350,7 @@ export default function NewTaskForm() {
                       <Select onValueChange={(value) => {
                         field.onChange(value);
                         form.setValue("workerRole", "assistant");
+                        setSelectedWorkers(prev => ({ ...prev, assistant: value }));
                       }} value={field.value || ""}>
                         <FormControl>
                           <SelectTrigger>
@@ -331,7 +358,10 @@ export default function NewTaskForm() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {workerNames?.filter((name: string) => name !== "عامل جديد").map((name: string, index: number) => (
+                          {workerNames?.filter((name: string) => 
+                            name !== "عامل جديد" && 
+                            !Object.values(selectedWorkers).includes(name)
+                          ).map((name: string, index: number) => (
                             <SelectItem key={index} value={name}>
                               {name}
                             </SelectItem>

@@ -121,6 +121,8 @@ Changelog:
 - June 25, 2025. Reset database with clean worker data for fresh system testing
 - June 25, 2025. Updated task creation form with four separate fields: المهندس (Engineer), المشرف (Supervisor), الفني (Technician), المساعد (Assistant)
 - June 25, 2025. Fixed form validation and input handling to prevent undefined value errors
+- June 25, 2025. Added new workers: بدوي and عبد الحفيظ
+- June 25, 2025. Implemented duplicate prevention logic in task form - each worker can only be selected once across all roles
 
 ## User Preferences
 
