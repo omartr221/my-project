@@ -421,12 +421,17 @@ export class DatabaseStorage implements IStorage {
     
     const now = new Date();
     const startTime = new Date(task.startTime);
-    const totalTime = Math.floor((now.getTime() - startTime.getTime()) / 1000);
     
-    // Subtract paused duration
-    const pausedDuration = task.totalPausedDuration || 0;
+    // If task is paused, calculate up to pause time
+    if (task.status === 'paused' && task.pausedAt) {
+      const pausedAt = new Date(task.pausedAt);
+      const timeBeforePause = Math.floor((pausedAt.getTime() - startTime.getTime()) / 1000);
+      return Math.max(0, timeBeforePause - (task.totalPausedDuration || 0));
+    }
     
-    return Math.max(0, totalTime - pausedDuration);
+    // For active tasks, calculate total time minus paused duration
+    const totalDuration = Math.floor((now.getTime() - startTime.getTime()) / 1000);
+    return Math.max(0, totalDuration - (task.totalPausedDuration || 0));
   }
 }
 
