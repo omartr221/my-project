@@ -31,10 +31,8 @@ const workerFormSchema = insertWorkerSchema.extend({
 type WorkerFormData = z.infer<typeof workerFormSchema>;
 
 const workerCategories = [
-  { value: "assistant", label: "مساعد" },
   { value: "technician", label: "فني" },
-  { value: "supervisor", label: "مشرف" },
-  { value: "engineer", label: "مهندس" },
+  { value: "administrative", label: "إداري" },
 ];
 
 export default function AddWorkerForm() {
