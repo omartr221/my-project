@@ -8,7 +8,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Archive, Search, Download, FolderArchive, Calendar as CalendarIcon, Printer, FileText } from "lucide-react";
+import { Archive, Search, Download, FolderArchive, Calendar as CalendarIcon, Printer, FileText, Star } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -201,14 +201,22 @@ export default function ArchiveView() {
               const archiveDate = task.archivedAt ? 
                 new Date(task.archivedAt).toLocaleDateString('ar-EG') : '--';
               
+              const ratingText = task.rating === 1 ? 'مقبول' : task.rating === 2 ? 'جيد' : task.rating === 3 ? 'ممتاز' : '--';
+              const engineerName = task.engineerName || '--';
+              const supervisorName = task.supervisorName || '--';
+              
               return `
                 <tr>
                   <td>${task.worker.name}</td>
+                  <td>${task.workerRole || '--'}</td>
                   <td>${task.description}</td>
                   <td>${getCarBrandInArabic(task.carBrand)} ${task.carModel}</td>
-                  <td>${task.estimatedDuration ? formatDuration(task.estimatedDuration * 60) : 'غير محدد'}</td>
+                  <td>${task.licensePlate || '--'}</td>
+                  <td>${engineerName}</td>
+                  <td>${supervisorName}</td>
+                  <td>${task.estimatedDuration ? task.estimatedDuration + ' دقيقة' : 'غير محدد'}</td>
                   <td>${formatDuration(task.totalDuration)}</td>
-                  <td>${performance}</td>
+                  <td>${ratingText}</td>
                   <td>${archiveDate}</td>
                   <td>${task.archivedBy || '--'}</td>
                 </tr>
@@ -353,12 +361,17 @@ export default function ArchiveView() {
           <thead>
             <tr>
               <th>العامل</th>
+              <th>الدور</th>
               <th>المهمة</th>
               <th>السيارة</th>
-              <th>المدة</th>
-              <th>تاريخ الأرشفة</th>
-              <th>المؤرشف بواسطة</th>
-              <th>الحالة</th>
+              <th>رقم اللوحة</th>
+              <th>المهندس</th>
+              <th>المشرف</th>
+              <th>الوقت المقدر</th>
+              <th>المدة الفعلية</th>
+              <th>التقييم</th>
+              <th>تاريخ التسليم</th>
+              <th>تم التسليم بواسطة</th>
             </tr>
           </thead>
           <tbody>
