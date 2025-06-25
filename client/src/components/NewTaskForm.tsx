@@ -255,8 +255,10 @@ export default function NewTaskForm() {
                       <FormLabel>المهندس</FormLabel>
                       <Select onValueChange={(value) => {
                         field.onChange(value);
-                        const selectedName = workerNames?.find((_, index) => (index + 17).toString() === value);
-                        setSelectedWorkers(prev => ({ ...prev, engineer: selectedName || "" }));
+                        const selectedIndex = parseInt(value) - 17;
+                        const selectedName = workerNames?.[selectedIndex] || "";
+                        console.log("Selected engineer:", selectedName);
+                        setSelectedWorkers(prev => ({ ...prev, engineer: selectedName }));
                       }} value={field.value || ""}>
                         <FormControl>
                           <SelectTrigger>
@@ -290,6 +292,7 @@ export default function NewTaskForm() {
                       <FormLabel>المشرف</FormLabel>
                       <Select onValueChange={(value) => {
                         field.onChange(value);
+                        console.log("Selected supervisor:", value);
                         setSelectedWorkers(prev => ({ ...prev, supervisor: value }));
                       }} value={field.value || ""}>
                         <FormControl>
@@ -321,6 +324,7 @@ export default function NewTaskForm() {
                       <FormLabel>الفني</FormLabel>
                       <Select onValueChange={(value) => {
                         field.onChange(value);
+                        console.log("Selected technician:", value);
                         setSelectedWorkers(prev => ({ ...prev, technician: value }));
                       }} value={field.value || ""}>
                         <FormControl>
@@ -353,6 +357,7 @@ export default function NewTaskForm() {
                       <Select onValueChange={(value) => {
                         field.onChange(value);
                         form.setValue("workerRole", "assistant");
+                        console.log("Selected assistant:", value);
                         setSelectedWorkers(prev => ({ ...prev, assistant: value }));
                       }} value={field.value || ""}>
                         <FormControl>
@@ -378,37 +383,30 @@ export default function NewTaskForm() {
               </div>
 
               {/* عرض الأشخاص المختارين */}
-              {(selectedWorkers.engineer || selectedWorkers.supervisor || selectedWorkers.technician || selectedWorkers.assistant) && (
-                <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                  <h4 className="font-medium mb-2">الأشخاص المختارون:</h4>
-                  <div className="grid grid-cols-2 gap-2 text-sm">
-                    {selectedWorkers.engineer && (
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium text-blue-600">المهندس:</span>
-                        <span>{selectedWorkers.engineer}</span>
-                      </div>
-                    )}
-                    {selectedWorkers.supervisor && (
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium text-green-600">المشرف:</span>
-                        <span>{selectedWorkers.supervisor}</span>
-                      </div>
-                    )}
-                    {selectedWorkers.technician && (
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium text-orange-600">الفني:</span>
-                        <span>{selectedWorkers.technician}</span>
-                      </div>
-                    )}
-                    {selectedWorkers.assistant && (
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium text-purple-600">المساعد:</span>
-                        <span>{selectedWorkers.assistant}</span>
-                      </div>
-                    )}
+              <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <h4 className="font-medium mb-3 text-gray-800">الفريق المختار للمهمة:</h4>
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div className="flex items-center gap-2 p-2 bg-white rounded border">
+                    <span className="font-medium text-blue-600 w-16">المهندس:</span>
+                    <span className="text-gray-800">{selectedWorkers.engineer || "غير محدد"}</span>
+                  </div>
+                  <div className="flex items-center gap-2 p-2 bg-white rounded border">
+                    <span className="font-medium text-green-600 w-16">المشرف:</span>
+                    <span className="text-gray-800">{selectedWorkers.supervisor || "غير محدد"}</span>
+                  </div>
+                  <div className="flex items-center gap-2 p-2 bg-white rounded border">
+                    <span className="font-medium text-orange-600 w-16">الفني:</span>
+                    <span className="text-gray-800">{selectedWorkers.technician || "غير محدد"}</span>
+                  </div>
+                  <div className="flex items-center gap-2 p-2 bg-white rounded border">
+                    <span className="font-medium text-purple-600 w-16">المساعد:</span>
+                    <span className="text-gray-800">{selectedWorkers.assistant || "غير محدد"}</span>
                   </div>
                 </div>
-              )}
+                <div className="mt-2 text-xs text-gray-600">
+                  ملاحظة: لا يمكن اختيار نفس الشخص في أكثر من دور
+                </div>
+              </div>
 
               <div className="flex gap-4">
                 <Button 
