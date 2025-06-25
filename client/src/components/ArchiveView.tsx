@@ -275,7 +275,15 @@ export default function ArchiveView() {
           <tbody>
             ${tasks.map(task => {
               const archiveDate = task.archivedAt ? 
-                new Date(task.archivedAt).toLocaleDateString('ar-EG') : '--';
+                new Intl.DateTimeFormat('ar-EG', {
+                  day: 'numeric',
+                  month: 'numeric',
+                  year: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  calendar: 'gregory',
+                  timeZone: 'Asia/Damascus'
+                }).format(new Date(task.archivedAt)) : '--';
               
               const ratingText = task.rating === 1 ? 'مقبول' : task.rating === 2 ? 'جيد' : task.rating === 3 ? 'ممتاز' : '--';
               const engineerName = task.engineerName || '--';
@@ -442,7 +450,16 @@ export default function ArchiveView() {
                         ) : '--'}
                       </div>
                       <div>
-                        <span className="font-medium">تاريخ التسليم:</span> {task.archivedAt ? formatDate(new Date(task.archivedAt)) : '--'}
+                        <span className="font-medium">تاريخ التسليم:</span> {task.archivedAt ? 
+                          new Intl.DateTimeFormat('ar-EG', {
+                            day: 'numeric',
+                            month: 'numeric',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            calendar: 'gregory',
+                            timeZone: 'Asia/Damascus'
+                          }).format(new Date(task.archivedAt)) : '--'}
                       </div>
                       <div>
                         <span className="font-medium">تم التسليم بواسطة:</span> {task.archivedBy || '--'}
