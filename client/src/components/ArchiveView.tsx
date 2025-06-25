@@ -433,20 +433,22 @@ export default function ArchiveView() {
                       </div>
                       <div>
                         <span className="font-medium">نسبة العمل المئوية:</span> 
-                        {task.estimatedDuration ? (() => {
+                        {task.estimatedDuration && task.estimatedDuration > 0 && task.totalDuration > 0 ? (() => {
                           const estimatedSeconds = task.estimatedDuration * 60;
                           const actualSeconds = task.totalDuration;
-                          // إذا انتهى قبل الوقت المقدر = كفاءة عالية (أكثر من 100%)
-                          // إذا تجاوز الوقت المقدر = كفاءة منخفضة (أقل من 100%)
+                          // حساب الكفاءة: الوقت المقدر ÷ الوقت الفعلي × 100
                           const efficiency = Math.round((estimatedSeconds / actualSeconds) * 100);
                           return (
-                            <span className={`font-bold ${
+                            <span className={`font-bold ml-2 ${
                               actualSeconds <= estimatedSeconds ? 'text-green-600' : 'text-red-600'
                             }`}>
-                              {efficiency}%
+                              {efficiency}% 
+                              <span className="text-xs text-gray-500 mr-1">
+                                ({task.estimatedDuration}د مقابل {Math.round(actualSeconds/60)}د)
+                              </span>
                             </span>
                           );
-                        })() : '--'}
+                        })() : <span className="text-gray-500">--</span>}
                       </div>
                       <div>
                         <span className="font-medium">تقييم العمل:</span> 
