@@ -193,12 +193,12 @@ export default function TaskHistoryTable() {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => quickArchiveMutation.mutate(task.id)}
+                          onClick={() => handleTaskSelect(task.id)}
                           disabled={quickArchiveMutation.isPending}
                           className="text-blue-600 hover:text-blue-800"
                         >
                           <Archive className="ml-1 h-3 w-3" />
-                          استلام نهائي
+                          تسليم
                         </Button>
                       )}
                     </td>
