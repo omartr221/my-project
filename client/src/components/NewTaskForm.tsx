@@ -14,8 +14,9 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
 
-const taskFormSchema = insertTaskSchema.extend({
+const taskFormSchema = z.object({
   workerId: z.string().min(1, "يجب اختيار المهندس"),
+  workerRole: z.string().default("assistant"),
   description: z.string().min(1, "يجب إدخال وصف المهمة"),
   carBrand: z.string().min(1, "يجب اختيار نوع السيارة"),
   carModel: z.string().min(1, "يجب إدخال موديل السيارة"),
@@ -24,21 +25,6 @@ const taskFormSchema = insertTaskSchema.extend({
   engineerName: z.string().optional(),
   supervisorName: z.string().optional(),
   assistantName: z.string().optional(),
-}).omit({
-  id: true,
-  status: true,
-  startTime: true,
-  endTime: true,
-  pausedAt: true,
-  pauseReason: true,
-  pauseNotes: true,
-  totalPausedDuration: true,
-  isArchived: true,
-  archivedAt: true,
-  archivedBy: true,
-  archiveNotes: true,
-  rating: true,
-  createdAt: true,
 });
 
 type TaskFormData = z.infer<typeof taskFormSchema>;
@@ -63,7 +49,7 @@ export default function NewTaskForm() {
       licensePlate: "",
       workerId: "",
       workerRole: "assistant",
-      estimatedDuration: undefined,
+      estimatedDuration: null,
       engineerName: "",
       supervisorName: "",
       assistantName: "",
@@ -80,12 +66,18 @@ export default function NewTaskForm() {
 
   const createTaskMutation = useMutation({
     mutationFn: async (data: TaskFormData) => {
+      const taskData = {
+        ...data,
+        workerId: parseInt(data.workerId),
+        estimatedDuration: data.estimatedDuration || null,
+        engineerName: data.engineerName || null,
+        supervisorName: data.supervisorName || null,
+        assistantName: data.assistantName || null,
+      };
+      
       const response = await apiRequest("/api/tasks", {
         method: "POST",
-        body: JSON.stringify({
-          ...data,
-          workerId: parseInt(data.workerId as string),
-        }),
+        body: JSON.stringify(taskData),
       });
       return response.json();
     },
@@ -231,8 +223,8 @@ export default function NewTaskForm() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {workerNames?.map((name: string, index: number) => (
-                            <SelectItem key={index} value={(index + 1).toString()}>
+                          {workerNames?.filter((name: string) => name !== "عامل جديد").map((name: string, index: number) => (
+                            <SelectItem key={index} value={(index + 17).toString()}>
                               {name}
                             </SelectItem>
                           ))}

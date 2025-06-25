@@ -119,6 +119,8 @@ Changelog:
 - June 25, 2025. Enhanced archive display with complete task information including engineer, supervisor, and rating details
 - June 25, 2025. Fixed calculation logic for work efficiency percentage and duration tracking for archived tasks
 - June 25, 2025. Reset database with clean worker data for fresh system testing
+- June 25, 2025. Updated task creation form with four separate fields: المهندس (Engineer), المشرف (Supervisor), الفني (Technician), المساعد (Assistant)
+- June 25, 2025. Fixed form validation and input handling to prevent undefined value errors
 
 ## User Preferences
 
