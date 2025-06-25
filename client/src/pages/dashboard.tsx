@@ -239,7 +239,7 @@ export default function Dashboard() {
               className="font-medium"
             >
               <UserCheck className="ml-2 h-4 w-4" />
-              إضافة عامل
+              إضافة موظف
             </Button>
           </nav>
         </div>

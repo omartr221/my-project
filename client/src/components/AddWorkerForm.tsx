@@ -1,176 +1,139 @@
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { UserPlus } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { insertWorkerSchema, type InsertWorker } from "@shared/schema";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
 
 const workerFormSchema = insertWorkerSchema.extend({
-  name: z.string().min(1, "يجب إدخال الاسم"),
-  nationalId: z.string().min(1, "يجب إدخال الرقم الوطني"),
-  phoneNumber: z.string().min(1, "يجب إدخال رقم الهاتف"),
-  address: z.string().min(1, "يجب إدخال السكن"),
-}).omit({
-  id: true,
-  supervisor: true,
-  assistant: true,
-  engineer: true,
-  isActive: true,
-  isPredefined: true,
+  name: z.string().min(1, "يجب إدخال اسم الموظف"),
 });
 
 type WorkerFormData = z.infer<typeof workerFormSchema>;
 
-const workerCategories = [
-  { value: "technician", label: "فني" },
-  { value: "administrative", label: "إداري" },
-];
-
 export default function AddWorkerForm() {
-  const { toast } = useToast();
-  const [showPasswordDialog, setShowPasswordDialog] = useState(false);
-  const [showAddWorkerForm, setShowAddWorkerForm] = useState(false);
   const [password, setPassword] = useState("");
-
+  const [showForm, setShowForm] = useState(false);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  
   const form = useForm<WorkerFormData>({
     resolver: zodResolver(workerFormSchema),
     defaultValues: {
       name: "",
-      category: "",
+      category: "technician",
+      birthDate: undefined,
+      maritalStatus: undefined,
       nationalId: "",
+      startDate: undefined,
+      endDate: undefined,
       phoneNumber: "",
       address: "",
+      supervisor: "",
+      assistant: "",
+      engineer: "",
     },
   });
 
   const createWorkerMutation = useMutation({
     mutationFn: async (data: WorkerFormData) => {
-      const response = await apiRequest("POST", "/api/workers", data);
+      const response = await apiRequest("/api/workers", {
+        method: "POST",
+        body: JSON.stringify(data),
+      });
       return response.json();
     },
-    onSuccess: (newWorker) => {
-      queryClient.invalidateQueries({ queryKey: ['/api/workers'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/workers/names'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/stats'] });
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/workers"] });
       form.reset();
-      setShowAddWorkerForm(false);
+      setShowForm(false);
+      setPassword("");
       toast({
-        title: "تم إضافة العامل بنجاح",
-        description: `تم إضافة ${newWorker.name} بنجاح`,
+        title: "تم إضافة الموظف بنجاح",
+        description: "تم إضافة الموظف الجديد إلى النظام",
       });
     },
     onError: (error) => {
       toast({
-        title: "خطأ في إضافة العامل",
-        description: "حدث خطأ أثناء إضافة العامل",
+        title: "خطأ في إضافة الموظف",
+        description: "حدث خطأ أثناء إضافة الموظف",
         variant: "destructive",
       });
     },
   });
 
-  const handlePasswordSubmit = () => {
-    if (password === "0000") {
-      setShowPasswordDialog(false);
-      setShowAddWorkerForm(true);
-      setPassword("");
-    } else {
-      toast({
-        title: "خطأ في كلمة المرور",
-        description: "كلمة المرور غير صحيحة",
-        variant: "destructive",
-      });
-      setPassword("");
-    }
-  };
-
-  const handleAddWorkerClick = () => {
-    setShowPasswordDialog(true);
-  };
-
   const onSubmit = async (data: WorkerFormData) => {
     createWorkerMutation.mutate(data);
   };
 
-  return (
-    <>
-      <Card>
+  const handlePasswordSubmit = () => {
+    if (password === "0000") {
+      setShowForm(true);
+    } else {
+      toast({
+        title: "كلمة مرور خاطئة",
+        description: "يرجى إدخال كلمة المرور الصحيحة",
+        variant: "destructive",
+      });
+    }
+  };
+
+  if (!showForm) {
+    return (
+      <Card className="w-full max-w-md mx-auto">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <UserPlus className="w-5 h-5" />
-            إضافة عامل جديد
-          </CardTitle>
+          <CardTitle>إضافة موظف جديد</CardTitle>
+          <CardDescription>
+            يتطلب كلمة مرور للوصول
+          </CardDescription>
         </CardHeader>
-        <CardContent>
-          <Button onClick={handleAddWorkerClick} className="w-full">
-            <UserPlus className="w-4 h-4 mr-2" />
-            إضافة عامل جديد
+        <CardContent className="space-y-4">
+          <div>
+            <Label htmlFor="password">كلمة المرور</Label>
+            <Input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="أدخل كلمة المرور"
+            />
+          </div>
+          <Button onClick={handlePasswordSubmit} className="w-full">
+            دخول
           </Button>
         </CardContent>
       </Card>
+    );
+  }
 
-      {/* Password Dialog */}
-      <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle>كلمة المرور</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Input
-                type="password"
-                placeholder="أدخل كلمة المرور"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    handlePasswordSubmit();
-                  }
-                }}
-              />
-            </div>
-            <div className="flex gap-2">
-              <Button onClick={handlePasswordSubmit} className="flex-1">
-                تأكيد
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={() => {
-                  setShowPasswordDialog(false);
-                  setPassword("");
-                }}
-              >
-                إلغاء
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Add Worker Form Dialog */}
-      <Dialog open={showAddWorkerForm} onOpenChange={setShowAddWorkerForm}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>إضافة عامل جديد</DialogTitle>
-          </DialogHeader>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+  return (
+    <Card className="w-full max-w-4xl mx-auto">
+      <CardHeader>
+        <CardTitle>إضافة موظف جديد</CardTitle>
+        <CardDescription>
+          أدخل معلومات الموظف الجديد
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <FormField
                 control={form.control}
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>اسم العامل</FormLabel>
+                    <FormLabel>اسم الموظف</FormLabel>
                     <FormControl>
-                      <Input placeholder="أدخل اسم العامل" {...field} />
+                      <Input placeholder="أدخل اسم الموظف" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -182,21 +145,60 @@ export default function AddWorkerForm() {
                 name="category"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>تصنيف العامل</FormLabel>
-                    <FormControl>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                    <FormLabel>تصنيف الموظف</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="اختر تصنيف العامل" />
+                          <SelectValue placeholder="اختر تصنيف الموظف" />
                         </SelectTrigger>
-                        <SelectContent>
-                          {workerCategories.map((category) => (
-                            <SelectItem key={category.value} value={category.value}>
-                              {category.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="technician">فني</SelectItem>
+                        <SelectItem value="administrative">إداري</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="birthDate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>مواليد</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="date" 
+                        {...field} 
+                        value={field.value || ""}
+                      />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="maritalStatus"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>الحالة الاجتماعية</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value || ""}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="اختر الحالة الاجتماعية" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="single">أعزب</SelectItem>
+                        <SelectItem value="married">متزوج</SelectItem>
+                        <SelectItem value="divorced">مطلق</SelectItem>
+                        <SelectItem value="widowed">أرمل</SelectItem>
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -209,7 +211,11 @@ export default function AddWorkerForm() {
                   <FormItem>
                     <FormLabel>الرقم الوطني</FormLabel>
                     <FormControl>
-                      <Input placeholder="أدخل الرقم الوطني" {...field} />
+                      <Input 
+                        placeholder="أدخل الرقم الوطني" 
+                        {...field} 
+                        value={field.value || ""}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -223,7 +229,11 @@ export default function AddWorkerForm() {
                   <FormItem>
                     <FormLabel>رقم الهاتف</FormLabel>
                     <FormControl>
-                      <Input placeholder="أدخل رقم الهاتف" {...field} />
+                      <Input 
+                        placeholder="أدخل رقم الهاتف"
+                        {...field} 
+                        value={field.value || ""}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -232,41 +242,83 @@ export default function AddWorkerForm() {
 
               <FormField
                 control={form.control}
-                name="address"
+                name="startDate"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>العنوان</FormLabel>
+                    <FormLabel>تاريخ بداية العمل</FormLabel>
                     <FormControl>
-                      <Input placeholder="أدخل العنوان" {...field} />
+                      <Input 
+                        type="date" 
+                        {...field} 
+                        value={field.value || ""}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
-              <div className="flex gap-2 pt-4">
-                <Button 
-                  type="submit" 
-                  className="flex-1"
-                  disabled={createWorkerMutation.isPending}
-                >
-                  {createWorkerMutation.isPending ? "جاري الإضافة..." : "إضافة العامل"}
-                </Button>
-                <Button 
-                  type="button" 
-                  variant="outline"
-                  onClick={() => {
-                    setShowAddWorkerForm(false);
-                    form.reset();
-                  }}
-                >
-                  إلغاء
-                </Button>
-              </div>
-            </form>
-          </Form>
-        </DialogContent>
-      </Dialog>
-    </>
+              <FormField
+                control={form.control}
+                name="endDate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>تاريخ نهاية العمل</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="date" 
+                        {...field} 
+                        value={field.value || ""}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <FormField
+              control={form.control}
+              name="address"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>العنوان</FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="أدخل العنوان الكامل"
+                      {...field} 
+                      value={field.value || ""}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="flex gap-4">
+              <Button 
+                type="submit" 
+                disabled={createWorkerMutation.isPending}
+                className="flex-1"
+              >
+                {createWorkerMutation.isPending ? "جاري الإضافة..." : "إضافة الموظف"}
+              </Button>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => {
+                  setShowForm(false);
+                  setPassword("");
+                  form.reset();
+                }}
+                className="flex-1"
+              >
+                إلغاء
+              </Button>
+            </div>
+          </form>
+        </Form>
+      </CardContent>
+    </Card>
   );
 }
