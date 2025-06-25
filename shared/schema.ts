@@ -40,6 +40,7 @@ export const tasks = pgTable("tasks", {
   archivedAt: timestamp("archived_at"),
   archivedBy: varchar("archived_by", { length: 100 }),
   archiveNotes: varchar("archive_notes", { length: 1000 }),
+  rating: integer("rating"), // 1-3 stars rating
   createdAt: timestamp("created_at").defaultNow(),
 });
 

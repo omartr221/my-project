@@ -1,51 +1,110 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { History, Filter, Download, Archive } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Archive, Clock, CheckCircle, Calendar, Star } from "lucide-react";
+import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { formatDuration, formatTime, getCarBrandInArabic, getTaskStatusInArabic, getTaskStatusColor } from "@/lib/utils";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { formatDuration, formatTime, formatDate, getCarBrandInArabic, getTaskStatusInArabic, getTaskStatusColor } from "@/lib/utils";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { type TaskHistory } from "@shared/schema";
 
+const archiveFormSchema = z.object({
+  archivedBy: z.string().min(1, "يجب إدخال اسم المستلم"),
+  notes: z.string().optional(),
+  rating: z.number().min(1, "يجب اختيار تقييم").max(3, "التقييم من 1 إلى 3 نجوم"),
+});
+
+type ArchiveFormData = z.infer<typeof archiveFormSchema>;
+
 export default function TaskHistoryTable() {
   const { toast } = useToast();
-  
+  const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
+  const [selectedRating, setSelectedRating] = useState<number>(0);
+
   const { data: taskHistory, isLoading } = useQuery({
     queryKey: ['/api/tasks/history'],
-    refetchInterval: 30000, // Refresh every 30 seconds
+    refetchInterval: 5000,
   });
 
-  const quickArchiveMutation = useMutation({
-    mutationFn: async (taskId: number) => {
-      const response = await apiRequest("POST", `/api/tasks/${taskId}/archive`, {
-        archivedBy: "نظام سريع",
-        notes: "أرشفة سريعة من سجل المهام",
+  const archiveForm = useForm<ArchiveFormData>({
+    resolver: zodResolver(archiveFormSchema),
+    defaultValues: {
+      archivedBy: "",
+      notes: "",
+      rating: 0,
+    },
+  });
+
+  const archiveMutation = useMutation({
+    mutationFn: async (data: ArchiveFormData & { taskId: number }) => {
+      const response = await apiRequest("POST", `/api/tasks/${data.taskId}/archive`, {
+        archivedBy: data.archivedBy,
+        notes: data.notes,
+        rating: data.rating,
       });
       return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/tasks/history'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/archive'] });
+      archiveForm.reset();
+      setSelectedTaskId(null);
+      setSelectedRating(0);
       toast({
-        title: "تم أرشفة المهمة",
-        description: "تم نقل المهمة إلى الأرشيف بنجاح",
+        title: "تم تسليم المهمة",
+        description: "تم تسليم المهمة بنجاح",
       });
     },
     onError: () => {
       toast({
-        title: "خطأ في الأرشفة",
-        description: "حاول مرة أخرى",
+        title: "خطأ في التسليم",
+        description: "حدث خطأ أثناء تسليم المهمة",
         variant: "destructive",
       });
     },
   });
 
+  const quickArchiveMutation = useMutation({
+    mutationFn: async (taskId: number) => {
+      const response = await apiRequest("POST", `/api/tasks/${taskId}/archive`, {
+        archivedBy: "نظام",
+        notes: "أرشفة سريعة",
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/tasks/history'] });
+      toast({
+        title: "تم أرشفة المهمة",
+        description: "تم أرشفة المهمة بنجاح",
+      });
+    },
+  });
+
+  const onArchiveSubmit = (data: ArchiveFormData) => {
+    if (selectedTaskId && selectedRating > 0) {
+      archiveMutation.mutate({ ...data, taskId: selectedTaskId, rating: selectedRating });
+    }
+  };
+
+  const handleTaskSelect = (taskId: number) => {
+    setSelectedTaskId(taskId);
+    setSelectedRating(0);
+    archiveForm.reset();
+  };
+
   if (isLoading) {
     return (
       <Card>
-        <CardContent className="py-8">
-          <div className="text-center text-gray-500">جاري تحميل السجل...</div>
+        <CardContent className="p-6">
+          <div className="text-center">جاري تحميل سجل المهام...</div>
         </CardContent>
       </Card>
     );
@@ -54,38 +113,26 @@ export default function TaskHistoryTable() {
   return (
     <Card>
       <CardHeader>
-        <div className="flex justify-between items-center">
-          <CardTitle className="flex items-center">
-            <History className="ml-2 h-5 w-5" />
-            سجل المهام
-          </CardTitle>
-          <div className="flex space-x-reverse space-x-2">
-            <Button variant="outline">
-              <Filter className="ml-2 h-4 w-4" />
-              تصفية
-            </Button>
-            <Button className="success-bg">
-              <Download className="ml-2 h-4 w-4" />
-              تصدير
-            </Button>
-          </div>
-        </div>
+        <CardTitle className="flex items-center gap-2">
+          <Clock className="w-5 h-5" />
+          سجل المهام
+        </CardTitle>
       </CardHeader>
       <CardContent>
         {!taskHistory || taskHistory.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
-            لا يوجد سجل مهام
+            لا توجد مهام في السجل
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                     العامل
                   </th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    المهمة
+                    وصف المهمة
                   </th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                     نوع السيارة
@@ -154,30 +201,22 @@ export default function TaskHistoryTable() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {task.endTime ? formatTime(new Date(task.endTime)) : '--'}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {task.status === 'active' ? (
-                        <span className="error">
-                          {formatDuration(Math.floor((Date.now() - new Date(task.startTime!).getTime()) / 1000))}
-                        </span>
-                      ) : (
-                        formatDuration(task.totalDuration)
-                      )}
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {formatDuration(task.totalDuration)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {task.estimatedDuration ? (
-                        <div className="space-y-1">
-                          <div className="text-xs text-gray-500">
+                        <div className="flex flex-col">
+                          <span className="text-gray-600">
                             مقدر: {formatDuration(task.estimatedDuration * 60)}
-                          </div>
-                          {task.status === 'completed' && (
-                            <div className={`text-xs ${
-                              task.totalDuration > task.estimatedDuration * 60 
-                                ? 'text-red-600' 
-                                : 'text-green-600'
-                            }`}>
-                              {task.totalDuration > task.estimatedDuration * 60 ? 'تأخير' : 'في الوقت'}
-                            </div>
-                          )}
+                          </span>
+                          <span className={`font-medium ${
+                            task.totalDuration > (task.estimatedDuration * 60) 
+                              ? 'text-red-600' 
+                              : 'text-green-600'
+                          }`}>
+                            فعلي: {formatDuration(task.totalDuration)}
+                          </span>
                         </div>
                       ) : (
                         <span className="text-gray-400">غير محدد</span>
@@ -194,7 +233,7 @@ export default function TaskHistoryTable() {
                           size="sm"
                           variant="outline"
                           onClick={() => handleTaskSelect(task.id)}
-                          disabled={quickArchiveMutation.isPending}
+                          disabled={archiveMutation.isPending}
                           className="text-blue-600 hover:text-blue-800"
                         >
                           <Archive className="ml-1 h-3 w-3" />
@@ -209,6 +248,101 @@ export default function TaskHistoryTable() {
           </div>
         )}
       </CardContent>
+
+      {/* Archive Dialog */}
+      <Dialog open={selectedTaskId !== null} onOpenChange={() => setSelectedTaskId(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>تسليم المهمة</DialogTitle>
+          </DialogHeader>
+          <Form {...archiveForm}>
+            <form onSubmit={archiveForm.handleSubmit(onArchiveSubmit)} className="space-y-4">
+              <FormField
+                control={archiveForm.control}
+                name="archivedBy"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>اسم المستلم</FormLabel>
+                    <FormControl>
+                      <Input placeholder="أدخل اسم من قام بالاستلام" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* تقييم العمل */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">تقييم العمل</label>
+                <div className="flex gap-2">
+                  {[1, 2, 3].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      onClick={() => {
+                        setSelectedRating(star);
+                        archiveForm.setValue("rating", star);
+                      }}
+                      className={`p-2 rounded-lg border-2 transition-colors ${
+                        selectedRating >= star
+                          ? "border-yellow-400 bg-yellow-50 text-yellow-600"
+                          : "border-gray-200 bg-white text-gray-400 hover:border-yellow-200"
+                      }`}
+                    >
+                      <Star 
+                        className={`w-6 h-6 ${
+                          selectedRating >= star ? "fill-yellow-400" : "fill-transparent"
+                        }`}
+                      />
+                    </button>
+                  ))}
+                </div>
+                <div className="text-xs text-gray-500">
+                  {selectedRating === 1 && "مقبول"}
+                  {selectedRating === 2 && "جيد"}
+                  {selectedRating === 3 && "ممتاز"}
+                  {selectedRating === 0 && "اختر تقييم العمل"}
+                </div>
+              </div>
+
+              <FormField
+                control={archiveForm.control}
+                name="notes"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>ملاحظات (اختياري)</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="أضف أي ملاحظات حول المهمة..."
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <div className="flex gap-2 pt-4">
+                <Button 
+                  type="submit" 
+                  disabled={archiveMutation.isPending || selectedRating === 0}
+                >
+                  {archiveMutation.isPending ? "جاري التسليم..." : "تسليم المهمة"}
+                </Button>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => {
+                    setSelectedTaskId(null);
+                    setSelectedRating(0);
+                  }}
+                >
+                  إلغاء
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
