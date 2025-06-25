@@ -267,6 +267,7 @@ export default function ArchiveView() {
               <th>المشرف</th>
               <th>الوقت المقدر</th>
               <th>المدة الفعلية</th>
+              <th>نسبة العمل المئوية</th>
               <th>التقييم</th>
               <th>تاريخ التسليم</th>
               <th>تم التسليم بواسطة</th>
@@ -288,6 +289,8 @@ export default function ArchiveView() {
               const ratingText = task.rating === 1 ? 'مقبول' : task.rating === 2 ? 'جيد' : task.rating === 3 ? 'ممتاز' : '--';
               const engineerName = task.engineerName || '--';
               const supervisorName = task.supervisorName || '--';
+              const workPercentage = task.estimatedDuration ? 
+                Math.round(((task.estimatedDuration * 60) / task.totalDuration) * 100) + '%' : '--';
               
               return `
                 <tr>
@@ -300,6 +303,7 @@ export default function ArchiveView() {
                   <td>${supervisorName}</td>
                   <td>${task.estimatedDuration ? task.estimatedDuration + ' دقيقة' : 'غير محدد'}</td>
                   <td>${formatDuration(task.totalDuration)}</td>
+                  <td>${workPercentage}</td>
                   <td>${ratingText}</td>
                   <td>${archiveDate}</td>
                   <td>${task.archivedBy || '--'}</td>
@@ -426,6 +430,16 @@ export default function ArchiveView() {
                       </div>
                       <div>
                         <span className="font-medium">المدة الفعلية:</span> {formatDuration(task.totalDuration)}
+                      </div>
+                      <div>
+                        <span className="font-medium">نسبة العمل المئوية:</span> 
+                        {task.estimatedDuration ? (
+                          <span className={`font-bold ${
+                            (task.estimatedDuration * 60) >= task.totalDuration ? 'text-green-600' : 'text-red-600'
+                          }`}>
+                            {Math.round(((task.estimatedDuration * 60) / task.totalDuration) * 100)}%
+                          </span>
+                        ) : '--'}
                       </div>
                       <div>
                         <span className="font-medium">تقييم العمل:</span> 

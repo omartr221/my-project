@@ -115,6 +115,8 @@ Changelog:
 - June 25, 2025. Implemented delivery system with 3-star rating (مقبول، جيد، ممتاز) replacing archive functionality
 - June 25, 2025. Changed "الأرشيف" to "استلام نهائي" and "أرشف" to "تسليم" throughout the system
 - June 25, 2025. Added rating field to database and integrated with task completion workflow
+- June 25, 2025. Added work efficiency percentage calculation comparing actual vs estimated time in final delivery view
+- June 25, 2025. Enhanced archive display with complete task information including engineer, supervisor, and rating details
 
 ## User Preferences
 
