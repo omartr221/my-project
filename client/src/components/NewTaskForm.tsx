@@ -107,8 +107,8 @@ export default function NewTaskForm() {
       queryClient.invalidateQueries({ queryKey: ["/api/tasks/active"] });
       queryClient.invalidateQueries({ queryKey: ["/api/workers"] });
       queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
-      form.reset();
       setSelectedWorkers({ engineer: "", supervisor: "", technician: "", assistant: "" });
+      form.reset();
       setOpen(false);
       toast({
         title: "تم إنشاء المهمة بنجاح",
