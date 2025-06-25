@@ -67,18 +67,34 @@ export default function NewTaskForm() {
   const createTaskMutation = useMutation({
     mutationFn: async (data: TaskFormData) => {
       const taskData = {
-        ...data,
+        description: data.description,
+        carBrand: data.carBrand,
+        carModel: data.carModel,
+        licensePlate: data.licensePlate,
         workerId: parseInt(data.workerId),
+        workerRole: data.workerRole || "assistant",
         estimatedDuration: data.estimatedDuration || null,
         engineerName: data.engineerName || null,
         supervisorName: data.supervisorName || null,
         assistantName: data.assistantName || null,
       };
       
-      const response = await apiRequest("/api/tasks", {
+      console.log("Sending task data:", taskData);
+      
+      const response = await fetch("/api/tasks", {
         method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify(taskData),
       });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("API Error:", errorText);
+        throw new Error(`HTTP ${response.status}: ${errorText}`);
+      }
+      
       return response.json();
     },
     onSuccess: () => {
@@ -94,9 +110,10 @@ export default function NewTaskForm() {
     },
     onError: (error: any) => {
       console.error("Task creation error:", error);
+      const errorMessage = error?.message || "حدث خطأ غير متوقع";
       toast({
         title: "خطأ في إنشاء المهمة", 
-        description: "تأكد من ملء جميع الحقول المطلوبة",
+        description: errorMessage,
         variant: "destructive",
       });
     },
