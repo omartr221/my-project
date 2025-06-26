@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Clock, Users, UserCheck, Watch, ListTodo, Archive, LayoutDashboard, Timer, History, UserPlus, CheckCircle, Activity } from "lucide-react";
+import { Clock, Users, UserCheck, Watch, ListTodo, Archive } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
@@ -30,28 +30,22 @@ export default function Dashboard() {
   }, []);
 
   // Fetch dashboard stats
-  const { data: stats, isLoading: statsLoading } = useQuery({
+  const { data: stats } = useQuery({
     queryKey: ['/api/stats'],
     refetchInterval: 5000, // Refresh every 5 seconds
   });
 
-  const { data: workers, isLoading: workersLoading } = useQuery({
+  const { data: workers } = useQuery({
     queryKey: ['/api/workers'],
   });
 
-  const { data: activeTasks, isLoading: activeTasksLoading } = useQuery({
+  const { data: activeTasks } = useQuery({
     queryKey: ['/api/tasks/active'],
   });
 
-  const { data: allTasks, isLoading: allTasksLoading } = useQuery({
+  const { data: allTasks } = useQuery({
     queryKey: ['/api/tasks/history'],
   });
-
-  // Safe data with defaults
-  const safeStats = stats || { totalWorkers: 0, availableWorkers: 0, busyWorkers: 0, activeTasks: 0 };
-  const safeWorkers = Array.isArray(workers) ? workers : [];
-  const safeActiveTasks = Array.isArray(activeTasks) ? activeTasks : [];
-  const safeAllTasks = Array.isArray(allTasks) ? allTasks : [];
 
 
 
@@ -68,13 +62,13 @@ export default function Dashboard() {
                     <div>
                       <p className="text-gray-600 text-sm">إجمالي العمال</p>
                       <p className="text-2xl font-bold text-primary">
-                        {safeStats.totalWorkers}
+                        {stats?.totalWorkers || 0}
                       </p>
-                      {safeWorkers.length > 0 && (
+                      {workers && workers.length > 0 && (
                         <div className="mt-2">
                           <p className="text-xs text-gray-500">الأسماء:</p>
                           <p className="text-xs text-gray-600">
-                            {safeWorkers.map((w: any) => w.name).join('، ')}
+                            {workers.map(w => w.name).join('، ')}
                           </p>
                         </div>
                       )}
@@ -90,7 +84,7 @@ export default function Dashboard() {
                     <div>
                       <p className="text-gray-600 text-sm">العمال المتاحين</p>
                       <p className="text-2xl font-bold success">
-                        {safeStats.availableWorkers}
+                        {stats?.availableWorkers || 0}
                       </p>
                     </div>
                     <UserCheck className="h-8 w-8 success opacity-20" />
@@ -104,7 +98,7 @@ export default function Dashboard() {
                     <div>
                       <p className="text-gray-600 text-sm">العمال المشغولين</p>
                       <p className="text-2xl font-bold error">
-                        {safeStats.busyWorkers}
+                        {stats?.busyWorkers || 0}
                       </p>
                     </div>
                     <Watch className="h-8 w-8 error opacity-20" />
@@ -118,7 +112,7 @@ export default function Dashboard() {
                     <div>
                       <p className="text-gray-600 text-sm">المهام النشطة</p>
                       <p className="text-2xl font-bold warning">
-                        {safeStats.activeTasks}
+                        {stats?.activeTasks || 0}
                       </p>
                     </div>
                     <ListTodo className="h-8 w-8 warning opacity-20" />

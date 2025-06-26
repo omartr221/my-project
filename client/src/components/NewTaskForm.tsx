@@ -1,10 +1,11 @@
 import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { PlusCircle, Users } from "lucide-react";
+import { PlusCircle, Play } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -61,13 +62,11 @@ export default function NewTaskForm() {
     },
   });
 
-  const { data: workerNames = [], isLoading: isLoadingWorkers } = useQuery({
+  const { data: workerNames } = useQuery({
     queryKey: ['/api/workers/names'],
     queryFn: async () => {
       const response = await fetch('/api/workers/names');
-      if (!response.ok) throw new Error('Failed to fetch worker names');
-      const data = await response.json();
-      return Array.isArray(data) ? data : [];
+      return response.json();
     },
   });
 
@@ -142,14 +141,6 @@ export default function NewTaskForm() {
     }
     
     createTaskMutation.mutate(data);
-  };
-
-  const getAvailableWorkers = (excludeRoles: string[] = []) => {
-    return workerNames.filter((name: string) => {
-      if (name === "عامل جديد") return false;
-      const currentValues = form.getValues();
-      return !excludeRoles.some(role => currentValues[role as keyof TaskFormData] === name);
-    });
   };
 
   return (
@@ -263,24 +254,26 @@ export default function NewTaskForm() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>المهندس</FormLabel>
-                      <Select 
-                        onValueChange={(value) => {
-                          field.onChange(value);
-                          const selectedIndex = parseInt(value) - 26;
-                          const selectedName = workerNames[selectedIndex] || "";
-                          setSelectedWorkers(prev => ({ ...prev, engineer: selectedName }));
-                        }} 
-                        value={field.value || ""}
-                        disabled={isLoadingWorkers}
-                      >
+                      <Select onValueChange={(value) => {
+                        field.onChange(value);
+                        const selectedIndex = parseInt(value) - 26;
+                        const selectedName = workerNames?.[selectedIndex] || "";
+                        console.log("Selected engineer:", selectedName);
+                        setSelectedWorkers(prev => ({ ...prev, engineer: selectedName }));
+                      }} value={field.value || ""}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="اختر المهندس" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {getAvailableWorkers(['supervisorName', 'engineerName', 'assistantName']).map((name: string, index: number) => {
-                            const realIndex = workerNames.indexOf(name);
+                          {workerNames?.filter((name: string) => 
+                            name !== "عامل جديد" && 
+                            name !== form.watch("supervisorName") &&
+                            name !== form.watch("engineerName") &&
+                            name !== form.watch("assistantName")
+                          ).map((name: string, index: number) => {
+                            const realIndex = workerNames?.indexOf(name) || 0;
                             return (
                               <SelectItem key={index} value={(realIndex + 26).toString()}>
                                 {name}
@@ -300,21 +293,21 @@ export default function NewTaskForm() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>المشرف</FormLabel>
-                      <Select 
-                        onValueChange={(value) => {
-                          field.onChange(value);
-                          setSelectedWorkers(prev => ({ ...prev, supervisor: value }));
-                        }} 
-                        value={field.value || ""}
-                        disabled={isLoadingWorkers}
-                      >
+                      <Select onValueChange={(value) => {
+                        field.onChange(value);
+                        console.log("Selected supervisor:", value);
+                        setSelectedWorkers(prev => ({ ...prev, supervisor: value }));
+                      }} value={field.value || ""}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="اختر المشرف" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {getAvailableWorkers(['workerId', 'engineerName', 'assistantName']).map((name: string, index: number) => (
+                          {workerNames?.filter((name: string) => 
+                            name !== "عامل جديد" && 
+                            !Object.values(selectedWorkers).includes(name)
+                          ).map((name: string, index: number) => (
                             <SelectItem key={index} value={name}>
                               {name}
                             </SelectItem>
@@ -332,21 +325,21 @@ export default function NewTaskForm() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>الفني</FormLabel>
-                      <Select 
-                        onValueChange={(value) => {
-                          field.onChange(value);
-                          setSelectedWorkers(prev => ({ ...prev, technician: value }));
-                        }} 
-                        value={field.value || ""}
-                        disabled={isLoadingWorkers}
-                      >
+                      <Select onValueChange={(value) => {
+                        field.onChange(value);
+                        console.log("Selected technician:", value);
+                        setSelectedWorkers(prev => ({ ...prev, technician: value }));
+                      }} value={field.value || ""}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="اختر الفني" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {getAvailableWorkers(['workerId', 'supervisorName', 'assistantName']).map((name: string, index: number) => (
+                          {workerNames?.filter((name: string) => 
+                            name !== "عامل جديد" && 
+                            !Object.values(selectedWorkers).includes(name)
+                          ).map((name: string, index: number) => (
                             <SelectItem key={index} value={name}>
                               {name}
                             </SelectItem>
@@ -364,22 +357,22 @@ export default function NewTaskForm() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>المساعد</FormLabel>
-                      <Select 
-                        onValueChange={(value) => {
-                          field.onChange(value);
-                          form.setValue("workerRole", "assistant");
-                          setSelectedWorkers(prev => ({ ...prev, assistant: value }));
-                        }} 
-                        value={field.value || ""}
-                        disabled={isLoadingWorkers}
-                      >
+                      <Select onValueChange={(value) => {
+                        field.onChange(value);
+                        form.setValue("workerRole", "assistant");
+                        console.log("Selected assistant:", value);
+                        setSelectedWorkers(prev => ({ ...prev, assistant: value }));
+                      }} value={field.value || ""}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="اختر المساعد" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {getAvailableWorkers(['workerId', 'supervisorName', 'engineerName']).map((name: string, index: number) => (
+                          {workerNames?.filter((name: string) => 
+                            name !== "عامل جديد" && 
+                            !Object.values(selectedWorkers).includes(name)
+                          ).map((name: string, index: number) => (
                             <SelectItem key={index} value={name}>
                               {name}
                             </SelectItem>
@@ -393,74 +386,57 @@ export default function NewTaskForm() {
               </div>
 
               {/* عرض الأشخاص المختارين */}
-              <div className="mt-6 p-6 bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-xl shadow-inner">
-                <div className="flex items-center mb-4">
-                  <Users className="w-5 h-5 text-blue-600 mr-2" />
-                  <h4 className="font-semibold text-gray-800">الفريق المختار للمهمة</h4>
+              <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <h4 className="font-medium mb-3 text-gray-800">الفريق المختار للمهمة:</h4>
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div className="flex items-center gap-2 p-2 bg-white rounded border">
+                    <span className="font-medium text-blue-600 w-20">المهندس:</span>
+                    <span className="text-gray-800 bg-yellow-100 px-2 py-1 rounded">
+                      {form.watch("workerId") ? 
+                        workerNames?.[parseInt(form.watch("workerId")) - 26] || "غير محدد" 
+                        : "غير محدد"}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 p-2 bg-white rounded border">
+                    <span className="font-medium text-green-600 w-20">المشرف:</span>
+                    <span className="text-gray-800 bg-yellow-100 px-2 py-1 rounded">
+                      {form.watch("supervisorName") || "غير محدد"}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 p-2 bg-white rounded border">
+                    <span className="font-medium text-orange-600 w-20">الفني:</span>
+                    <span className="text-gray-800 bg-yellow-100 px-2 py-1 rounded">
+                      {form.watch("engineerName") || "غير محدد"}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 p-2 bg-white rounded border">
+                    <span className="font-medium text-purple-600 w-20">المساعد:</span>
+                    <span className="text-gray-800 bg-yellow-100 px-2 py-1 rounded">
+                      {form.watch("assistantName") || "غير محدد"}
+                    </span>
+                  </div>
                 </div>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div className="glass-effect rounded-lg p-3 border border-white/50">
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium text-blue-600">المهندس</span>
-                      <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                    </div>
-                    <div className="mt-2 p-2 bg-white/60 rounded-md border">
-                      <span className="text-gray-800 font-medium">
-                        {(() => {
-                          const workerId = form.watch("workerId");
-                          if (!workerId || !Array.isArray(workerNames)) return "غير محدد";
-                          const index = parseInt(workerId) - 26;
-                          return workerNames[index] || "غير محدد";
-                        })()}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="glass-effect rounded-lg p-3 border border-white/50">
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium text-green-600">المشرف</span>
-                      <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                    </div>
-                    <div className="mt-2 p-2 bg-white/60 rounded-md border">
-                      <span className="text-gray-800 font-medium">
-                        {form.watch("supervisorName") || "غير محدد"}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="glass-effect rounded-lg p-3 border border-white/50">
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium text-orange-600">الفني</span>
-                      <div className="w-2 h-2 rounded-full bg-orange-500"></div>
-                    </div>
-                    <div className="mt-2 p-2 bg-white/60 rounded-md border">
-                      <span className="text-gray-800 font-medium">
-                        {form.watch("engineerName") || "غير محدد"}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="glass-effect rounded-lg p-3 border border-white/50">
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium text-purple-600">المساعد</span>
-                      <div className="w-2 h-2 rounded-full bg-purple-500"></div>
-                    </div>
-                    <div className="mt-2 p-2 bg-white/60 rounded-md border">
-                      <span className="text-gray-800 font-medium">
-                        {form.watch("assistantName") || "غير محدد"}
-                      </span>
-                    </div>
-                  </div>
+                <div className="mt-2 text-xs text-gray-600">
+                  ملاحظة: لا يمكن اختيار نفس الشخص في أكثر من دور
                 </div>
               </div>
 
-              <div className="flex justify-end space-x-4 space-x-reverse">
-                <Button type="button" variant="outline" onClick={() => setOpen(false)}>
-                  إلغاء
-                </Button>
+              <div className="flex gap-4">
                 <Button 
                   type="submit" 
                   disabled={createTaskMutation.isPending}
-                  className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700"
+                  className="flex-1 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700"
                 >
+                  <Play className="ml-2 h-4 w-4" />
                   {createTaskMutation.isPending ? "جاري الإنشاء..." : "إنشاء وبدء المهمة"}
+                </Button>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => setOpen(false)}
+                  className="flex-1"
+                >
+                  إلغاء
                 </Button>
               </div>
             </form>
