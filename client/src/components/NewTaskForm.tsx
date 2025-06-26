@@ -386,38 +386,64 @@ export default function NewTaskForm() {
               </div>
 
               {/* عرض الأشخاص المختارين */}
-              <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <h4 className="font-medium mb-3 text-gray-800">الفريق المختار للمهمة:</h4>
-                <div className="grid grid-cols-2 gap-3 text-sm">
-                  <div className="flex items-center gap-2 p-2 bg-white rounded border">
-                    <span className="font-medium text-blue-600 w-20">المهندس:</span>
-                    <span className="text-gray-800 bg-yellow-100 px-2 py-1 rounded">
-                      {form.watch("workerId") ? 
-                        workerNames?.[parseInt(form.watch("workerId")) - 26] || "غير محدد" 
-                        : "غير محدد"}
-                    </span>
+              <div className="mt-6 p-6 bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-xl shadow-inner">
+                <div className="flex items-center mb-4">
+                  <Users className="w-5 h-5 text-blue-600 mr-2" />
+                  <h4 className="font-semibold text-gray-800">الفريق المختار للمهمة</h4>
+                </div>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div className="glass-effect rounded-lg p-3 border border-white/50">
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium text-blue-600">المهندس</span>
+                      <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                    </div>
+                    <div className="mt-2 p-2 bg-white/60 rounded-md border">
+                      <span className="text-gray-800 font-medium">
+                        {form.watch("workerId") ? 
+                          workerNames?.[parseInt(form.watch("workerId")) - 26] || "غير محدد" 
+                          : "غير محدد"}
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2 p-2 bg-white rounded border">
-                    <span className="font-medium text-green-600 w-20">المشرف:</span>
-                    <span className="text-gray-800 bg-yellow-100 px-2 py-1 rounded">
-                      {form.watch("supervisorName") || "غير محدد"}
-                    </span>
+                  <div className="glass-effect rounded-lg p-3 border border-white/50">
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium text-green-600">المشرف</span>
+                      <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                    </div>
+                    <div className="mt-2 p-2 bg-white/60 rounded-md border">
+                      <span className="text-gray-800 font-medium">
+                        {form.watch("supervisorName") || "غير محدد"}
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2 p-2 bg-white rounded border">
-                    <span className="font-medium text-orange-600 w-20">الفني:</span>
-                    <span className="text-gray-800 bg-yellow-100 px-2 py-1 rounded">
-                      {form.watch("engineerName") || "غير محدد"}
-                    </span>
+                  <div className="glass-effect rounded-lg p-3 border border-white/50">
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium text-orange-600">الفني</span>
+                      <div className="w-2 h-2 rounded-full bg-orange-500"></div>
+                    </div>
+                    <div className="mt-2 p-2 bg-white/60 rounded-md border">
+                      <span className="text-gray-800 font-medium">
+                        {form.watch("engineerName") || "غير محدد"}
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2 p-2 bg-white rounded border">
-                    <span className="font-medium text-purple-600 w-20">المساعد:</span>
-                    <span className="text-gray-800 bg-yellow-100 px-2 py-1 rounded">
-                      {form.watch("assistantName") || "غير محدد"}
-                    </span>
+                  <div className="glass-effect rounded-lg p-3 border border-white/50">
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium text-purple-600">المساعد</span>
+                      <div className="w-2 h-2 rounded-full bg-purple-500"></div>
+                    </div>
+                    <div className="mt-2 p-2 bg-white/60 rounded-md border">
+                      <span className="text-gray-800 font-medium">
+                        {form.watch("assistantName") || "غير محدد"}
+                      </span>
+                    </div>
                   </div>
                 </div>
-                <div className="mt-2 text-xs text-gray-600">
-                  ملاحظة: لا يمكن اختيار نفس الشخص في أكثر من دور
+                <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                  <div className="flex items-center">
+                    <AlertCircle className="w-4 h-4 text-amber-600 mr-2" />
+                    <span className="text-xs text-amber-700">لا يمكن اختيار نفس الشخص في أكثر من دور واحد</span>
+                  </div>
                 </div>
               </div>
 
