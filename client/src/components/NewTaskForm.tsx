@@ -256,7 +256,7 @@ export default function NewTaskForm() {
                       <FormLabel>المهندس</FormLabel>
                       <Select onValueChange={(value) => {
                         field.onChange(value);
-                        const selectedIndex = parseInt(value) - 17;
+                        const selectedIndex = parseInt(value) - 26;
                         const selectedName = workerNames?.[selectedIndex] || "";
                         console.log("Selected engineer:", selectedName);
                         setSelectedWorkers(prev => ({ ...prev, engineer: selectedName }));
@@ -275,7 +275,7 @@ export default function NewTaskForm() {
                           ).map((name: string, index: number) => {
                             const realIndex = workerNames?.indexOf(name) || 0;
                             return (
-                              <SelectItem key={index} value={(realIndex + 17).toString()}>
+                              <SelectItem key={index} value={(realIndex + 26).toString()}>
                                 {name}
                               </SelectItem>
                             );
@@ -393,7 +393,7 @@ export default function NewTaskForm() {
                     <span className="font-medium text-blue-600 w-20">المهندس:</span>
                     <span className="text-gray-800 bg-yellow-100 px-2 py-1 rounded">
                       {form.watch("workerId") ? 
-                        workerNames?.[parseInt(form.watch("workerId")) - 17] || "غير محدد" 
+                        workerNames?.[parseInt(form.watch("workerId")) - 26] || "غير محدد" 
                         : "غير محدد"}
                     </span>
                   </div>
