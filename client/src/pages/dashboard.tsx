@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { useWebSocket } from "@/hooks/useWebSocket";
+import logoImage from "@assets/Empty Logo with brands_1750921899348.png";
 import { formatTime, formatDate } from "@/lib/utils";
 import ActiveTimers from "@/components/ActiveTimers";
 import NewTaskForm from "@/components/NewTaskForm";
