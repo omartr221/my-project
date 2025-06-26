@@ -126,6 +126,8 @@ Changelog:
 - June 25, 2025. System reset with clean database - ready for production use with complete team setup
 - June 25, 2025. Enhanced WebSocket handling for real-time updates across all components
 - June 25, 2025. Final integration testing completed - all features working seamlessly
+- June 26, 2025. Fixed worker ID mapping issue in task creation form (updated from +17 to +26 offset)
+- June 26, 2025. Added company logo to dashboard header with V POWER TUNING branding
 
 ## User Preferences
 
