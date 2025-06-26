@@ -164,6 +164,11 @@ export default function Dashboard() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-reverse space-x-4">
+              <img 
+                src={logoImage} 
+                alt="V POWER TUNING Logo" 
+                className="h-12 w-auto object-contain bg-white rounded p-1"
+              />
               <Clock className="h-6 w-6" />
               <div>
                 <h1 className="text-xl font-bold">توزيع المهام</h1>
