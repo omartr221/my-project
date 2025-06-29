@@ -130,7 +130,7 @@ export default function NewTaskForm() {
     console.log("Form data:", data);
     console.log("Selected workers state:", selectedWorkers);
     
-    // المساعد اختياري - لا نحتاج للتحقق منه
+    // جميع حقول العمال اختيارية الآن
     
     createTaskMutation.mutate(data);
   };
@@ -245,7 +245,7 @@ export default function NewTaskForm() {
                   name="workerId"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>المهندس</FormLabel>
+                      <FormLabel>المهندس (اختياري)</FormLabel>
                       <Select onValueChange={(value) => {
                         field.onChange(value);
                         const selectedIndex = parseInt(value) - 26;
@@ -255,10 +255,11 @@ export default function NewTaskForm() {
                       }} value={field.value || ""}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="اختر المهندس" />
+                            <SelectValue placeholder="اختر المهندس (اختياري)" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
+                          <SelectItem value="">بدون مهندس</SelectItem>
                           {workerNames?.filter((name: string) => 
                             name !== "عامل جديد" && 
                             name !== form.watch("supervisorName") &&
@@ -284,7 +285,7 @@ export default function NewTaskForm() {
                   name="supervisorName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>المشرف</FormLabel>
+                      <FormLabel>المشرف (اختياري)</FormLabel>
                       <Select onValueChange={(value) => {
                         field.onChange(value);
                         console.log("Selected supervisor:", value);
@@ -292,7 +293,7 @@ export default function NewTaskForm() {
                       }} value={field.value || ""}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="اختر المشرف" />
+                            <SelectValue placeholder="اختر المشرف (اختياري)" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -316,7 +317,7 @@ export default function NewTaskForm() {
                   name="engineerName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>الفني</FormLabel>
+                      <FormLabel>الفني (اختياري)</FormLabel>
                       <Select onValueChange={(value) => {
                         field.onChange(value);
                         console.log("Selected technician:", value);
@@ -324,7 +325,7 @@ export default function NewTaskForm() {
                       }} value={field.value || ""}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="اختر الفني" />
+                            <SelectValue placeholder="اختر الفني (اختياري)" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -348,7 +349,7 @@ export default function NewTaskForm() {
                   name="assistantName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>المساعد</FormLabel>
+                      <FormLabel>المساعد (اختياري)</FormLabel>
                       <Select onValueChange={(value) => {
                         // إذا كان القيمة فارغة، اتركها فارغة
                         const selectedValue = value === "" ? "" : value;
