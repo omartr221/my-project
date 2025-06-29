@@ -294,6 +294,7 @@ export default function ArchiveView() {
               
               return `
                 <tr>
+                  <td>${task.taskNumber || task.id}</td>
                   <td>${task.worker.name}</td>
                   <td>${task.workerRole || '--'}</td>
                   <td>${task.description}</td>
