@@ -20,6 +20,7 @@ export const workers = pgTable("workers", {
 
 export const tasks = pgTable("tasks", {
   id: serial("id").primaryKey(),
+  taskNumber: varchar("task_number", { length: 20 }).unique().notNull(),
   workerId: integer("worker_id").notNull().references(() => workers.id),
   workerRole: varchar("worker_role", { length: 50 }).notNull().default("technician"), // assistant, technician, supervisor, engineer
   description: varchar("description", { length: 500 }).notNull(),

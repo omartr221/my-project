@@ -1,6 +1,6 @@
 import { workers, tasks, timeEntries, type Worker, type InsertWorker, type Task, type InsertTask, type TimeEntry, type InsertTimeEntry, type WorkerWithTasks, type TaskWithWorker, type TaskHistory } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, isNull, or, like } from "drizzle-orm";
+import { eq, desc, and, isNull, or, like, isNotNull } from "drizzle-orm";
 
 export interface IStorage {
   // Worker management
@@ -161,10 +161,36 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createTask(insertTask: InsertTask): Promise<Task> {
+    // Generate unique task number
+    const year = new Date().getFullYear();
+    const month = String(new Date().getMonth() + 1).padStart(2, '0');
+    
+    // Get the last task number for today
+    const lastTask = await db
+      .select({ taskNumber: tasks.taskNumber })
+      .from(tasks)
+      .where(isNotNull(tasks.taskNumber))
+      .orderBy(desc(tasks.id))
+      .limit(1);
+    
+    let sequenceNumber = 1;
+    if (lastTask.length > 0 && lastTask[0].taskNumber) {
+      const parts = lastTask[0].taskNumber.split('-');
+      if (parts.length >= 3) {
+        const lastNumber = parseInt(parts[2]);
+        if (!isNaN(lastNumber)) {
+          sequenceNumber = lastNumber + 1;
+        }
+      }
+    }
+    
+    const taskNumber = `${year}-${month}-${String(sequenceNumber).padStart(3, '0')}`;
+    
     const [task] = await db
       .insert(tasks)
       .values({
         ...insertTask,
+        taskNumber,
         startTime: new Date(),
         status: "active",
       })
