@@ -350,10 +350,14 @@ export default function NewTaskForm() {
                     <FormItem>
                       <FormLabel>المساعد</FormLabel>
                       <Select onValueChange={(value) => {
-                        field.onChange(value);
-                        form.setValue("workerRole", "assistant");
-                        console.log("Selected assistant:", value);
-                        setSelectedWorkers(prev => ({ ...prev, assistant: value }));
+                        // إذا كان القيمة فارغة، اتركها فارغة
+                        const selectedValue = value === "" ? "" : value;
+                        field.onChange(selectedValue);
+                        if (selectedValue) {
+                          form.setValue("workerRole", "assistant");
+                        }
+                        console.log("Selected assistant:", selectedValue);
+                        setSelectedWorkers(prev => ({ ...prev, assistant: selectedValue }));
                       }} value={field.value || ""}>
                         <FormControl>
                           <SelectTrigger>
