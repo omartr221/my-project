@@ -130,15 +130,7 @@ export default function NewTaskForm() {
     console.log("Form data:", data);
     console.log("Selected workers state:", selectedWorkers);
     
-    // Validate required fields manually
-    if (!data.assistantName || data.assistantName.trim() === "") {
-      toast({
-        title: "خطأ في البيانات",
-        description: "يجب اختيار المساعد",
-        variant: "destructive",
-      });
-      return;
-    }
+    // المساعد اختياري - لا نحتاج للتحقق منه
     
     createTaskMutation.mutate(data);
   };
@@ -365,7 +357,7 @@ export default function NewTaskForm() {
                       }} value={field.value || ""}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="اختر المساعد" />
+                            <SelectValue placeholder="اختر المساعد (اختياري)" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
