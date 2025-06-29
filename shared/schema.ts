@@ -94,6 +94,9 @@ export const insertTaskSchema = createInsertSchema(tasks).omit({
 }).extend({
   carModel: z.string().min(1, "يجب إدخال موديل السيارة"),
   licensePlate: z.string().min(1, "يجب إدخال رقم اللوحة"),
+  assistantName: z.string().optional(),
+  engineerName: z.string().optional(),
+  supervisorName: z.string().optional(),
 });
 
 export const insertTimeEntrySchema = createInsertSchema(timeEntries).omit({

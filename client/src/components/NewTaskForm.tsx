@@ -335,6 +335,7 @@ export default function NewTaskForm() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
+                          <SelectItem value="none">بدون مساعد</SelectItem>
                           {workerNames?.filter((name: string) => 
                             name !== "عامل جديد" && 
                             !Object.values(selectedWorkers).includes(name)
