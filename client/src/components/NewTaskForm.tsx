@@ -80,9 +80,9 @@ export default function NewTaskForm() {
         workerId: parseInt(data.workerId),
         workerRole: data.workerRole || "assistant",
         estimatedDuration: data.estimatedDuration || null,
-        engineerName: data.engineerName || null,
-        supervisorName: data.supervisorName || null,
-        assistantName: data.assistantName || null,
+        engineerName: data.engineerName === "none" ? null : data.engineerName || null,
+        supervisorName: data.supervisorName === "none" ? null : data.supervisorName || null,
+        assistantName: data.assistantName === "none" ? null : data.assistantName || null,
       };
       
       console.log("Sending task data:", taskData);
