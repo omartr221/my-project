@@ -139,6 +139,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // تعديل مهمة
+  app.patch("/api/tasks/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updates = req.body;
+      
+      // التحقق من صحة البيانات
+      if (updates.description !== undefined && typeof updates.description !== 'string') {
+        return res.status(400).json({ error: "وصف المهمة يجب أن يكون نص" });
+      }
+      
+      if (updates.estimatedDuration !== undefined && (typeof updates.estimatedDuration !== 'number' || updates.estimatedDuration <= 0)) {
+        return res.status(400).json({ error: "الوقت المقدر يجب أن يكون رقم موجب" });
+      }
+
+      const task = await storage.updateTask(id, updates);
+      
+      broadcastUpdate('task_updated', task);
+      res.json(task);
+    } catch (error: any) {
+      console.error("Error updating task:", error);
+      res.status(500).json({ error: error.message || "فشل في تعديل المهمة" });
+    }
+  });
+
   // Statistics route
   app.get("/api/stats", async (req, res) => {
     try {

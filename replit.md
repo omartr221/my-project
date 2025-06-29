@@ -128,6 +128,8 @@ Changelog:
 - June 25, 2025. Final integration testing completed - all features working seamlessly
 - June 26, 2025. Fixed worker ID mapping issue in task creation form (updated from +17 to +26 offset)
 - June 26, 2025. Added company logo to dashboard header with V POWER TUNING branding
+- June 29, 2025. Added task editing functionality - users can now modify task description and estimated time with data persistence
+- June 29, 2025. Integrated edit task button in active timers and task history views for easy access
 
 ## User Preferences
 

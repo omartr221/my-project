@@ -5,7 +5,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Archive, Clock, CheckCircle, Calendar, Star } from "lucide-react";
+import { Archive, Clock, CheckCircle, Calendar, Star, Edit } from "lucide-react";
+import EditTaskDialog from "./EditTaskDialog";
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
@@ -243,18 +244,27 @@ export default function TaskHistoryTable() {
                       </Badge>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {task.status === 'completed' && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleTaskSelect(task.id)}
-                          disabled={archiveMutation.isPending}
-                          className="text-blue-600 hover:text-blue-800"
-                        >
-                          <Archive className="ml-1 h-3 w-3" />
-                          تسليم
-                        </Button>
-                      )}
+                      <div className="flex gap-2">
+                        <EditTaskDialog 
+                          task={{
+                            ...task,
+                            worker: task.worker,
+                            currentDuration: task.totalDuration
+                          }} 
+                        />
+                        {task.status === 'completed' && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleTaskSelect(task.id)}
+                            disabled={archiveMutation.isPending}
+                            className="text-blue-600 hover:text-blue-800"
+                          >
+                            <Archive className="ml-1 h-3 w-3" />
+                            تسليم
+                          </Button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
