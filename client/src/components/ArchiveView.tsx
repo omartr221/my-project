@@ -404,6 +404,11 @@ export default function ArchiveView() {
               <div className="space-y-4">
                 {displayTasks.map((task) => (
                   <div key={task.id} className="p-4 border rounded-lg bg-gray-50">
+                    <div className="mb-3 pb-2 border-b border-gray-300">
+                      <h3 className="text-lg font-semibold text-blue-800">
+                        مهمة رقم: {task.taskNumber || task.id}
+                      </h3>
+                    </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                       <div>
                         <span className="font-medium">المهندس:</span> {task.worker.name}
