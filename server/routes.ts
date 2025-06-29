@@ -77,7 +77,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/tasks", async (req, res) => {
     try {
-      const taskData = insertTaskSchema.parse(req.body);
+      // Remove taskNumber from request body since it's generated on server
+      const { taskNumber, ...requestData } = req.body;
+      const taskData = insertTaskSchema.parse(requestData);
       const task = await storage.createTask(taskData);
       
       // Broadcast update to all clients

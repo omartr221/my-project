@@ -88,6 +88,7 @@ export const insertWorkerSchema = createInsertSchema(workers).omit({
 
 export const insertTaskSchema = createInsertSchema(tasks).omit({
   id: true,
+  taskNumber: true,
   createdAt: true,
   startTime: true,
 }).extend({
