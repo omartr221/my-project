@@ -258,6 +258,7 @@ export default function ArchiveView() {
         <table>
           <thead>
             <tr>
+              <th>رقم المهمة</th>
               <th>العامل</th>
               <th>الدور</th>
               <th>المهمة</th>
@@ -295,7 +296,7 @@ export default function ArchiveView() {
               
               return `
                 <tr>
-                  <td>${task.taskNumber || task.id}</td>
+                  <td>${task.id}</td>
                   <td>${task.worker.name}</td>
                   <td>${task.workerRole || '--'}</td>
                   <td>${task.description}</td>
@@ -408,7 +409,7 @@ export default function ArchiveView() {
                   <div key={task.id} className="p-4 border rounded-lg bg-gray-50">
                     <div className="mb-3 pb-2 border-b border-gray-300">
                       <h3 className="text-lg font-semibold text-blue-800">
-                        مهمة رقم: {task.taskNumber || task.id}
+                        مهمة رقم: {task.id}
                       </h3>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

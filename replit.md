@@ -130,6 +130,8 @@ Changelog:
 - June 26, 2025. Added company logo to dashboard header with V POWER TUNING branding
 - June 29, 2025. Added task editing functionality - users can now modify task description and estimated time with data persistence
 - June 29, 2025. Integrated edit task button in active timers and task history views for easy access
+- June 29, 2025. Added "repair operation" field to tasks with database integration across all system components
+- June 29, 2025. Changed archive task numbering from date-based to simple sequential numbers (1, 2, 3...)
 
 ## User Preferences
 
