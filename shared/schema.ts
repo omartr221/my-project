@@ -98,6 +98,7 @@ export const insertTaskSchema = createInsertSchema(tasks).omit({
   assistantName: true,
   engineerName: true,
   supervisorName: true,
+  repairOperation: true,
 });
 
 export const insertTimeEntrySchema = createInsertSchema(timeEntries).omit({

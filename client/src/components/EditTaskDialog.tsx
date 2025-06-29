@@ -15,6 +15,7 @@ import { Edit } from "lucide-react";
 
 const editTaskSchema = z.object({
   description: z.string().min(1, "يجب إدخال وصف المهمة"),
+  repairOperation: z.string().optional(),
   estimatedDuration: z.number().min(1, "يجب أن يكون الوقت المقدر أكبر من صفر"),
 });
 
@@ -34,6 +35,7 @@ export default function EditTaskDialog({ task, disabled }: EditTaskDialogProps) 
     resolver: zodResolver(editTaskSchema),
     defaultValues: {
       description: task.description,
+      repairOperation: (task as any).repairOperation || "",
       estimatedDuration: task.estimatedDuration || 60,
     },
   });
@@ -110,6 +112,24 @@ export default function EditTaskDialog({ task, disabled }: EditTaskDialogProps) 
                       {...field}
                       placeholder="وصف المهمة..."
                       rows={3}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="repairOperation"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>عملية الإصلاح</FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      {...field}
+                      placeholder="تفاصيل عملية الإصلاح..."
+                      rows={2}
                     />
                   </FormControl>
                   <FormMessage />

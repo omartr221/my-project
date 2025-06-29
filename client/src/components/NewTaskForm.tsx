@@ -170,6 +170,20 @@ export default function NewTaskForm() {
 
                 <FormField
                   control={form.control}
+                  name="repairOperation"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>عملية الإصلاح (اختياري)</FormLabel>
+                      <FormControl>
+                        <Input placeholder="تفاصيل عملية الإصلاح" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
                   name="carBrand"
                   render={({ field }) => (
                     <FormItem>

@@ -261,6 +261,7 @@ export default function ArchiveView() {
               <th>العامل</th>
               <th>الدور</th>
               <th>المهمة</th>
+              <th>عملية الإصلاح</th>
               <th>السيارة</th>
               <th>رقم اللوحة</th>
               <th>المهندس</th>
@@ -298,6 +299,7 @@ export default function ArchiveView() {
                   <td>${task.worker.name}</td>
                   <td>${task.workerRole || '--'}</td>
                   <td>${task.description}</td>
+                  <td>${(task as any).repairOperation || '--'}</td>
                   <td>${getCarBrandInArabic(task.carBrand)} ${task.carModel}</td>
                   <td>${task.licensePlate || '--'}</td>
                   <td>${engineerName}</td>
@@ -415,6 +417,9 @@ export default function ArchiveView() {
                       </div>
                       <div>
                         <span className="font-medium">المهمة:</span> {task.description}
+                      </div>
+                      <div>
+                        <span className="font-medium">عملية الإصلاح:</span> {(task as any).repairOperation || '--'}
                       </div>
                       <div>
                         <span className="font-medium">السيارة:</span> {getCarBrandInArabic(task.carBrand)} {task.carModel}

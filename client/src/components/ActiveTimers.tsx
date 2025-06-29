@@ -151,6 +151,11 @@ export default function ActiveTimers({
                       <p className="text-sm text-gray-600">
                         {task.description} - {getCarBrandInArabic(task.carBrand)}
                       </p>
+                      {(task as any).repairOperation && (
+                        <p className="text-xs text-gray-500">
+                          عملية الإصلاح: {(task as any).repairOperation}
+                        </p>
+                      )}
                       <p className="text-xs text-gray-500">
                         {task.carModel} - {task.licensePlate}
                       </p>
