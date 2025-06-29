@@ -248,10 +248,14 @@ export default function NewTaskForm() {
                       <FormLabel>المهندس (اختياري)</FormLabel>
                       <Select onValueChange={(value) => {
                         field.onChange(value);
-                        const selectedIndex = parseInt(value) - 26;
-                        const selectedName = workerNames?.[selectedIndex] || "";
-                        console.log("Selected engineer:", selectedName);
-                        setSelectedWorkers(prev => ({ ...prev, engineer: selectedName }));
+                        if (value === "none") {
+                          setSelectedWorkers(prev => ({ ...prev, engineer: "" }));
+                        } else {
+                          const selectedIndex = parseInt(value) - 26;
+                          const selectedName = workerNames?.[selectedIndex] || "";
+                          console.log("Selected engineer:", selectedName);
+                          setSelectedWorkers(prev => ({ ...prev, engineer: selectedName }));
+                        }
                       }} value={field.value || ""}>
                         <FormControl>
                           <SelectTrigger>
@@ -259,7 +263,7 @@ export default function NewTaskForm() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="">بدون مهندس</SelectItem>
+                          <SelectItem value="none">بدون مهندس</SelectItem>
                           {workerNames?.filter((name: string) => 
                             name !== "عامل جديد" && 
                             name !== form.watch("supervisorName") &&
@@ -288,8 +292,9 @@ export default function NewTaskForm() {
                       <FormLabel>المشرف (اختياري)</FormLabel>
                       <Select onValueChange={(value) => {
                         field.onChange(value);
-                        console.log("Selected supervisor:", value);
-                        setSelectedWorkers(prev => ({ ...prev, supervisor: value }));
+                        const selectedValue = value === "none" ? "" : value;
+                        console.log("Selected supervisor:", selectedValue);
+                        setSelectedWorkers(prev => ({ ...prev, supervisor: selectedValue }));
                       }} value={field.value || ""}>
                         <FormControl>
                           <SelectTrigger>
@@ -320,8 +325,9 @@ export default function NewTaskForm() {
                       <FormLabel>الفني (اختياري)</FormLabel>
                       <Select onValueChange={(value) => {
                         field.onChange(value);
-                        console.log("Selected technician:", value);
-                        setSelectedWorkers(prev => ({ ...prev, technician: value }));
+                        const selectedValue = value === "none" ? "" : value;
+                        console.log("Selected technician:", selectedValue);
+                        setSelectedWorkers(prev => ({ ...prev, technician: selectedValue }));
                       }} value={field.value || ""}>
                         <FormControl>
                           <SelectTrigger>
@@ -351,9 +357,8 @@ export default function NewTaskForm() {
                     <FormItem>
                       <FormLabel>المساعد (اختياري)</FormLabel>
                       <Select onValueChange={(value) => {
-                        // إذا كان القيمة فارغة، اتركها فارغة
-                        const selectedValue = value === "" ? "" : value;
-                        field.onChange(selectedValue);
+                        field.onChange(value);
+                        const selectedValue = value === "none" ? "" : value;
                         if (selectedValue) {
                           form.setValue("workerRole", "assistant");
                         }
