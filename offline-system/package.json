@@ -4,7 +4,8 @@
   "type": "module",
   "description": "نظام توزيع المهام - النسخة المحلية",
   "scripts": {
-    "dev": "tsx server/index.ts",
+    "dev": "PORT=3000 tsx server/index.ts",
+    "dev-alt": "PORT=4000 tsx server/index.ts",
     "build": "vite build",
     "start": "node dist/server.js"
   },
