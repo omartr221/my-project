@@ -1,13 +1,97 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>نظام توزيع المهام - V POWER TUNING</title>
+    <link rel="manifest" href="/manifest.json">
+    <style>
+      body { 
+        margin: 0; 
+        padding: 0; 
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: #f8fafc;
+      }
+      #offline-notice { 
+        display: none; 
+        position: fixed; 
+        top: 0; 
+        left: 0; 
+        right: 0; 
+        background: #dc2626; 
+        color: white; 
+        text-align: center; 
+        padding: 10px; 
+        z-index: 9999;
+        font-size: 14px;
+      }
+      .loading { 
+        display: flex; 
+        flex-direction: column;
+        justify-content: center; 
+        align-items: center; 
+        height: 100vh; 
+        font-size: 18px;
+        color: #374151;
+      }
+      .spinner {
+        border: 4px solid #f3f4f6;
+        border-top: 4px solid #dc2626;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin-bottom: 20px;
+      }
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="offline-notice">
+      🔴 تم فصل الإنترنت - النظام يعمل في الوضع الأوفلاين
+    </div>
+    <div id="root">
+      <div class="loading">
+        <div class="spinner"></div>
+        <div>جاري تحميل نظام توزيع المهام V POWER TUNING...</div>
+        <div style="font-size: 14px; color: #6b7280; margin-top: 10px;">
+          النظام يعمل محلياً بدون إنترنت
+        </div>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
-    <!-- This is a replit script which adds a banner on the top of the page when opened in development mode outside the replit environment -->
-    <script type="text/javascript" src="https://replit.com/public/js/replit-dev-banner.js"></script>
+    <script>
+      // Check offline status and show notification
+      function updateOnlineStatus() {
+        const notice = document.getElementById('offline-notice');
+        if (!navigator.onLine) {
+          notice.style.display = 'block';
+          console.log('🔴 النظام يعمل أوفلاين');
+        } else {
+          notice.style.display = 'none';
+          console.log('🟢 النظام متصل بالإنترنت');
+        }
+      }
+      
+      // Register offline/online event listeners
+      window.addEventListener('online', updateOnlineStatus);
+      window.addEventListener('offline', updateOnlineStatus);
+      
+      // Check initial status
+      updateOnlineStatus();
+      
+      // Remove loading screen when React app loads
+      window.addEventListener('load', function() {
+        setTimeout(() => {
+          const loading = document.querySelector('.loading');
+          if (loading && document.querySelector('[data-reactroot]')) {
+            loading.style.display = 'none';
+          }
+        }, 1000);
+      });
+    </script>
   </body>
 </html>
