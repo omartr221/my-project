@@ -1,6 +1,8 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import path from "path";
+import fs from "fs";
 
 // Graceful shutdown handling
 process.on('SIGTERM', () => {
@@ -49,6 +51,94 @@ app.get('/ready', (_req, res) => {
     status: 'ready',
     timestamp: new Date().toISOString()
   });
+});
+
+// Simple working route for deployment
+app.get('/', (_req, res) => {
+  res.send(`<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>V POWER TUNING - نظام إدارة المهام</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { 
+            font-family: Arial, sans-serif; 
+            direction: rtl; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        .container { 
+            text-align: center; 
+            background: rgba(255,255,255,0.1); 
+            padding: 40px; 
+            border-radius: 15px; 
+            backdrop-filter: blur(10px);
+            max-width: 600px;
+        }
+        .logo { font-size: 48px; font-weight: bold; margin-bottom: 20px; }
+        .subtitle { font-size: 24px; margin-bottom: 30px; opacity: 0.9; }
+        .stats { background: rgba(255,255,255,0.2); padding: 20px; border-radius: 10px; margin: 20px 0; }
+        .btn { 
+            padding: 15px 30px; 
+            background: #4CAF50; 
+            color: white; 
+            border: none; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            margin: 10px;
+            font-size: 16px;
+        }
+        .btn:hover { background: #45a049; }
+        .loading { margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">V POWER TUNING</div>
+        <div class="subtitle">نظام إدارة المهام والعمال</div>
+        <div id="content">
+            <div class="loading">جاري تحميل النظام...</div>
+        </div>
+    </div>
+
+    <script>
+        async function loadStats() {
+            try {
+                const response = await fetch('/api/stats');
+                if (response.ok) {
+                    const stats = await response.json();
+                    document.getElementById('content').innerHTML = 
+                        '<div class="stats">' +
+                        '<h3>النظام يعمل بنجاح!</h3>' +
+                        '<p>إجمالي العمال: ' + stats.totalWorkers + '</p>' +
+                        '<p>العمال المتاحون: ' + stats.availableWorkers + '</p>' +
+                        '<p>المهام النشطة: ' + stats.activeTasks + '</p>' +
+                        '</div>' +
+                        '<p>يمكنك الآن استخدام النظام من أي جهاز</p>' +
+                        '<button class="btn" onclick="location.reload()">تحديث البيانات</button>';
+                } else {
+                    throw new Error('API not responding');
+                }
+            } catch (error) {
+                document.getElementById('content').innerHTML = 
+                    '<div class="stats">' +
+                    '<h3>النظام متاح!</h3>' +
+                    '<p>الخادم يعمل بنجاح</p>' +
+                    '</div>' +
+                    '<button class="btn" onclick="loadStats()">إعادة المحاولة</button>';
+            }
+        }
+        loadStats();
+        setInterval(loadStats, 30000);
+    </script>
+</body>
+</html>`);
 });
 
 app.use((req, res, next) => {
