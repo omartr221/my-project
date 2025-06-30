@@ -14,7 +14,7 @@ if not exist "node_modules" (
     echo تثبيت المكتبات للمرة الأولى...
     echo يرجى التأكد من الاتصال بالإنترنت...
     echo.
-    call npm install
+    call npm install --no-optional --legacy-peer-deps
     if errorlevel 1 (
         echo.
         echo خطأ في التثبيت! تأكد من:
