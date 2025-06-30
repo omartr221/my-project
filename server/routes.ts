@@ -1,8 +1,8 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
-import { storage } from "./storage";
-import { insertWorkerSchema, insertTaskSchema } from "@shared/schema";
+import { storage } from "./storage-sqlite";
+import { insertWorkerSchema, insertTaskSchema } from "@shared/schema-sqlite";
 import { z } from "zod";
 
 interface WebSocketClient extends WebSocket {

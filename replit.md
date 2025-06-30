@@ -132,6 +132,7 @@ Changelog:
 - June 29, 2025. Integrated edit task button in active timers and task history views for easy access
 - June 29, 2025. Added "repair operation" field to tasks with database integration across all system components
 - June 29, 2025. Changed archive task numbering from date-based to simple sequential numbers (1, 2, 3...)
+- June 30, 2025. Converted system to offline mode using SQLite database for operation without internet dependency
 
 ## User Preferences
 
