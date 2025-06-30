@@ -65,11 +65,11 @@ app.use((req, res, next) => {
     host: "0.0.0.0",
     reusePort: true,
   }, () => {
-    log(`🚀 V POWER TUNING Server running on:`);
-    log(`   - Local:    http://localhost:${port}`);
-    log(`   - Network:  استخدم عنوان IP الجهاز مع المنفذ ${port}`);
-    log(`📱 مثال: http://192.168.1.100:${port}`);
-    log(`🔧 نظام إدارة المهام جاهز للاستخدام`);
-    log(`📖 راجع ملف 'دليل-الوصول-للنظام.md' للتفاصيل`);
+    log(`🚀 V POWER TUNING Server جاهز!`);
+    log(`   - من هذا الجهاز: http://localhost:${port}`);
+    log(`   - من أجهزة أخرى: http://[عنوان-IP]:${port}`);
+    log(`📱 لمعرفة عنوان IP: اكتب ipconfig في cmd`);
+    log(`🔧 السيرفر يعمل على جميع عناوين الشبكة (0.0.0.0)`);
+    log(`📖 راجع ملف 'تجربة-الاتصال.md' للمساعدة`);
   });
 })();
