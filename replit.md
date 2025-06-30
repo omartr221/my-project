@@ -88,6 +88,7 @@ This is a full-stack web application designed for task distribution and time tra
 - **Database**: PostgreSQL 16 with automatic provisioning
 - **Development Server**: Hot reload with error overlay and debugging tools
 - **Port Configuration**: Frontend on 5000, WebSocket on same port
+- **Network Access**: Configured for local network access (0.0.0.0) to support multiple devices
 
 ### Production Build
 - **Frontend**: Vite production build with code splitting and optimization
@@ -132,6 +133,8 @@ Changelog:
 - June 29, 2025. Integrated edit task button in active timers and task history views for easy access
 - June 29, 2025. Added "repair operation" field to tasks with database integration across all system components
 - June 29, 2025. Changed archive task numbering from date-based to simple sequential numbers (1, 2, 3...)
+- June 30, 2025. Added repair operation field to task editing and all system components
+- June 30, 2025. Configured server for local network access to support multiple devices
 
 ## User Preferences
 

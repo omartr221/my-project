@@ -276,7 +276,7 @@ export default function ArchiveView() {
             </tr>
           </thead>
           <tbody>
-            ${tasks.map(task => {
+            ${tasks.map((task, index) => {
               const archiveDate = task.archivedAt ? 
                 new Intl.DateTimeFormat('ar-EG', {
                   day: 'numeric',
