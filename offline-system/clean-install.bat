@@ -18,7 +18,7 @@ call npm cache clean --force
 echo.
 echo تثبيت المكتبات من جديد...
 echo يرجى التأكد من الاتصال بالإنترنت...
-call npm install --no-optional --legacy-peer-deps
+call npm install --force
 
 if errorlevel 1 (
     echo.

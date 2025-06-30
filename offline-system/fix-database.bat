@@ -1,19 +1,22 @@
 @echo off
 chcp 65001 > nul
+title "إصلاح قاعدة البيانات"
+
 echo إصلاح قاعدة البيانات...
 echo.
 
-echo حذف قاعدة البيانات القديمة...
-if exist tasks.db del tasks.db
+REM Backup existing database
+if exist "tasks.db" (
+    copy "tasks.db" "tasks_backup.db"
+    echo تم عمل نسخة احتياطية ✓
+)
 
-echo تثبيت المكتبات...
-call npm install
+REM Delete existing database
+if exist "tasks.db" del "tasks.db"
 
-echo إنشاء قاعدة بيانات جديدة...
-call npm run dev &
+echo إعادة إنشاء قاعدة البيانات...
+npm run db:push
 
-timeout /t 5 > nul
-
-echo تم إصلاح قاعدة البيانات بنجاح!
-echo يمكنك الآن استخدام start.bat لتشغيل النظام
+echo تم إصلاح قاعدة البيانات ✓
+echo.
 pause
