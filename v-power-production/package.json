@@ -1,0 +1,25 @@
+{
+  "name": "v-power-tuning-production",
+  "version": "1.0.0",
+  "description": "V POWER TUNING Task Management System - Production Server",
+  "main": "production-server.js",
+  "scripts": {
+    "start": "node production-server.js",
+    "install-deps": "npm install --production"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^0.10.4",
+    "express": "^4.21.2",
+    "ws": "^8.18.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "task-management",
+    "v-power-tuning",
+    "production"
+  ],
+  "author": "V POWER TUNING",
+  "license": "MIT"
+}
