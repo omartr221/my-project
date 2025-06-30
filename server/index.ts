@@ -51,8 +51,14 @@ app.get('/ready', (_req, res) => {
   });
 });
 
-// Full application interface
+// Serve the original React application
 app.get('/', (_req, res) => {
+  // In development, let Vite handle the routing
+  if (process.env.NODE_ENV !== 'production') {
+    res.redirect('/dashboard');
+    return;
+  }
+  
   res.send(`<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
