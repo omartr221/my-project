@@ -139,6 +139,7 @@ Changelog:
 - June 30, 2025. Successfully located Node.js installation - Node.js Command Prompt working, created final launch script with directory navigation
 - June 30, 2025. Completed offline system deployment with comprehensive startup files, troubleshooting guides, and compressed package ready for download
 - June 30, 2025. Created definitive local installation script (تشغيل-محلي-كامل.bat) with automatic Node.js detection, dependency installation, and port 3000 configuration for true offline operation
+- June 30, 2025. Converted system to network server mode - multiple devices can now access the system via local network using central server architecture with SQLite database
 
 ## User Preferences
 

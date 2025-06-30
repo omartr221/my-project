@@ -64,13 +64,14 @@ app.use((req, res, next) => {
   // this serves both the API and the client.
   const port = parseInt(process.env.PORT || "3000", 10);
   
-  // Ensure we're using port 3000 for offline system
-  const actualPort = process.env.NODE_ENV === 'development' ? 3000 : port;
   server.listen({
-    port: actualPort,
-    host: "0.0.0.0",
+    port,
+    host: "0.0.0.0", // Important: 0.0.0.0 allows access from other devices
     reusePort: true,
   }, () => {
-    log(`serving on port ${actualPort}`);
+    log(`🌐 V POWER TUNING Server is running!`);
+    log(`📱 Local access: http://localhost:${port}`);
+    log(`🖥️  Network access: http://[YOUR-SERVER-IP]:${port}`);
+    log(`💡 Other devices can connect using the server's IP address`);
   });
 })();
