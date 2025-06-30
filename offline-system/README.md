@@ -20,7 +20,7 @@ npm run dev
 
 3. فتح المتصفح على:
 ```
-http://localhost:5000
+http://localhost:3000
 ```
 
 ### ملاحظات هامة:

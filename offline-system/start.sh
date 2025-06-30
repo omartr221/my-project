@@ -5,5 +5,5 @@ echo "تثبيت المكتبات المطلوبة..."
 npm install
 echo ""
 echo "بدء تشغيل النظام..."
-echo "افتح المتصفح على: http://localhost:5000"
+echo "افتح المتصفح على: http://localhost:3000"
 npm run dev
