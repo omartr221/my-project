@@ -135,6 +135,7 @@ Changelog:
 - June 30, 2025. Converted system to offline mode using SQLite database for operation without internet dependency
 - June 30, 2025. Created complete offline deployment package with multiple port options and troubleshooting tools
 - June 30, 2025. User successfully installed Node.js and can now run the system locally without internet connection
+- June 30, 2025. Diagnosed Node.js PATH issue on Windows - created PowerShell alternative and comprehensive troubleshooting guide
 
 ## User Preferences
 
