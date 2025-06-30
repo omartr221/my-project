@@ -63,11 +63,14 @@ app.use((req, res, next) => {
   // Serve the app on configurable port (default 3000)
   // this serves both the API and the client.
   const port = parseInt(process.env.PORT || "3000", 10);
+  
+  // Ensure we're using port 3000 for offline system
+  const actualPort = process.env.NODE_ENV === 'development' ? 3000 : port;
   server.listen({
-    port,
+    port: actualPort,
     host: "0.0.0.0",
     reusePort: true,
   }, () => {
-    log(`serving on port ${port}`);
+    log(`serving on port ${actualPort}`);
   });
 })();
