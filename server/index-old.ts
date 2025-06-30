@@ -1,6 +1,8 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import path from "path";
+import fs from "fs";
 
 // Graceful shutdown handling
 process.on('SIGTERM', () => {
@@ -51,9 +53,13 @@ app.get('/ready', (_req, res) => {
   });
 });
 
-// Full application interface
+// Application interface
 app.get('/', (_req, res) => {
-  res.send(`<!DOCTYPE html>
+  res.send(getAppHTML());
+});
+
+function getAppHTML() {
+  return `<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
@@ -317,8 +323,8 @@ app.get('/', (_req, res) => {
         setInterval(loadDashboardData, 30000);
     </script>
 </body>
-</html>`);
-});
+</html>`;
+}
 
 app.use((req, res, next) => {
   const start = Date.now();
