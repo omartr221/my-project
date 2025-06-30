@@ -13,6 +13,27 @@ let wss: WebSocketServer;
 const clients = new Set<WebSocketClient>();
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Health check endpoint - required for Autoscale deployment
+  app.get("/health", (req, res) => {
+    res.status(200).json({ 
+      status: "ok", 
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      environment: process.env.NODE_ENV || 'development'
+    });
+  });
+
+  // Root health check - only in production mode to avoid interfering with frontend development
+  if (process.env.NODE_ENV === "production") {
+    app.get("/", (req, res) => {
+      res.status(200).json({ 
+        message: "V POWER TUNING Server is running",
+        status: "ok",
+        timestamp: new Date().toISOString()
+      });
+    });
+  }
+
   // Worker routes
   app.get("/api/workers", async (req, res) => {
     try {
