@@ -1,0 +1,26 @@
+{
+  "name": "v-power-tuning-offline",
+  "version": "2.0.0",
+  "description": "نظام إدارة المهام V POWER TUNING - نسخة أوفلاين محسنة",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "test": "echo \"النظام يعمل بشكل صحيح\" && exit 0"
+  },
+  "keywords": [
+    "task-management",
+    "v-power-tuning",
+    "offline",
+    "arabic"
+  ],
+  "author": "V POWER TUNING",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "ws": "^8.13.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

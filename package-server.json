@@ -1,0 +1,17 @@
+{
+  "name": "v-power-tuning-server",
+  "version": "1.0.0",
+  "description": "نظام إدارة المهام V POWER TUNING - للتشغيل المستقل",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "install-db": "node setup-db.js"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^0.10.4",
+    "better-sqlite3": "^12.2.0",
+    "drizzle-orm": "^0.39.1",
+    "express": "^4.21.2",
+    "ws": "^8.18.0"
+  }
+}

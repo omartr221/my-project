@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>V POWER TUNING - نظام إدارة المهام</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            direction: rtl;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card h3 {
+            color: #4a5568;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 10px;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            text-align: center;
+        }
+        
+        .stat {
+            flex: 1;
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .stat-label {
+            color: #718096;
+            font-size: 0.9rem;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #e2e8f0;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s ease;
+        }
+        
+        .btn:hover {
+            background: #5a67d8;
+        }
+        
+        .btn-success {
+            background: #48bb78;
+        }
+        
+        .btn-success:hover {
+            background: #38a169;
+        }
+        
+        .btn-danger {
+            background: #f56565;
+        }
+        
+        .btn-danger:hover {
+            background: #e53e3e;
+        }
+        
+        .task-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .task-item {
+            background: #f7fafc;
+            margin-bottom: 10px;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .task-title {
+            font-weight: 600;
+            color: #2d3748;
+        }
+        
+        .task-status {
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .status-active {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+        
+        .status-completed {
+            background: #bee3f8;
+            color: #2c5282;
+        }
+        
+        .status-paused {
+            background: #fed7e2;
+            color: #97266d;
+        }
+        
+        .workers-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+        }
+        
+        .worker-card {
+            background: #f7fafc;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+            border: 2px solid transparent;
+        }
+        
+        .worker-available {
+            border-color: #48bb78;
+            background: #f0fff4;
+        }
+        
+        .worker-busy {
+            border-color: #f56565;
+            background: #fffaf0;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #718096;
+        }
+        
+        .connection-status {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-weight: 600;
+            z-index: 1000;
+        }
+        
+        .connected {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+        
+        .disconnected {
+            background: #fed7e2;
+            color: #97266d;
+        }
+        
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 15px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s ease;
+        }
+        
+        .tab.active {
+            background: #667eea;
+            color: white;
+        }
+        
+        .tab:hover:not(.active) {
+            background: #f7fafc;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="connection-status" id="connectionStatus">
+        <span id="connectionText">جاري الاتصال...</span>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1>🚗 V POWER TUNING</h1>
+            <p>نظام إدارة المهام والعمال</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('dashboard')">لوحة التحكم</button>
+            <button class="tab" onclick="showTab('tasks')">المهام النشطة</button>
+            <button class="tab" onclick="showTab('workers')">العمال</button>
+            <button class="tab" onclick="showTab('archive')">الأرشيف</button>
+        </div>
+
+        <div id="dashboard" class="tab-content active">
+            <div class="dashboard">
+                <div class="card">
+                    <h3>📊 إحصائيات عامة</h3>
+                    <div class="stats">
+                        <div class="stat">
+                            <div class="stat-number" id="totalWorkers">0</div>
+                            <div class="stat-label">إجمالي العمال</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-number" id="activeTasks">0</div>
+                            <div class="stat-label">المهام النشطة</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-number" id="availableWorkers">0</div>
+                            <div class="stat-label">العمال المتاحون</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>➕ إضافة مهمة جديدة</h3>
+                    <form id="newTaskForm">
+                        <div class="form-group">
+                            <label>وصف المهمة:</label>
+                            <input type="text" id="taskDescription" required>
+                        </div>
+                        <div class="form-group">
+                            <label>نوع السيارة:</label>
+                            <select id="carBrand" required>
+                                <option value="">اختر النوع</option>
+                                <option value="audi">Audi</option>
+                                <option value="seat">SEAT</option>
+                                <option value="skoda">Skoda</option>
+                                <option value="volkswagen">Volkswagen</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>موديل السيارة:</label>
+                            <input type="text" id="carModel" required>
+                        </div>
+                        <div class="form-group">
+                            <label>رقم اللوحة:</label>
+                            <input type="text" id="licensePlate">
+                        </div>
+                        <div class="form-group">
+                            <label>الوقت المقدر (بالساعات):</label>
+                            <input type="number" id="estimatedTime" min="0.5" step="0.5" required>
+                        </div>
+                        <div class="form-group">
+                            <label>الفني المسؤول:</label>
+                            <select id="assignedWorker" required>
+                                <option value="">اختر الفني</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn">إضافة المهمة</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div id="tasks" class="tab-content">
+            <div class="card">
+                <h3>🔄 المهام النشطة</h3>
+                <div id="activeTasksList" class="task-list">
+                    <div class="loading">جاري تحميل المهام...</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="workers" class="tab-content">
+            <div class="card">
+                <h3>👥 حالة العمال</h3>
+                <div id="workersGrid" class="workers-grid">
+                    <div class="loading">جاري تحميل بيانات العمال...</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="archive" class="tab-content">
+            <div class="card">
+                <h3>📁 أرشيف المهام</h3>
+                <div id="archiveList" class="task-list">
+                    <div class="loading">جاري تحميل الأرشيف...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // حالة الاتصال والبيانات
+        let ws = null;
+        let isConnected = false;
+        let data = {
+            workers: [],
+            tasks: [],
+            stats: {},
+            archive: []
+        };
+
+        // الاتصال بـ WebSocket
+        function connectWebSocket() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${protocol}//${window.location.host}/ws`;
+            
+            ws = new WebSocket(wsUrl);
+            
+            ws.onopen = function() {
+                isConnected = true;
+                updateConnectionStatus();
+                console.log('WebSocket متصل');
+            };
+            
+            ws.onmessage = function(event) {
+                const message = JSON.parse(event.data);
+                handleWebSocketMessage(message);
+            };
+            
+            ws.onclose = function() {
+                isConnected = false;
+                updateConnectionStatus();
+                console.log('WebSocket منقطع');
+                // إعادة المحاولة بعد 3 ثوان
+                setTimeout(connectWebSocket, 3000);
+            };
+            
+            ws.onerror = function(error) {
+                console.error('WebSocket خطأ:', error);
+            };
+        }
+
+        // معالجة رسائل WebSocket
+        function handleWebSocketMessage(message) {
+            switch(message.type) {
+                case 'initial_data':
+                    data = message.data;
+                    updateAllViews();
+                    break;
+                case 'task_created':
+                case 'task_updated':
+                case 'task_started':
+                case 'task_completed':
+                    loadData();
+                    break;
+                default:
+                    console.log('رسالة غير معروفة:', message);
+            }
+        }
+
+        // تحديث حالة الاتصال
+        function updateConnectionStatus() {
+            const status = document.getElementById('connectionStatus');
+            const text = document.getElementById('connectionText');
+            
+            if (isConnected) {
+                status.className = 'connection-status connected';
+                text.textContent = '🟢 متصل';
+            } else {
+                status.className = 'connection-status disconnected';
+                text.textContent = '🔴 غير متصل';
+            }
+        }
+
+        // تحميل البيانات من API
+        async function loadData() {
+            try {
+                const [workersRes, tasksRes, statsRes, archiveRes] = await Promise.all([
+                    fetch('/api/workers'),
+                    fetch('/api/tasks/active'),
+                    fetch('/api/stats'),
+                    fetch('/api/archive')
+                ]);
+
+                data.workers = await workersRes.json();
+                data.tasks = await tasksRes.json();
+                data.stats = await statsRes.json();
+                data.archive = await archiveRes.json();
+
+                updateAllViews();
+            } catch (error) {
+                console.error('خطأ في تحميل البيانات:', error);
+            }
+        }
+
+        // تحديث جميع العروض
+        function updateAllViews() {
+            updateStats();
+            updateWorkersList();
+            updateActiveTasks();
+            updateArchive();
+        }
+
+        // تحديث الإحصائيات
+        function updateStats() {
+            document.getElementById('totalWorkers').textContent = data.stats.totalWorkers || 0;
+            document.getElementById('activeTasks').textContent = data.stats.activeTasks || 0;
+            document.getElementById('availableWorkers').textContent = data.stats.availableWorkers || 0;
+        }
+
+        // تحديث قائمة العمال
+        function updateWorkersList() {
+            const workerSelect = document.getElementById('assignedWorker');
+            const workersGrid = document.getElementById('workersGrid');
+            
+            // تحديث قائمة الاختيار
+            workerSelect.innerHTML = '<option value="">اختر الفني</option>';
+            data.workers.forEach(worker => {
+                const option = document.createElement('option');
+                option.value = worker.id;
+                option.textContent = worker.name;
+                workerSelect.appendChild(option);
+            });
+            
+            // تحديث شبكة العمال
+            workersGrid.innerHTML = '';
+            data.workers.forEach(worker => {
+                const workerCard = document.createElement('div');
+                workerCard.className = `worker-card ${worker.isAvailable ? 'worker-available' : 'worker-busy'}`;
+                workerCard.innerHTML = `
+                    <div style="font-weight: 600;">${worker.name}</div>
+                    <div style="font-size: 12px; color: #718096;">${getCategoryInArabic(worker.category)}</div>
+                    <div style="font-size: 12px; margin-top: 5px;">
+                        ${worker.isAvailable ? '✅ متاح' : '🔄 مشغول'}
+                    </div>
+                `;
+                workersGrid.appendChild(workerCard);
+            });
+        }
+
+        // تحديث المهام النشطة
+        function updateActiveTasks() {
+            const tasksList = document.getElementById('activeTasksList');
+            
+            if (data.tasks.length === 0) {
+                tasksList.innerHTML = '<div class="loading">لا توجد مهام نشطة حالياً</div>';
+                return;
+            }
+            
+            tasksList.innerHTML = '';
+            data.tasks.forEach(task => {
+                const taskItem = document.createElement('div');
+                taskItem.className = 'task-item';
+                taskItem.innerHTML = `
+                    <div class="task-header">
+                        <div class="task-title">${task.description}</div>
+                        <div class="task-status ${getStatusClass(task.status)}">${getStatusInArabic(task.status)}</div>
+                    </div>
+                    <div style="font-size: 14px; color: #718096;">
+                        <div>الفني: ${task.worker?.name || 'غير محدد'}</div>
+                        <div>السيارة: ${getCarBrandInArabic(task.carBrand)} ${task.carModel}</div>
+                        <div>رقم اللوحة: ${task.licensePlate || 'غير محدد'}</div>
+                    </div>
+                    <div style="margin-top: 10px;">
+                        ${task.status === 'in_progress' ? 
+                            '<button class="btn btn-danger" onclick="finishTask(' + task.id + ')">إنهاء المهمة</button>' : 
+                            '<button class="btn btn-success" onclick="startTask(' + task.id + ')">بدء المهمة</button>'
+                        }
+                    </div>
+                `;
+                tasksList.appendChild(taskItem);
+            });
+        }
+
+        // تحديث الأرشيف
+        function updateArchive() {
+            const archiveList = document.getElementById('archiveList');
+            
+            if (data.archive.length === 0) {
+                archiveList.innerHTML = '<div class="loading">لا توجد مهام مؤرشفة</div>';
+                return;
+            }
+            
+            archiveList.innerHTML = '';
+            data.archive.forEach((task, index) => {
+                const taskItem = document.createElement('div');
+                taskItem.className = 'task-item';
+                taskItem.innerHTML = `
+                    <div class="task-header">
+                        <div class="task-title">مهمة رقم: ${index + 1}</div>
+                        <div class="task-status status-completed">مكتملة</div>
+                    </div>
+                    <div style="font-size: 14px; color: #718096;">
+                        <div>الوصف: ${task.description}</div>
+                        <div>الفني: ${task.worker?.name || 'غير محدد'}</div>
+                        <div>السيارة: ${getCarBrandInArabic(task.carBrand)} ${task.carModel}</div>
+                        <div>التقييم: ${getRatingInArabic(task.rating)}</div>
+                    </div>
+                `;
+                archiveList.appendChild(taskItem);
+            });
+        }
+
+        // وظائف المهام
+        async function startTask(taskId) {
+            try {
+                await fetch(`/api/tasks/${taskId}/start`, { method: 'POST' });
+                loadData();
+            } catch (error) {
+                alert('خطأ في بدء المهمة');
+            }
+        }
+
+        async function finishTask(taskId) {
+            try {
+                await fetch(`/api/tasks/${taskId}/finish`, { method: 'POST' });
+                loadData();
+            } catch (error) {
+                alert('خطأ في إنهاء المهمة');
+            }
+        }
+
+        // إضافة مهمة جديدة
+        document.getElementById('newTaskForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = {
+                description: document.getElementById('taskDescription').value,
+                carBrand: document.getElementById('carBrand').value,
+                carModel: document.getElementById('carModel').value,
+                licensePlate: document.getElementById('licensePlate').value,
+                estimatedDuration: parseFloat(document.getElementById('estimatedTime').value),
+                technicianId: parseInt(document.getElementById('assignedWorker').value)
+            };
+            
+            try {
+                await fetch('/api/tasks', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+                
+                // إعادة تعيين النموذج
+                this.reset();
+                loadData();
+                alert('تم إضافة المهمة بنجاح');
+            } catch (error) {
+                alert('خطأ في إضافة المهمة');
+            }
+        });
+
+        // إدارة التبويبات
+        function showTab(tabName) {
+            // إخفاء جميع التبويبات
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // إظهار التبويب المحدد
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // وظائف مساعدة
+        function getCategoryInArabic(category) {
+            const categories = {
+                technician: 'فني',
+                assistant: 'مساعد',
+                supervisor: 'مشرف',
+                trainee: 'متدرب'
+            };
+            return categories[category] || category;
+        }
+
+        function getStatusInArabic(status) {
+            const statuses = {
+                pending: 'في الانتظار',
+                in_progress: 'قيد التنفيذ',
+                paused: 'متوقف مؤقتاً',
+                completed: 'مكتمل'
+            };
+            return statuses[status] || status;
+        }
+
+        function getStatusClass(status) {
+            const classes = {
+                in_progress: 'status-active',
+                completed: 'status-completed',
+                paused: 'status-paused'
+            };
+            return classes[status] || '';
+        }
+
+        function getCarBrandInArabic(brand) {
+            const brands = {
+                audi: 'أودي',
+                seat: 'سيات',
+                skoda: 'سكودا',
+                volkswagen: 'فولكس واجن'
+            };
+            return brands[brand] || brand;
+        }
+
+        function getRatingInArabic(rating) {
+            const ratings = {
+                1: '⭐ مقبول',
+                2: '⭐⭐ جيد',
+                3: '⭐⭐⭐ ممتاز'
+            };
+            return ratings[rating] || 'غير مقيم';
+        }
+
+        // بدء التطبيق
+        document.addEventListener('DOMContentLoaded', function() {
+            connectWebSocket();
+            loadData();
+            
+            // تحديث البيانات كل 30 ثانية
+            setInterval(loadData, 30000);
+        });
+    </script>
+</body>
+</html>

@@ -135,6 +135,7 @@ Changelog:
 - June 29, 2025. Changed archive task numbering from date-based to simple sequential numbers (1, 2, 3...)
 - June 30, 2025. Added repair operation field to task editing and all system components
 - June 30, 2025. Configured server for local network access to support multiple devices
+- June 30, 2025. Created standalone server package for deployment on separate device
 
 ## User Preferences
 
