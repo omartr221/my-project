@@ -166,11 +166,7 @@ export class DatabaseStorage implements IStorage {
       throw new Error("Worker ID is required");
     }
     
-    // Generate unique task number
-    const year = new Date().getFullYear();
-    const month = String(new Date().getMonth() + 1).padStart(2, '0');
-    
-    // Get the last task number for today
+    // Generate simple sequential task number
     const lastTask = await db
       .select({ taskNumber: tasks.taskNumber })
       .from(tasks)
@@ -178,18 +174,13 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(tasks.id))
       .limit(1);
     
-    let sequenceNumber = 1;
+    let taskNumber = "1";
     if (lastTask.length > 0 && lastTask[0].taskNumber) {
-      const parts = lastTask[0].taskNumber.split('-');
-      if (parts.length >= 3) {
-        const lastNumber = parseInt(parts[2]);
-        if (!isNaN(lastNumber)) {
-          sequenceNumber = lastNumber + 1;
-        }
+      const lastNumber = parseInt(lastTask[0].taskNumber);
+      if (!isNaN(lastNumber)) {
+        taskNumber = String(lastNumber + 1);
       }
     }
-    
-    const taskNumber = `${year}-${month}-${String(sequenceNumber).padStart(3, '0')}`;
     
     const [task] = await db
       .insert(tasks)

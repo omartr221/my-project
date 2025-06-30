@@ -140,6 +140,7 @@ Changelog:
 - June 30, 2025. Fixed deployment configuration for Replit Autoscale: updated server listen method, added health check endpoints, improved error handling, and enhanced database connection management
 - June 30, 2025. Applied comprehensive deployment fixes: enhanced port binding for Autoscale, added /health and /ready endpoints, improved production error handling with graceful timeouts, created production build scripts with fallback frontend, validated server startup configuration
 - June 30, 2025. Fixed critical task creation bug: resolved worker ID mapping issues, added repairOperation field to database schema, improved error handling in storage layer, validated form data flow from frontend to backend
+- June 30, 2025. Implemented simple sequential task numbering system: changed from complex date-based numbering to simple incremental numbers starting from 1, reset database for clean numbering, enhanced WebSocket message handling for task updates and archiving
 
 ## User Preferences
 

@@ -72,15 +72,18 @@ export function useWebSocket() {
         
       case 'worker_created':
       case 'task_created':
+      case 'task_updated':
       case 'task_paused':
       case 'task_resumed':
       case 'task_finished':
+      case 'task_archived':
         // Invalidate related queries to refresh data
         queryClient.invalidateQueries({ queryKey: ['/api/workers'] });
         queryClient.invalidateQueries({ queryKey: ['/api/tasks'] });
         queryClient.invalidateQueries({ queryKey: ['/api/tasks/active'] });
         queryClient.invalidateQueries({ queryKey: ['/api/stats'] });
         queryClient.invalidateQueries({ queryKey: ['/api/tasks/history'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/archive'] });
         break;
         
       case 'timer_tick':
