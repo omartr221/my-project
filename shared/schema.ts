@@ -31,6 +31,7 @@ export const tasks = pgTable("tasks", {
   engineerName: varchar("engineer_name", { length: 100 }),
   supervisorName: varchar("supervisor_name", { length: 100 }),
   assistantName: varchar("assistant_name", { length: 100 }),
+  repairOperation: varchar("repair_operation", { length: 200 }),
   status: varchar("status", { length: 20 }).notNull().default("active"), // active, paused, completed, archived
   startTime: timestamp("start_time").defaultNow(),
   endTime: timestamp("end_time"),

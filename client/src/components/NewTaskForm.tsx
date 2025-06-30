@@ -25,6 +25,7 @@ const taskFormSchema = z.object({
   engineerName: z.string().optional(),
   supervisorName: z.string().optional(),
   assistantName: z.string().min(1, "يجب اختيار المساعد"),
+  repairOperation: z.string().optional(),
 });
 
 type TaskFormData = z.infer<typeof taskFormSchema>;
@@ -59,30 +60,37 @@ export default function NewTaskForm() {
       engineerName: "",
       supervisorName: "",
       assistantName: "",
+      repairOperation: "",
     },
   });
 
-  const { data: workerNames } = useQuery({
-    queryKey: ['/api/workers/names'],
+  const { data: workers } = useQuery({
+    queryKey: ['/api/workers'],
     queryFn: async () => {
-      const response = await fetch('/api/workers/names');
+      const response = await fetch('/api/workers');
       return response.json();
     },
   });
 
+  const workerNames = workers?.map((w: any) => w.name) || [];
+
   const createTaskMutation = useMutation({
     mutationFn: async (data: TaskFormData) => {
+      // Find the worker ID from the assistant name
+      const assistantWorker = workers?.find((w: any) => w.name === data.assistantName);
+      
       const taskData = {
         description: data.description,
         carBrand: data.carBrand,
         carModel: data.carModel,
         licensePlate: data.licensePlate,
-        workerId: parseInt(data.workerId),
+        workerId: assistantWorker?.id || 1, // Fallback to first worker if not found
         workerRole: data.workerRole || "assistant",
         estimatedDuration: data.estimatedDuration || null,
         engineerName: data.engineerName === "none" ? null : data.engineerName || null,
         supervisorName: data.supervisorName === "none" ? null : data.supervisorName || null,
         assistantName: data.assistantName === "none" ? null : data.assistantName || null,
+        repairOperation: data.repairOperation || null,
       };
       
       console.log("Sending task data:", taskData);

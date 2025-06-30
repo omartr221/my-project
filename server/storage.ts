@@ -161,6 +161,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createTask(insertTask: InsertTask): Promise<Task> {
+    // Validate required fields
+    if (!insertTask.workerId) {
+      throw new Error("Worker ID is required");
+    }
+    
     // Generate unique task number
     const year = new Date().getFullYear();
     const month = String(new Date().getMonth() + 1).padStart(2, '0');
@@ -189,7 +194,17 @@ export class DatabaseStorage implements IStorage {
     const [task] = await db
       .insert(tasks)
       .values({
-        ...insertTask,
+        workerId: insertTask.workerId,
+        description: insertTask.description,
+        carBrand: insertTask.carBrand,
+        carModel: insertTask.carModel,
+        licensePlate: insertTask.licensePlate,
+        workerRole: insertTask.workerRole || "assistant",
+        estimatedDuration: insertTask.estimatedDuration || null,
+        engineerName: insertTask.engineerName || null,
+        supervisorName: insertTask.supervisorName || null,
+        assistantName: insertTask.assistantName || null,
+        repairOperation: insertTask.repairOperation || null,
         taskNumber,
         startTime: new Date(),
         status: "active",
