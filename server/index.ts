@@ -16,21 +16,40 @@ process.on('SIGINT', () => {
 // Unhandled promise rejection handler
 process.on('unhandledRejection', (reason, promise) => {
   console.error('Unhandled Rejection at:', promise, 'reason:', reason);
-  // In production, you might want to restart the process
-  if (process.env.NODE_ENV === 'production') {
-    process.exit(1);
-  }
+  // Don't exit in production for better stability
 });
 
 // Uncaught exception handler
 process.on('uncaughtException', (error) => {
   console.error('Uncaught Exception:', error);
-  process.exit(1);
+  // Give time for logging in production
+  if (process.env.NODE_ENV === 'production') {
+    setTimeout(() => process.exit(1), 1000);
+  } else {
+    process.exit(1);
+  }
 });
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// Health check endpoint for Autoscale deployment
+app.get('/health', (_req, res) => {
+  res.status(200).json({ 
+    status: 'healthy', 
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development'
+  });
+});
+
+// Ready check endpoint
+app.get('/ready', (_req, res) => {
+  res.status(200).json({ 
+    status: 'ready',
+    timestamp: new Date().toISOString()
+  });
+});
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -82,30 +101,32 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  // Support both development (port 5000) and production (PORT env var for Autoscale)
+  // Autoscale deployment port configuration
   const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 5000;
-  const host = "0.0.0.0";
+  const host = process.env.NODE_ENV === 'production' ? '0.0.0.0' : '0.0.0.0';
   
-  // Use standard Node.js server.listen() method for better Autoscale compatibility
+  // Enhanced server startup for Autoscale compatibility
   server.listen(port, host, () => {
     log(`🚀 V POWER TUNING Server جاهز!`);
     log(`   - Environment: ${process.env.NODE_ENV || 'development'}`);
     log(`   - Port: ${port}`);
     log(`   - Host: ${host}`);
-    log(`   - من هذا الجهاز: http://localhost:${port}`);
     if (process.env.NODE_ENV !== "production") {
+      log(`   - من هذا الجهاز: http://localhost:${port}`);
       log(`   - من أجهزة أخرى: http://[عنوان-IP]:${port}`);
       log(`📱 لمعرفة عنوان IP: اكتب ipconfig في cmd`);
       log(`🔧 السيرفر يعمل على جميع عناوين الشبكة (0.0.0.0)`);
       log(`📖 راجع ملف 'تجربة-الاتصال.md' للمساعدة`);
     }
   }).on('error', (err: any) => {
+    console.error(`❌ Server startup error:`, err);
     if (err.code === 'EADDRINUSE') {
-      log(`❌ Port ${port} is already in use`);
-      process.exit(1);
+      console.error(`Port ${port} is already in use`);
+    }
+    // Enhanced error handling for production
+    if (process.env.NODE_ENV === 'production') {
+      setTimeout(() => process.exit(1), 1000);
     } else {
-      log(`❌ Server error: ${err.message}`);
-      console.error(err);
       process.exit(1);
     }
   });
