@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام توزيع المهام - V POWER TUNING (نسخة مبسطة)</title>
+    <title>نظام توزيع المهام - V POWER TUNING</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><text y='18' font-size='20'>⚙️</text></svg>">
     <style>
         * {
             margin: 0;
@@ -19,11 +20,31 @@
         }
         
         .header {
-            background: rgba(220, 38, 38, 0.95);
+            background: linear-gradient(135deg, #dc2626, #991b1b);
             color: white;
-            padding: 1rem;
+            padding: 1.5rem;
             text-align: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            position: relative;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="10" cy="10" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="30" cy="20" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="50" cy="15" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="70" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="90" cy="18" r="1" fill="rgba(255,255,255,0.1)"/></svg>');
+        }
+        
+        .logo {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            position: relative;
+            z-index: 1;
         }
         
         .container {
@@ -142,9 +163,114 @@
         .task-item {
             background: #f8f9fa;
             border: 1px solid #e9ecef;
-            border-radius: 5px;
-            padding: 1rem;
-            margin: 0.5rem 0;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            transition: all 0.3s;
+            position: relative;
+        }
+        
+        .task-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .task-item.active {
+            border-left: 4px solid #dc2626;
+            background: linear-gradient(90deg, #fef2f2, #f8f9fa);
+        }
+        
+        .task-status {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        
+        .task-status.active {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .task-status.completed {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #22c55e, #16a34a);
+            transition: width 1s ease;
+        }
+        
+        .time-display {
+            font-family: 'Courier New', monospace;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #dc2626;
+            background: #fef2f2;
+            padding: 0.5rem;
+            border-radius: 4px;
+            display: inline-block;
+            min-width: 100px;
+            text-align: center;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #dc2626;
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            z-index: 1000;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        
+        .btn-small {
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+        }
+        
+        .btn-pause {
+            background: #f59e0b;
+        }
+        
+        .btn-pause:hover {
+            background: #d97706;
+        }
+        
+        .btn-complete {
+            background: #10b981;
+        }
+        
+        .btn-complete:hover {
+            background: #059669;
         }
         
         .hidden {
@@ -156,8 +282,10 @@
     <div class="offline-badge">🟢 يعمل أوفلاين</div>
     
     <div class="header">
-        <h1>نظام توزيع المهام - V POWER TUNING</h1>
-        <p>النسخة المبسطة - تعمل بدون Node.js</p>
+        <div class="logo">⚙️ V POWER TUNING</div>
+        <h1>نظام توزيع المهام</h1>
+        <p>نسخة محسنة - تعمل أوفلاين بالكامل</p>
+        <p style="font-size: 0.9rem; opacity: 0.9;">آخر تحديث: <span id="lastUpdate">---</span></p>
     </div>
 
     <div class="container">
@@ -234,6 +362,21 @@
                 </div>
                 
                 <div class="form-group">
+                    <label>عملية الإصلاح:</label>
+                    <input type="text" id="repairOperation" placeholder="أدخل نوع عملية الإصلاح...">
+                </div>
+                
+                <div class="form-group">
+                    <label>المشرف:</label>
+                    <select id="supervisor">
+                        <option value="">اختر المشرف</option>
+                        <option value="غدير">غدير</option>
+                        <option value="يحيى">يحيى</option>
+                        <option value="حسام">حسام</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
                     <label>الوقت المقدر (بالدقائق):</label>
                     <input type="number" id="estimatedTime" placeholder="60" min="1">
                 </div>
@@ -264,35 +407,47 @@
     </div>
 
     <script>
-        // بيانات النظام
+        // بيانات النظام المحدثة
         let workers = [
-            {id: 1, name: 'غدير', category: 'engineer', available: true},
-            {id: 2, name: 'يحيى', category: 'engineer', available: true},
-            {id: 3, name: 'حسام', category: 'engineer', available: true},
-            {id: 4, name: 'مصطفى', category: 'technician', available: true},
-            {id: 5, name: 'زياد', category: 'technician', available: true},
-            {id: 6, name: 'سليمان', category: 'technician', available: true},
-            {id: 7, name: 'علي', category: 'technician', available: true},
-            {id: 8, name: 'حسن', category: 'technician', available: true},
-            {id: 9, name: 'بدوي', category: 'assistant', available: true},
-            {id: 10, name: 'عبد الحفيظ', category: 'assistant', available: true},
-            {id: 11, name: 'محمد علي', category: 'assistant', available: true}
+            {id: 1, name: 'غدير', category: 'engineer', available: true, currentTask: null},
+            {id: 2, name: 'يحيى', category: 'engineer', available: true, currentTask: null},
+            {id: 3, name: 'حسام', category: 'engineer', available: true, currentTask: null},
+            {id: 4, name: 'مصطفى', category: 'technician', available: true, currentTask: null},
+            {id: 5, name: 'زياد', category: 'technician', available: true, currentTask: null},
+            {id: 6, name: 'سليمان', category: 'technician', available: true, currentTask: null},
+            {id: 7, name: 'علي', category: 'technician', available: true, currentTask: null},
+            {id: 8, name: 'حسن', category: 'technician', available: true, currentTask: null},
+            {id: 9, name: 'بدوي', category: 'assistant', available: true, currentTask: null},
+            {id: 10, name: 'عبد الحفيظ', category: 'assistant', available: true, currentTask: null},
+            {id: 11, name: 'محمد علي', category: 'assistant', available: true, currentTask: null}
         ];
 
         let tasks = [];
         let taskIdCounter = 1;
+        let timers = {}; // لحفظ المؤقتات النشطة
+        let totalWorkTime = 0;
 
         // تحديث واجهة العمال
         function renderWorkers() {
             const grid = document.getElementById('workersGrid');
-            grid.innerHTML = workers.map(worker => `
+            grid.innerHTML = workers.map(worker => {
+                const categoryText = worker.category === 'engineer' ? 'مهندس' : 
+                                   worker.category === 'technician' ? 'فني' : 'مساعد';
+                const currentTask = worker.currentTask ? tasks.find(t => t.id === worker.currentTask) : null;
+                
+                return `
                 <div class="worker-card ${worker.available ? 'available' : 'busy'}">
                     <h4>${worker.name}</h4>
-                    <p>${worker.category === 'engineer' ? 'مهندس' : 
-                         worker.category === 'technician' ? 'فني' : 'مساعد'}</p>
-                    <p>${worker.available ? 'متاح' : 'مشغول'}</p>
-                </div>
-            `).join('');
+                    <p>${categoryText}</p>
+                    <p style="font-weight: bold;">${worker.available ? '🟢 متاح' : '🔴 مشغول'}</p>
+                    ${currentTask ? `
+                        <p style="font-size: 0.8rem; color: #6b7280;">
+                            مهمة #${currentTask.id}<br>
+                            ${currentTask.carBrand || 'غير محدد'}
+                        </p>
+                    ` : ''}
+                </div>`;
+            }).join('');
         }
 
         // تحديث الإحصائيات
@@ -300,6 +455,7 @@
             document.getElementById('totalWorkers').textContent = workers.length;
             document.getElementById('availableWorkers').textContent = workers.filter(w => w.available).length;
             document.getElementById('activeTasks').textContent = tasks.filter(t => t.status === 'active').length;
+            document.getElementById('totalTime').textContent = formatTime(totalWorkTime);
         }
 
         // إنشاء مهمة جديدة
@@ -311,10 +467,20 @@
             const engineer = document.getElementById('engineer').value;
             const technician = document.getElementById('technician').value;
             const assistant = document.getElementById('assistant').value;
+            const supervisor = document.getElementById('supervisor').value;
+            const repairOperation = document.getElementById('repairOperation').value;
             const estimatedTime = document.getElementById('estimatedTime').value;
 
             if (!description || !engineer || !technician) {
-                alert('يرجى ملء الحقول المطلوبة');
+                showNotification('يرجى ملء الحقول المطلوبة: الوصف، المهندس، الفني');
+                return;
+            }
+
+            // التحقق من عدم تكرار العامل
+            const selectedWorkers = [engineer, technician, assistant, supervisor].filter(w => w);
+            const uniqueWorkers = [...new Set(selectedWorkers)];
+            if (selectedWorkers.length !== uniqueWorkers.length) {
+                showNotification('لا يمكن اختيار نفس العامل في أكثر من دور');
                 return;
             }
 
@@ -325,18 +491,26 @@
                 engineer,
                 technician,
                 assistant,
+                supervisor,
+                repairOperation,
                 estimatedTime: parseInt(estimatedTime) || 60,
                 status: 'active',
                 startTime: new Date(),
-                duration: 0
+                duration: 0,
+                isPaused: false,
+                pauseHistory: []
             };
 
             tasks.push(task);
             
             // تحديث حالة العمال
-            updateWorkerStatus(engineer, false);
-            updateWorkerStatus(technician, false);
-            if (assistant) updateWorkerStatus(assistant, false);
+            updateWorkerStatus(engineer, false, task.id);
+            updateWorkerStatus(technician, false, task.id);
+            if (assistant) updateWorkerStatus(assistant, false, task.id);
+            if (supervisor) updateWorkerStatus(supervisor, false, task.id);
+
+            // بدء المؤقت
+            startTimer(task.id);
 
             // مسح النموذج
             document.getElementById('taskForm').reset();
@@ -345,16 +519,71 @@
             renderTasks();
             renderWorkers();
             updateStats();
+            updateLastUpdate();
             
-            alert('تم إنشاء المهمة بنجاح!');
+            showNotification('تم إنشاء المهمة بنجاح وبدء العمل!');
         });
 
         // تحديث حالة العامل
-        function updateWorkerStatus(workerName, available) {
+        function updateWorkerStatus(workerName, available, taskId = null) {
             const worker = workers.find(w => w.name === workerName);
             if (worker) {
                 worker.available = available;
+                worker.currentTask = available ? null : taskId;
             }
+        }
+
+        // بدء المؤقت
+        function startTimer(taskId) {
+            if (timers[taskId]) return; // المؤقت يعمل بالفعل
+            
+            timers[taskId] = setInterval(() => {
+                const task = tasks.find(t => t.id === taskId);
+                if (task && task.status === 'active' && !task.isPaused) {
+                    task.duration++;
+                    totalWorkTime++;
+                    renderTasks();
+                    updateStats();
+                    
+                    // تحقق من تجاوز الوقت المقدر
+                    if (task.duration > task.estimatedTime) {
+                        showNotification(`تجاوزت المهمة #${taskId} الوقت المقدر!`);
+                    }
+                }
+            }, 60000); // كل دقيقة
+        }
+
+        // إيقاف المؤقت
+        function stopTimer(taskId) {
+            if (timers[taskId]) {
+                clearInterval(timers[taskId]);
+                delete timers[taskId];
+            }
+        }
+
+        // دالة الإشعارات
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.className = 'notification show';
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => document.body.removeChild(notification), 300);
+            }, 3000);
+        }
+
+        // تحديث وقت آخر تحديث
+        function updateLastUpdate() {
+            document.getElementById('lastUpdate').textContent = new Date().toLocaleString('ar-SA');
+        }
+
+        // تنسيق الوقت
+        function formatTime(minutes) {
+            const hours = Math.floor(minutes / 60);
+            const mins = minutes % 60;
+            return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
         }
 
         // عرض المهام النشطة
@@ -362,15 +591,68 @@
             const activeContainer = document.getElementById('activeTasks');
             const activeTasks = tasks.filter(t => t.status === 'active');
             
-            activeContainer.innerHTML = activeTasks.map(task => `
-                <div class="task-item">
+            activeContainer.innerHTML = activeTasks.map(task => {
+                const progress = Math.min((task.duration / task.estimatedTime) * 100, 100);
+                const timeColor = task.duration > task.estimatedTime ? '#dc2626' : '#059669';
+                
+                return `
+                <div class="task-item active">
+                    <div class="task-status active">نشطة</div>
                     <h4>مهمة #${task.id} - ${task.carBrand || 'غير محدد'}</h4>
                     <p><strong>الوصف:</strong> ${task.description}</p>
-                    <p><strong>الفريق:</strong> ${task.engineer} (مهندس) - ${task.technician} (فني)${task.assistant ? ' - ' + task.assistant + ' (مساعد)' : ''}</p>
-                    <p><strong>بدأت:</strong> ${task.startTime.toLocaleString('ar-SA')}</p>
-                    <button class="btn" onclick="completeTask(${task.id})">إنهاء المهمة</button>
-                </div>
-            `).join('') || '<p>لا توجد مهام نشطة</p>';
+                    ${task.repairOperation ? `<p><strong>عملية الإصلاح:</strong> ${task.repairOperation}</p>` : ''}
+                    <p><strong>الفريق:</strong></p>
+                    <ul style="margin: 0.5rem 0; padding-right: 1.5rem;">
+                        <li>المهندس: ${task.engineer}</li>
+                        <li>الفني: ${task.technician}</li>
+                        ${task.assistant ? `<li>المساعد: ${task.assistant}</li>` : ''}
+                        ${task.supervisor ? `<li>المشرف: ${task.supervisor}</li>` : ''}
+                    </ul>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${progress}%"></div>
+                    </div>
+                    <p><strong>الوقت:</strong> 
+                        <span class="time-display" style="color: ${timeColor}">
+                            ${formatTime(task.duration)} / ${formatTime(task.estimatedTime)}
+                        </span>
+                        ${task.isPaused ? '<span style="color: #f59e0b; margin-right: 10px;">⏸️ متوقف</span>' : ''}
+                    </p>
+                    <p style="font-size: 0.9rem; color: #6b7280;">
+                        <strong>بدأت:</strong> ${task.startTime.toLocaleString('ar-SA')}
+                    </p>
+                    <div class="btn-group">
+                        ${!task.isPaused ? 
+                            `<button class="btn btn-small btn-pause" onclick="pauseTask(${task.id})">إيقاف مؤقت</button>` :
+                            `<button class="btn btn-small" onclick="resumeTask(${task.id})">استئناف</button>`
+                        }
+                        <button class="btn btn-small btn-complete" onclick="completeTask(${task.id})">إنهاء المهمة</button>
+                    </div>
+                </div>`;
+            }).join('') || '<p style="text-align: center; color: #6b7280;">لا توجد مهام نشطة</p>';
+        }
+
+        // إيقاف المهمة مؤقتاً
+        function pauseTask(taskId) {
+            const task = tasks.find(t => t.id === taskId);
+            if (task) {
+                task.isPaused = true;
+                task.pauseHistory.push({
+                    pausedAt: new Date(),
+                    reason: 'إيقاف مؤقت'
+                });
+                renderTasks();
+                showNotification(`تم إيقاف المهمة #${taskId} مؤقتاً`);
+            }
+        }
+
+        // استئناف المهمة
+        function resumeTask(taskId) {
+            const task = tasks.find(t => t.id === taskId);
+            if (task) {
+                task.isPaused = false;
+                renderTasks();
+                showNotification(`تم استئناف المهمة #${taskId}`);
+            }
         }
 
         // إنهاء مهمة
@@ -379,36 +661,72 @@
             if (task) {
                 task.status = 'completed';
                 task.endTime = new Date();
-                task.duration = Math.round((task.endTime - task.startTime) / 1000 / 60); // بالدقائق
+                
+                // إيقاف المؤقت
+                stopTimer(taskId);
 
                 // تحرير العمال
                 updateWorkerStatus(task.engineer, true);
                 updateWorkerStatus(task.technician, true);
                 if (task.assistant) updateWorkerStatus(task.assistant, true);
+                if (task.supervisor) updateWorkerStatus(task.supervisor, true);
 
                 renderTasks();
                 renderWorkers();
                 updateStats();
                 renderHistory();
+                updateLastUpdate();
                 
-                alert('تم إنهاء المهمة بنجاح!');
+                const efficiency = Math.round((task.estimatedTime / task.duration) * 100);
+                showNotification(`تم إنهاء المهمة #${taskId} بنجاح! الكفاءة: ${efficiency}%`);
             }
         }
 
         // عرض تاريخ المهام
         function renderHistory() {
             const historyContainer = document.getElementById('taskHistory');
-            const completedTasks = tasks.filter(t => t.status === 'completed');
+            const completedTasks = tasks.filter(t => t.status === 'completed').reverse(); // الأحدث أولاً
             
-            historyContainer.innerHTML = completedTasks.map(task => `
+            historyContainer.innerHTML = completedTasks.map((task, index) => {
+                const efficiency = Math.round((task.estimatedTime / task.duration) * 100);
+                const efficiencyColor = efficiency >= 100 ? '#10b981' : efficiency >= 80 ? '#f59e0b' : '#ef4444';
+                
+                return `
                 <div class="task-item">
+                    <div class="task-status completed">مكتملة</div>
                     <h4>مهمة #${task.id} - ${task.carBrand || 'غير محدد'}</h4>
                     <p><strong>الوصف:</strong> ${task.description}</p>
-                    <p><strong>الفريق:</strong> ${task.engineer} - ${task.technician}${task.assistant ? ' - ' + task.assistant : ''}</p>
-                    <p><strong>المدة:</strong> ${task.duration} دقيقة (مقدر: ${task.estimatedTime} دقيقة)</p>
-                    <p><strong>انتهت:</strong> ${task.endTime.toLocaleString('ar-SA')}</p>
-                </div>
-            `).join('') || '<p>لا توجد مهام مكتملة</p>';
+                    ${task.repairOperation ? `<p><strong>عملية الإصلاح:</strong> ${task.repairOperation}</p>` : ''}
+                    <p><strong>الفريق:</strong></p>
+                    <ul style="margin: 0.5rem 0; padding-right: 1.5rem;">
+                        <li>المهندس: ${task.engineer}</li>
+                        <li>الفني: ${task.technician}</li>
+                        ${task.assistant ? `<li>المساعد: ${task.assistant}</li>` : ''}
+                        ${task.supervisor ? `<li>المشرف: ${task.supervisor}</li>` : ''}
+                    </ul>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1rem 0;">
+                        <div>
+                            <strong>الوقت المستغرق:</strong><br>
+                            <span class="time-display">${formatTime(task.duration)}</span>
+                        </div>
+                        <div>
+                            <strong>الكفاءة:</strong><br>
+                            <span style="color: ${efficiencyColor}; font-weight: bold; font-size: 1.2rem;">
+                                ${efficiency}%
+                            </span>
+                        </div>
+                    </div>
+                    <p style="font-size: 0.9rem; color: #6b7280;">
+                        <strong>بدأت:</strong> ${task.startTime.toLocaleString('ar-SA')}<br>
+                        <strong>انتهت:</strong> ${task.endTime.toLocaleString('ar-SA')}
+                    </p>
+                    ${task.pauseHistory.length > 0 ? 
+                        `<p style="font-size: 0.9rem; color: #6b7280;">
+                            <strong>إيقافات مؤقتة:</strong> ${task.pauseHistory.length}
+                        </p>` : ''
+                    }
+                </div>`;
+            }).join('') || '<p style="text-align: center; color: #6b7280;">لا توجد مهام مكتملة</p>';
         }
 
         // حفظ البيانات في localStorage
@@ -437,14 +755,33 @@
         setInterval(saveData, 30000);
 
         // تهيئة النظام
-        loadData();
-        renderWorkers();
-        renderTasks();
-        renderHistory();
-        updateStats();
+        function initSystem() {
+            loadData();
+            renderWorkers();
+            renderTasks();
+            renderHistory();
+            updateStats();
+            updateLastUpdate();
+            
+            // تحديث الواجهة كل 30 ثانية
+            setInterval(() => {
+                renderTasks();
+                updateStats();
+            }, 30000);
+        }
+
+        // بدء التشغيل عند تحميل الصفحة
+        document.addEventListener('DOMContentLoaded', initSystem);
 
         // حفظ البيانات عند إغلاق الصفحة
         window.addEventListener('beforeunload', saveData);
+        
+        // رسالة ترحيب
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                showNotification('مرحباً بك في نظام V POWER TUNING المحدث!');
+            }, 1000);
+        });
     </script>
 </body>
 </html>
