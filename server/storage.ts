@@ -194,6 +194,7 @@ export class DatabaseStorage implements IStorage {
         estimatedDuration: insertTask.estimatedDuration || null,
         engineerName: insertTask.engineerName || null,
         supervisorName: insertTask.supervisorName || null,
+        technicianName: insertTask.technicianName || null,
         assistantName: insertTask.assistantName || null,
         repairOperation: insertTask.repairOperation || null,
         taskNumber,

@@ -23,6 +23,7 @@ const taskFormSchema = z.object({
   estimatedDuration: z.number().nullable().optional(),
   engineerName: z.string().optional(),
   supervisorName: z.string().optional(),
+  technicianName: z.string().optional(),
   assistantName: z.string().min(1, "يجب اختيار المساعد"),
   repairOperation: z.string().optional(),
 });
@@ -57,6 +58,7 @@ export default function NewTaskForm() {
       estimatedDuration: null,
       engineerName: "",
       supervisorName: "",
+      technicianName: "",
       assistantName: "",
       repairOperation: "",
     },
@@ -87,6 +89,7 @@ export default function NewTaskForm() {
         estimatedDuration: data.estimatedDuration || null,
         engineerName: data.engineerName === "none" ? null : data.engineerName || null,
         supervisorName: data.supervisorName === "none" ? null : data.supervisorName || null,
+        technicianName: data.technicianName === "none" ? null : data.technicianName || null,
         assistantName: data.assistantName === "none" ? null : data.assistantName || null,
         repairOperation: data.repairOperation || null,
       };
@@ -267,10 +270,8 @@ export default function NewTaskForm() {
                     <FormItem>
                       <FormLabel>المهندس (اختياري)</FormLabel>
                       <Select onValueChange={(value) => {
-                        console.log("Engineer selection - raw value:", value);
                         field.onChange(value);
                         const selectedValue = value === "none" ? "" : value;
-                        console.log("Engineer selection - processed value:", selectedValue);
                         setSelectedWorkers(prev => ({ ...prev, engineer: selectedValue }));
                       }} value={field.value || ""}>
                         <FormControl>
@@ -330,7 +331,7 @@ export default function NewTaskForm() {
 
                 <FormField
                   control={form.control}
-                  name="engineerName"
+                  name="technicianName"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>الفني (اختياري)</FormLabel>
@@ -419,7 +420,7 @@ export default function NewTaskForm() {
                   <div className="flex items-center gap-2 p-2 bg-white rounded border">
                     <span className="font-medium text-orange-600 w-20">الفني:</span>
                     <span className="text-gray-800 bg-yellow-100 px-2 py-1 rounded">
-                      {form.watch("engineerName") || "غير محدد"}
+                      {selectedWorkers.technician || "غير محدد"}
                     </span>
                   </div>
                   <div className="flex items-center gap-2 p-2 bg-white rounded border">

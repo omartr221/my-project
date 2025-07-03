@@ -30,6 +30,7 @@ export const tasks = pgTable("tasks", {
   estimatedDuration: integer("estimated_duration"), // in minutes
   engineerName: varchar("engineer_name", { length: 100 }),
   supervisorName: varchar("supervisor_name", { length: 100 }),
+  technicianName: varchar("technician_name", { length: 100 }),
   assistantName: varchar("assistant_name", { length: 100 }),
   repairOperation: varchar("repair_operation", { length: 200 }),
   status: varchar("status", { length: 20 }).notNull().default("active"), // active, paused, completed, archived
@@ -99,6 +100,7 @@ export const insertTaskSchema = createInsertSchema(tasks).omit({
   assistantName: true,
   engineerName: true,
   supervisorName: true,
+  technicianName: true,
   repairOperation: true,
 });
 
