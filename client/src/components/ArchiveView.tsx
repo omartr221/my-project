@@ -258,7 +258,7 @@ export default function ArchiveView() {
         <table>
           <thead>
             <tr>
-              <th>رقم المهمة</th>
+              <th>رقم التسليم</th>
               <th>العامل</th>
               <th>الدور</th>
               <th>المهمة</th>
@@ -296,7 +296,7 @@ export default function ArchiveView() {
               
               return `
                 <tr>
-                  <td>${task.id}</td>
+                  <td>${(task as any).deliveryNumber || '--'}</td>
                   <td>${(task.engineerName && task.engineerName !== '') ? task.engineerName : 
                        (task.supervisorName && task.supervisorName !== '') ? task.supervisorName : 
                        (task.technicianName && task.technicianName !== '') ? task.technicianName : 
@@ -413,7 +413,7 @@ export default function ArchiveView() {
                   <div key={task.id} className="p-4 border rounded-lg bg-gray-50">
                     <div className="mb-3 pb-2 border-b border-gray-300">
                       <h3 className="text-lg font-semibold text-blue-800">
-                        مهمة رقم: {task.id}
+                        تسليم رقم: {(task as any).deliveryNumber || 'غير محدد'}
                       </h3>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

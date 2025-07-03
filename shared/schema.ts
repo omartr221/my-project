@@ -45,6 +45,7 @@ export const tasks = pgTable("tasks", {
   archivedBy: varchar("archived_by", { length: 100 }),
   archiveNotes: varchar("archive_notes", { length: 1000 }),
   rating: integer("rating"), // 1-3 stars rating
+  deliveryNumber: integer("delivery_number"), // Sequential number for delivered tasks
   createdAt: timestamp("created_at").defaultNow(),
 });
 

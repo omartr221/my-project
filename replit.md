@@ -143,6 +143,7 @@ Changelog:
 - June 30, 2025. Implemented simple sequential task numbering system: changed from complex date-based numbering to simple incremental numbers starting from 1, reset database for clean numbering, enhanced WebSocket message handling for task updates and archiving
 - July 1, 2025. Fixed engineer selection bug: separated engineer and technician form fields which were incorrectly sharing the same schema field, added technicianName field to database schema, corrected form display logic to show proper selected values for each role
 - July 1, 2025. Fixed task display priority: changed all task views to show engineer name as primary instead of assistant name, added color-coded team member badges in active timers, updated task history and archive views to prioritize engineer display
+- July 3, 2025. Implemented sequential delivery numbering system: added deliveryNumber field to database schema, created automatic numbering for archived tasks starting from 1, updated archive views to display delivery numbers instead of task IDs, applied retroactive numbering to existing archived tasks
 
 ## User Preferences
 

@@ -371,6 +371,14 @@ export class DatabaseStorage implements IStorage {
   async archiveTask(taskId: number, archivedBy: string, notes?: string, rating?: number): Promise<Task> {
     const now = new Date();
     
+    // Get the next delivery number
+    const lastArchivedTask = await db.query.tasks.findFirst({
+      where: eq(tasks.isArchived, true),
+      orderBy: [desc(tasks.deliveryNumber)],
+    });
+    
+    const nextDeliveryNumber = (lastArchivedTask?.deliveryNumber || 0) + 1;
+    
     const [task] = await db
       .update(tasks)
       .set({
@@ -380,6 +388,7 @@ export class DatabaseStorage implements IStorage {
         archiveNotes: notes,
         rating: rating || null,
         status: "archived",
+        deliveryNumber: nextDeliveryNumber,
       })
       .where(eq(tasks.id, taskId))
       .returning();
