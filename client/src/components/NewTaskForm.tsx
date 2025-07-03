@@ -71,9 +71,6 @@ export default function NewTaskForm() {
   });
 
   const workerNames = workers?.map((w: any) => w.name) || [];
-  
-  // Debug log to see what's in workerNames
-  console.log("Worker names:", workerNames);
 
   const createTaskMutation = useMutation({
     mutationFn: async (data: TaskFormData) => {
@@ -270,9 +267,10 @@ export default function NewTaskForm() {
                     <FormItem>
                       <FormLabel>المهندس (اختياري)</FormLabel>
                       <Select onValueChange={(value) => {
+                        console.log("Engineer selection - raw value:", value);
                         field.onChange(value);
                         const selectedValue = value === "none" ? "" : value;
-                        console.log("Selected engineer:", selectedValue);
+                        console.log("Engineer selection - processed value:", selectedValue);
                         setSelectedWorkers(prev => ({ ...prev, engineer: selectedValue }));
                       }} value={field.value || ""}>
                         <FormControl>
