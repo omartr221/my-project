@@ -82,7 +82,9 @@ export default function NewTaskForm() {
 
   const createTaskMutation = useMutation({
     mutationFn: async (data: TaskFormData) => {
-      // Use the first worker ID available (since workers are loaded)
+      console.log("Raw form data received:", data);
+      
+      // Use the first worker ID available
       const workerId = workers && workers.length > 0 ? workers[0].id : 17;
       
       const taskData = {
@@ -97,31 +99,21 @@ export default function NewTaskForm() {
         supervisorName: data.supervisorName === "none" ? null : data.supervisorName || null,
         technicianName: data.technicianName === "none" ? null : data.technicianName || null,
         assistantName: data.assistantName === "none" ? null : data.assistantName || null,
-        technicians: data.technicians || [],
-        assistants: data.assistants || [],
+        technicians: Array.isArray(data.technicians) ? data.technicians : [],
+        assistants: Array.isArray(data.assistants) ? data.assistants : [],
         repairOperation: data.repairOperation || null,
         taskType: data.taskType || null,
       };
       
-      console.log("Sending task data:", taskData);
+      console.log("Prepared task data:", taskData);
       
-      const response = await fetch("/api/tasks", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(taskData),
-      });
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("API Error:", errorText);
-        console.error("Response status:", response.status);
-        console.error("Response headers:", response.headers);
-        throw new Error(`HTTP ${response.status}: ${errorText}`);
+      try {
+        const response = await apiRequest("POST", "/api/tasks", taskData);
+        return response.json();
+      } catch (error) {
+        console.error("Request failed:", error);
+        throw error;
       }
-      
-      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/tasks/active"] });
