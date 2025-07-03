@@ -197,6 +197,8 @@ export class DatabaseStorage implements IStorage {
         supervisorName: insertTask.supervisorName || null,
         technicianName: insertTask.technicianName || null,
         assistantName: insertTask.assistantName || null,
+        technicians: insertTask.technicians || null,
+        assistants: insertTask.assistants || null,
         repairOperation: insertTask.repairOperation || null,
         taskType: insertTask.taskType || null,
         taskNumber,

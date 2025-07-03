@@ -450,10 +450,47 @@ export default function ArchiveView() {
                         <span className="font-medium">المشرف:</span> {task.supervisorName || '--'}
                       </div>
                       <div>
-                        <span className="font-medium">الفني:</span> {task.engineerName || '--'}
+                        <span className="font-medium">المهندس:</span> {task.engineerName || '--'}
                       </div>
                       <div>
-                        <span className="font-medium">المساعد:</span> {task.assistantName || '--'}
+                        <span className="font-medium">الفنيون:</span>
+                        <div className="mt-1">
+                          {(task as any).technicians && (task as any).technicians.length > 0 ? (
+                            <div className="flex flex-wrap gap-1">
+                              {(task as any).technicians.map((tech: string, index: number) => (
+                                <span key={index} className="bg-orange-100 text-orange-700 px-2 py-1 rounded text-xs">
+                                  {tech}
+                                </span>
+                              ))}
+                            </div>
+                          ) : (task as any).technicianName && (task as any).technicianName !== '' ? (
+                            <span className="bg-orange-100 text-orange-700 px-2 py-1 rounded text-xs">
+                              {(task as any).technicianName}
+                            </span>
+                          ) : (
+                            <span className="text-gray-500">--</span>
+                          )}
+                        </div>
+                      </div>
+                      <div>
+                        <span className="font-medium">المساعدون:</span>
+                        <div className="mt-1">
+                          {(task as any).assistants && (task as any).assistants.length > 0 ? (
+                            <div className="flex flex-wrap gap-1">
+                              {(task as any).assistants.map((assistant: string, index: number) => (
+                                <span key={index} className="bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs">
+                                  {assistant}
+                                </span>
+                              ))}
+                            </div>
+                          ) : (task as any).assistantName && (task as any).assistantName !== '' ? (
+                            <span className="bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs">
+                              {(task as any).assistantName}
+                            </span>
+                          ) : (
+                            <span className="text-gray-500">--</span>
+                          )}
+                        </div>
                       </div>
                       {(task as any).repairOperation && (
                         <div>

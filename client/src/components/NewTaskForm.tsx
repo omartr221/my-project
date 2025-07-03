@@ -24,7 +24,9 @@ const taskFormSchema = z.object({
   engineerName: z.string().optional(),
   supervisorName: z.string().optional(),
   technicianName: z.string().optional(),
-  assistantName: z.string().min(1, "يجب اختيار المساعد"),
+  assistantName: z.string().optional(),
+  technicians: z.array(z.string()).default([]),
+  assistants: z.array(z.string()).default([]),
   repairOperation: z.string().optional(),
   taskType: z.string().optional(),
 });
@@ -61,6 +63,8 @@ export default function NewTaskForm() {
       supervisorName: "",
       technicianName: "",
       assistantName: "",
+      technicians: [],
+      assistants: [],
       repairOperation: "",
       taskType: "",
     },
@@ -93,6 +97,8 @@ export default function NewTaskForm() {
         supervisorName: data.supervisorName === "none" ? null : data.supervisorName || null,
         technicianName: data.technicianName === "none" ? null : data.technicianName || null,
         assistantName: data.assistantName === "none" ? null : data.assistantName || null,
+        technicians: data.technicians || [],
+        assistants: data.assistants || [],
         repairOperation: data.repairOperation || null,
         taskType: data.taskType || null,
       };
@@ -142,9 +148,16 @@ export default function NewTaskForm() {
     console.log("Form data:", data);
     console.log("Selected workers state:", selectedWorkers);
     
-    // جميع حقول العمال اختيارية الآن
+    // إرسال البيانات مع القوائم المتعددة
+    const taskData = {
+      ...data,
+      technicians: data.technicians || [],
+      assistants: data.assistants || []
+    };
     
-    createTaskMutation.mutate(data);
+    console.log("Sending task data:", taskData);
+    
+    createTaskMutation.mutate(taskData);
   };
 
   return (
@@ -340,8 +353,7 @@ export default function NewTaskForm() {
                         <SelectContent>
                           <SelectItem value="none">بدون مشرف</SelectItem>
                           {workerNames?.filter((name: string) => 
-                            name !== "عامل جديد" && 
-                            !Object.values(selectedWorkers).includes(name)
+                            name !== "عامل جديد"
                           ).map((name: string, index: number) => (
                             <SelectItem key={index} value={name}>
                               {name}
@@ -356,33 +368,37 @@ export default function NewTaskForm() {
 
                 <FormField
                   control={form.control}
-                  name="technicianName"
+                  name="technicians"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>الفني (اختياري)</FormLabel>
-                      <Select onValueChange={(value) => {
-                        field.onChange(value);
-                        const selectedValue = value === "none" ? "" : value;
-                        console.log("Selected technician:", selectedValue);
-                        setSelectedWorkers(prev => ({ ...prev, technician: selectedValue }));
-                      }} value={field.value || ""}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="اختر الفني (اختياري)" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="none">بدون مساعد</SelectItem>
+                      <FormLabel>الفنيون (اختياري)</FormLabel>
+                      <FormControl>
+                        <div className="space-y-2 max-h-32 overflow-y-auto border rounded p-2">
                           {workerNames?.filter((name: string) => 
-                            name !== "عامل جديد" && 
-                            !Object.values(selectedWorkers).includes(name)
+                            name !== "عامل جديد"
                           ).map((name: string, index: number) => (
-                            <SelectItem key={index} value={name}>
-                              {name}
-                            </SelectItem>
+                            <div key={index} className="flex items-center space-x-2">
+                              <input
+                                type="checkbox"
+                                id={`tech-${index}`}
+                                checked={field.value?.includes(name) || false}
+                                onChange={(e) => {
+                                  const currentValue = field.value || [];
+                                  if (e.target.checked) {
+                                    field.onChange([...currentValue, name]);
+                                  } else {
+                                    field.onChange(currentValue.filter(v => v !== name));
+                                  }
+                                }}
+                                className="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                              />
+                              <label htmlFor={`tech-${index}`} className="text-sm font-medium leading-none">
+                                {name}
+                              </label>
+                            </div>
                           ))}
-                        </SelectContent>
-                      </Select>
+                        </div>
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -390,36 +406,37 @@ export default function NewTaskForm() {
 
                 <FormField
                   control={form.control}
-                  name="assistantName"
+                  name="assistants"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>المساعد (اختياري)</FormLabel>
-                      <Select onValueChange={(value) => {
-                        field.onChange(value);
-                        const selectedValue = value === "none" ? "" : value;
-                        if (selectedValue) {
-                          form.setValue("workerRole", "assistant");
-                        }
-                        console.log("Selected assistant:", selectedValue);
-                        setSelectedWorkers(prev => ({ ...prev, assistant: selectedValue }));
-                      }} value={field.value || ""}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="اختر المساعد (اختياري)" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="none">بدون مساعد</SelectItem>
+                      <FormLabel>المساعدون (اختياري)</FormLabel>
+                      <FormControl>
+                        <div className="space-y-2 max-h-32 overflow-y-auto border rounded p-2">
                           {workerNames?.filter((name: string) => 
-                            name !== "عامل جديد" && 
-                            !Object.values(selectedWorkers).includes(name)
+                            name !== "عامل جديد"
                           ).map((name: string, index: number) => (
-                            <SelectItem key={index} value={name}>
-                              {name}
-                            </SelectItem>
+                            <div key={index} className="flex items-center space-x-2">
+                              <input
+                                type="checkbox"
+                                id={`asst-${index}`}
+                                checked={field.value?.includes(name) || false}
+                                onChange={(e) => {
+                                  const currentValue = field.value || [];
+                                  if (e.target.checked) {
+                                    field.onChange([...currentValue, name]);
+                                  } else {
+                                    field.onChange(currentValue.filter(v => v !== name));
+                                  }
+                                }}
+                                className="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                              />
+                              <label htmlFor={`asst-${index}`} className="text-sm font-medium leading-none">
+                                {name}
+                              </label>
+                            </div>
                           ))}
-                        </SelectContent>
-                      </Select>
+                        </div>
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -443,20 +460,20 @@ export default function NewTaskForm() {
                     </span>
                   </div>
                   <div className="flex items-center gap-2 p-2 bg-white rounded border">
-                    <span className="font-medium text-orange-600 w-20">الفني:</span>
+                    <span className="font-medium text-orange-600 w-20">الفنيون:</span>
                     <span className="text-gray-800 bg-yellow-100 px-2 py-1 rounded">
-                      {selectedWorkers.technician || "غير محدد"}
+                      {form.watch("technicians")?.length > 0 ? form.watch("technicians").join(", ") : "غير محدد"}
                     </span>
                   </div>
                   <div className="flex items-center gap-2 p-2 bg-white rounded border">
-                    <span className="font-medium text-purple-600 w-20">المساعد:</span>
+                    <span className="font-medium text-purple-600 w-20">المساعدون:</span>
                     <span className="text-gray-800 bg-yellow-100 px-2 py-1 rounded">
-                      {form.watch("assistantName") || "غير محدد"}
+                      {form.watch("assistants")?.length > 0 ? form.watch("assistants").join(", ") : "غير محدد"}
                     </span>
                   </div>
                 </div>
                 <div className="mt-2 text-xs text-gray-600">
-                  ملاحظة: لا يمكن اختيار نفس الشخص في أكثر من دور
+                  ملاحظة: يمكن اختيار عدة فنيين ومساعدين للمهمة الواحدة
                 </div>
               </div>
 
