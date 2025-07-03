@@ -188,7 +188,7 @@ export default function TaskHistoryTable() {
                         }`} />
                         <div>
                           <div className="text-sm font-medium text-gray-900">
-                            {task.worker.name}
+                            {(task as any).engineerName || (task as any).supervisorName || (task as any).technicianName || task.worker.name}
                           </div>
                         </div>
                       </div>

@@ -147,7 +147,9 @@ export default function ActiveTimers({
                 >
                   <div className="flex justify-between items-center mb-2">
                     <div>
-                      <p className="font-medium">{task.worker.name}</p>
+                      <p className="font-medium">
+                        {(task as any).engineerName || (task as any).supervisorName || (task as any).technicianName || task.worker.name}
+                      </p>
                       <p className="text-sm text-gray-600">
                         {task.description} - {getCarBrandInArabic(task.carBrand)}
                       </p>
@@ -159,12 +161,29 @@ export default function ActiveTimers({
                       <p className="text-xs text-gray-500">
                         {task.carModel} - {task.licensePlate}
                       </p>
-                      <div className="text-xs text-gray-600 mt-1">
-                        المهندس: {task.worker.name} |
-                        المشرف: {task.supervisorName || '--'} |
-                        الفني: {task.engineerName || '--'} |
-                        المساعد: {task.assistantName || '--'}
+                      <div className="text-xs text-gray-600 mt-1 flex flex-wrap gap-2">
+                        {(task as any).engineerName && (
+                          <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                            مهندس: {(task as any).engineerName}
+                          </span>
+                        )}
+                        {(task as any).supervisorName && (
+                          <span className="bg-green-100 text-green-700 px-2 py-1 rounded">
+                            مشرف: {(task as any).supervisorName}
+                          </span>
+                        )}
+                        {(task as any).technicianName && (
+                          <span className="bg-orange-100 text-orange-700 px-2 py-1 rounded">
+                            فني: {(task as any).technicianName}
+                          </span>
+                        )}
+                        {(task as any).assistantName && (
+                          <span className="bg-purple-100 text-purple-700 px-2 py-1 rounded">
+                            مساعد: {(task as any).assistantName}
+                          </span>
+                        )}
                       </div>
+
                     </div>
                     <div className="text-left">
                       <p className={`timer-display ${isActive ? 'error' : 'warning'}`}>
