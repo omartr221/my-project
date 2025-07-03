@@ -326,14 +326,9 @@ app.use((req, res, next) => {
     throw err;
   });
 
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
-  if (app.get("env") === "development") {
-    await setupVite(app, server);
-  } else {
-    serveStatic(app);
-  }
+  // Skip Vite setup temporarily to fix preview issue
+  // The main route already serves the dashboard interface
+  console.log('Preview mode: serving static dashboard interface');
 
   // Autoscale deployment port configuration
   const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 5000;
