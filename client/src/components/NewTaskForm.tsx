@@ -97,6 +97,8 @@ export default function NewTaskForm() {
         supervisorName: data.supervisorName === "none" ? null : data.supervisorName || null,
         technicianName: data.technicianName === "none" ? null : data.technicianName || null,
         assistantName: data.assistantName === "none" ? null : data.assistantName || null,
+        technicians: data.technicians || [],
+        assistants: data.assistants || [],
         repairOperation: data.repairOperation || null,
         taskType: data.taskType || null,
       };
@@ -146,9 +148,16 @@ export default function NewTaskForm() {
     console.log("Form data:", data);
     console.log("Selected workers state:", selectedWorkers);
     
-    // جميع حقول العمال اختيارية الآن
+    // إرسال البيانات مع القوائم المتعددة
+    const taskData = {
+      ...data,
+      technicians: data.technicians || [],
+      assistants: data.assistants || []
+    };
     
-    createTaskMutation.mutate(data);
+    console.log("Sending task data:", taskData);
+    
+    createTaskMutation.mutate(taskData);
   };
 
   return (
