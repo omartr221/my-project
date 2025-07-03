@@ -28,6 +28,8 @@ const editTaskSchema = z.object({
   supervisorName: z.string().optional(),
   technicianName: z.string().optional(),
   assistantName: z.string().optional(),
+  technicians: z.array(z.string()).optional(),
+  assistants: z.array(z.string()).optional(),
 });
 
 type EditTaskFormData = z.infer<typeof editTaskSchema>;
@@ -71,6 +73,8 @@ export default function EditTaskDialog({ task, disabled }: EditTaskDialogProps) 
       supervisorName: (task as any).supervisorName || "",
       technicianName: (task as any).technicianName || "",
       assistantName: (task as any).assistantName || "",
+      technicians: (task as any).technicians || [],
+      assistants: (task as any).assistants || [],
     },
   });
 
@@ -320,25 +324,36 @@ export default function EditTaskDialog({ task, disabled }: EditTaskDialogProps) 
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="technicianName"
+                name="technicians"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>الفني</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="اختر الفني" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="none">بدون اختيار</SelectItem>
-                        {workers?.map((worker: any) => (
-                          <SelectItem key={worker.id} value={worker.name}>
-                            {worker.name}
-                          </SelectItem>
+                    <FormLabel>الفنيون</FormLabel>
+                    <FormControl>
+                      <div className="space-y-2 max-h-32 overflow-y-auto border rounded p-2">
+                        {workers?.map((worker: any, index: number) => (
+                          <div key={worker.id} className="flex items-center space-x-2">
+                            <input
+                              type="checkbox"
+                              id={`tech-edit-${worker.id}`}
+                              value={worker.name}
+                              checked={field.value?.includes(worker.name)}
+                              onChange={(e) => {
+                                const currentValue = field.value || [];
+                                if (e.target.checked) {
+                                  field.onChange([...currentValue, worker.name]);
+                                } else {
+                                  field.onChange(currentValue.filter(v => v !== worker.name));
+                                }
+                              }}
+                              className="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                            />
+                            <label htmlFor={`tech-edit-${worker.id}`} className="text-sm font-medium leading-none">
+                              {worker.name}
+                            </label>
+                          </div>
                         ))}
-                      </SelectContent>
-                    </Select>
+                      </div>
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -346,25 +361,36 @@ export default function EditTaskDialog({ task, disabled }: EditTaskDialogProps) 
 
               <FormField
                 control={form.control}
-                name="assistantName"
+                name="assistants"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>المساعد</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="اختر المساعد" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="none">بدون اختيار</SelectItem>
-                        {workers?.map((worker: any) => (
-                          <SelectItem key={worker.id} value={worker.name}>
-                            {worker.name}
-                          </SelectItem>
+                    <FormLabel>المساعدون</FormLabel>
+                    <FormControl>
+                      <div className="space-y-2 max-h-32 overflow-y-auto border rounded p-2">
+                        {workers?.map((worker: any, index: number) => (
+                          <div key={worker.id} className="flex items-center space-x-2">
+                            <input
+                              type="checkbox"
+                              id={`assist-edit-${worker.id}`}
+                              value={worker.name}
+                              checked={field.value?.includes(worker.name)}
+                              onChange={(e) => {
+                                const currentValue = field.value || [];
+                                if (e.target.checked) {
+                                  field.onChange([...currentValue, worker.name]);
+                                } else {
+                                  field.onChange(currentValue.filter(v => v !== worker.name));
+                                }
+                              }}
+                              className="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                            />
+                            <label htmlFor={`assist-edit-${worker.id}`} className="text-sm font-medium leading-none">
+                              {worker.name}
+                            </label>
+                          </div>
                         ))}
-                      </SelectContent>
-                    </Select>
+                      </div>
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
