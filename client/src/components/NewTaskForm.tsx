@@ -85,12 +85,20 @@ export default function NewTaskForm() {
       // Find the worker ID from the assistant name
       const assistantWorker = workers?.find((w: any) => w.name === data.assistantName);
       
+      // Get first available worker as fallback
+      const firstWorker = workers?.[0];
+      const workerId = assistantWorker?.id || firstWorker?.id;
+      
+      if (!workerId) {
+        throw new Error("لا يوجد عمال في النظام");
+      }
+      
       const taskData = {
         description: data.description,
         carBrand: data.carBrand,
         carModel: data.carModel,
         licensePlate: data.licensePlate,
-        workerId: assistantWorker?.id || 1, // Fallback to first worker if not found
+        workerId: workerId,
         workerRole: data.workerRole || "assistant",
         estimatedDuration: data.estimatedDuration || null,
         engineerName: data.engineerName === "none" ? null : data.engineerName || null,
