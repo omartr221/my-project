@@ -116,6 +116,8 @@ export default function NewTaskForm() {
       if (!response.ok) {
         const errorText = await response.text();
         console.error("API Error:", errorText);
+        console.error("Response status:", response.status);
+        console.error("Response headers:", response.headers);
         throw new Error(`HTTP ${response.status}: ${errorText}`);
       }
       
