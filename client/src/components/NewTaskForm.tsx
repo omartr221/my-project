@@ -15,7 +15,6 @@ import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
 
 const taskFormSchema = z.object({
-  workerId: z.string().min(1, "يجب اختيار المهندس"),
   workerRole: z.string().default("assistant"),
   description: z.string().min(1, "يجب إدخال وصف المهمة"),
   carBrand: z.string().min(1, "يجب اختيار نوع السيارة"),
@@ -54,7 +53,6 @@ export default function NewTaskForm() {
       carBrand: "audi",
       carModel: "",
       licensePlate: "",
-      workerId: "",
       workerRole: "assistant",
       estimatedDuration: null,
       engineerName: "",
@@ -264,20 +262,15 @@ export default function NewTaskForm() {
 
                 <FormField
                   control={form.control}
-                  name="workerId"
+                  name="engineerName"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>المهندس (اختياري)</FormLabel>
                       <Select onValueChange={(value) => {
                         field.onChange(value);
-                        if (value === "none") {
-                          setSelectedWorkers(prev => ({ ...prev, engineer: "" }));
-                        } else {
-                          const selectedIndex = parseInt(value) - 26;
-                          const selectedName = workerNames?.[selectedIndex] || "";
-                          console.log("Selected engineer:", selectedName);
-                          setSelectedWorkers(prev => ({ ...prev, engineer: selectedName }));
-                        }
+                        const selectedValue = value === "none" ? "" : value;
+                        console.log("Selected engineer:", selectedValue);
+                        setSelectedWorkers(prev => ({ ...prev, engineer: selectedValue }));
                       }} value={field.value || ""}>
                         <FormControl>
                           <SelectTrigger>
@@ -288,17 +281,12 @@ export default function NewTaskForm() {
                           <SelectItem value="none">بدون مهندس</SelectItem>
                           {workerNames?.filter((name: string) => 
                             name !== "عامل جديد" && 
-                            name !== form.watch("supervisorName") &&
-                            name !== form.watch("engineerName") &&
-                            name !== form.watch("assistantName")
-                          ).map((name: string, index: number) => {
-                            const realIndex = workerNames?.indexOf(name) || 0;
-                            return (
-                              <SelectItem key={index} value={(realIndex + 26).toString()}>
-                                {name}
-                              </SelectItem>
-                            );
-                          })}
+                            !Object.values(selectedWorkers).includes(name)
+                          ).map((name: string, index: number) => (
+                            <SelectItem key={index} value={name}>
+                              {name}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                       <FormMessage />
