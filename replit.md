@@ -149,6 +149,7 @@ Changelog:
 - July 3, 2025. Implemented task cancellation system: added CancelTaskDialog with reason input, created cancel API endpoint and database fields (isCancelled, cancellationReason, cancelledAt, cancelledBy), integrated cancellation into archive view with red styling and special "ملغاة" badge, cancelled tasks receive sequential delivery numbers and are stored in archive with cancellation details
 - July 3, 2025. System maintenance: removed worker "أحمد" from database and cleared all references in existing tasks, updated worker count to 11 active workers
 - July 3, 2025. Added new worker "محمد العلي" as technician to the system, total active workers now 12
+- July 3, 2025. Implemented multiple selection for technicians and assistants: converted single select dropdowns to checkbox lists, added technicians and assistants array fields to database schema, updated all views (active timers, task history, archive) to display multiple team members with color-coded badges, resolved React hooks error by replacing Radix Checkbox with native HTML checkboxes
 
 ## User Preferences
 
