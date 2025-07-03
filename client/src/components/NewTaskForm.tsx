@@ -150,16 +150,7 @@ export default function NewTaskForm() {
     console.log("Form data:", data);
     console.log("Selected workers state:", selectedWorkers);
     
-    // إرسال البيانات مع القوائم المتعددة
-    const taskData = {
-      ...data,
-      technicians: data.technicians || [],
-      assistants: data.assistants || []
-    };
-    
-    console.log("Sending task data:", taskData);
-    
-    createTaskMutation.mutate(taskData);
+    createTaskMutation.mutate(data);
   };
 
   return (
