@@ -1,4 +1,5 @@
 import express, { type Request, Response, NextFunction } from "express";
+import path from "path";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
@@ -33,6 +34,9 @@ process.on('uncaughtException', (error) => {
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// تقديم الملفات الثابتة من مجلد client
+app.use(express.static(path.join(process.cwd(), 'client')));
 
 // Health check endpoint for Autoscale deployment
 app.get('/health', (_req, res) => {
