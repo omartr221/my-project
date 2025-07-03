@@ -128,14 +128,16 @@ export default function EditTaskDialog({ task, disabled }: EditTaskDialogProps) 
           تعديل
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md" dir="rtl">
+      <DialogContent className="sm:max-w-4xl max-h-[85vh] overflow-y-auto" dir="rtl">
         <DialogHeader>
           <DialogTitle>تعديل المهمة {task.taskNumber}</DialogTitle>
         </DialogHeader>
         
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            {/* معلومات المهمة الأساسية */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <FormField
               control={form.control}
               name="description"
               render={({ field }) => (
@@ -192,10 +194,13 @@ export default function EditTaskDialog({ task, disabled }: EditTaskDialogProps) 
                 </FormItem>
               )}
             />
+            </div>
 
-            <FormField
-              control={form.control}
-              name="carBrand"
+            {/* معلومات السيارة */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              <FormField
+                control={form.control}
+                name="carBrand"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>نوع السيارة</FormLabel>
@@ -245,8 +250,10 @@ export default function EditTaskDialog({ task, disabled }: EditTaskDialogProps) 
                 </FormItem>
               )}
             />
+            </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            {/* معلومات العاملين */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="engineerName"
@@ -354,9 +361,11 @@ export default function EditTaskDialog({ task, disabled }: EditTaskDialogProps) 
               />
             </div>
 
-            <FormField
-              control={form.control}
-              name="estimatedDuration"
+            {/* الوقت المقدر */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="estimatedDuration"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>الوقت المقدر (بالدقائق)</FormLabel>
@@ -373,6 +382,7 @@ export default function EditTaskDialog({ task, disabled }: EditTaskDialogProps) 
                 </FormItem>
               )}
             />
+            </div>
 
             <div className="flex gap-2 pt-4">
               <Button 
