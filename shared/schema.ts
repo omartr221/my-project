@@ -32,6 +32,8 @@ export const tasks = pgTable("tasks", {
   supervisorName: varchar("supervisor_name", { length: 100 }),
   technicianName: varchar("technician_name", { length: 100 }),
   assistantName: varchar("assistant_name", { length: 100 }),
+  technicians: text("technicians").array(), // Array of technician names
+  assistants: text("assistants").array(), // Array of assistant names
   repairOperation: varchar("repair_operation", { length: 200 }),
   taskType: varchar("task_type", { length: 20 }), // ميكانيك, كهربا
   status: varchar("status", { length: 20 }).notNull().default("active"), // active, paused, completed, archived

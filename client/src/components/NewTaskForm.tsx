@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { PlusCircle, Play } from "lucide-react";
 import { useForm } from "react-hook-form";
@@ -24,7 +25,9 @@ const taskFormSchema = z.object({
   engineerName: z.string().optional(),
   supervisorName: z.string().optional(),
   technicianName: z.string().optional(),
-  assistantName: z.string().min(1, "يجب اختيار المساعد"),
+  assistantName: z.string().optional(),
+  technicians: z.array(z.string()).default([]),
+  assistants: z.array(z.string()).default([]),
   repairOperation: z.string().optional(),
   taskType: z.string().optional(),
 });
@@ -61,6 +64,8 @@ export default function NewTaskForm() {
       supervisorName: "",
       technicianName: "",
       assistantName: "",
+      technicians: [],
+      assistants: [],
       repairOperation: "",
       taskType: "",
     },
@@ -355,32 +360,35 @@ export default function NewTaskForm() {
 
                 <FormField
                   control={form.control}
-                  name="technicianName"
+                  name="technicians"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>الفني (اختياري)</FormLabel>
-                      <Select onValueChange={(value) => {
-                        field.onChange(value);
-                        const selectedValue = value === "none" ? "" : value;
-                        console.log("Selected technician:", selectedValue);
-                        setSelectedWorkers(prev => ({ ...prev, technician: selectedValue }));
-                      }} value={field.value || ""}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="اختر الفني (اختياري)" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="none">بدون فني</SelectItem>
+                      <FormLabel>الفنيون (اختياري)</FormLabel>
+                      <FormControl>
+                        <div className="space-y-2 max-h-32 overflow-y-auto border rounded p-2">
                           {workerNames?.filter((name: string) => 
                             name !== "عامل جديد"
                           ).map((name: string, index: number) => (
-                            <SelectItem key={index} value={name}>
-                              {name}
-                            </SelectItem>
+                            <div key={index} className="flex items-center space-x-2">
+                              <Checkbox
+                                id={`tech-${index}`}
+                                checked={field.value?.includes(name) || false}
+                                onCheckedChange={(checked) => {
+                                  const currentValue = field.value || [];
+                                  if (checked) {
+                                    field.onChange([...currentValue, name]);
+                                  } else {
+                                    field.onChange(currentValue.filter(v => v !== name));
+                                  }
+                                }}
+                              />
+                              <label htmlFor={`tech-${index}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                                {name}
+                              </label>
+                            </div>
                           ))}
-                        </SelectContent>
-                      </Select>
+                        </div>
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -388,35 +396,35 @@ export default function NewTaskForm() {
 
                 <FormField
                   control={form.control}
-                  name="assistantName"
+                  name="assistants"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>المساعد (اختياري)</FormLabel>
-                      <Select onValueChange={(value) => {
-                        field.onChange(value);
-                        const selectedValue = value === "none" ? "" : value;
-                        if (selectedValue) {
-                          form.setValue("workerRole", "assistant");
-                        }
-                        console.log("Selected assistant:", selectedValue);
-                        setSelectedWorkers(prev => ({ ...prev, assistant: selectedValue }));
-                      }} value={field.value || ""}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="اختر المساعد (اختياري)" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="none">بدون مساعد</SelectItem>
+                      <FormLabel>المساعدون (اختياري)</FormLabel>
+                      <FormControl>
+                        <div className="space-y-2 max-h-32 overflow-y-auto border rounded p-2">
                           {workerNames?.filter((name: string) => 
                             name !== "عامل جديد"
                           ).map((name: string, index: number) => (
-                            <SelectItem key={index} value={name}>
-                              {name}
-                            </SelectItem>
+                            <div key={index} className="flex items-center space-x-2">
+                              <Checkbox
+                                id={`asst-${index}`}
+                                checked={field.value?.includes(name) || false}
+                                onCheckedChange={(checked: boolean) => {
+                                  const currentValue = field.value || [];
+                                  if (checked) {
+                                    field.onChange([...currentValue, name]);
+                                  } else {
+                                    field.onChange(currentValue.filter(v => v !== name));
+                                  }
+                                }}
+                              />
+                              <label htmlFor={`asst-${index}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                                {name}
+                              </label>
+                            </div>
                           ))}
-                        </SelectContent>
-                      </Select>
+                        </div>
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -440,20 +448,20 @@ export default function NewTaskForm() {
                     </span>
                   </div>
                   <div className="flex items-center gap-2 p-2 bg-white rounded border">
-                    <span className="font-medium text-orange-600 w-20">الفني:</span>
+                    <span className="font-medium text-orange-600 w-20">الفنيون:</span>
                     <span className="text-gray-800 bg-yellow-100 px-2 py-1 rounded">
-                      {selectedWorkers.technician || "غير محدد"}
+                      {form.watch("technicians")?.length > 0 ? form.watch("technicians").join(", ") : "غير محدد"}
                     </span>
                   </div>
                   <div className="flex items-center gap-2 p-2 bg-white rounded border">
-                    <span className="font-medium text-purple-600 w-20">المساعد:</span>
+                    <span className="font-medium text-purple-600 w-20">المساعدون:</span>
                     <span className="text-gray-800 bg-yellow-100 px-2 py-1 rounded">
-                      {form.watch("assistantName") || "غير محدد"}
+                      {form.watch("assistants")?.length > 0 ? form.watch("assistants").join(", ") : "غير محدد"}
                     </span>
                   </div>
                 </div>
                 <div className="mt-2 text-xs text-gray-600">
-                  ملاحظة: لا يمكن اختيار نفس الشخص في أكثر من دور
+                  ملاحظة: يمكن اختيار عدة فنيين ومساعدين للمهمة الواحدة
                 </div>
               </div>
 
