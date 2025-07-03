@@ -154,6 +154,7 @@ Changelog:
 - July 3, 2025. Complete system reset: cleared all records from database (tasks, time_entries, workers), recreated clean worker dataset with 12 team members, system now ready for fresh multi-select functionality testing
 - July 3, 2025. Expanded task type options: added 12 task types including ميكانيك 1, ميكانيك 2, كهربا 1, كهربا 2, فحص وتشخيص, فحص دوري, دوزان, طلب مخططات, تجريب في الخارج, اختبارات داخل الورشة, خدمات خارجية, حدادة - updated both NewTaskForm and EditTaskDialog components
 - July 3, 2025. System maintenance: removed worker "علي" from database (ID 21), cleared all task references and associations, updated worker count to 11 active workers (kept "محمد العلي" as requested)
+- July 3, 2025. Enhanced print functionality: added technicians and assistants columns to print report table, displays multiple names with comma separation for multi-select fields, maintains backward compatibility for single-select legacy data
 
 ## User Preferences
 

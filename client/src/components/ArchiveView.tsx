@@ -268,6 +268,8 @@ export default function ArchiveView() {
               <th>رقم اللوحة</th>
               <th>المهندس</th>
               <th>المشرف</th>
+              <th>الفنيون</th>
+              <th>المساعدون</th>
               <th>الوقت المقدر</th>
               <th>المدة الفعلية</th>
               <th>نسبة العمل المئوية</th>
@@ -311,6 +313,12 @@ export default function ArchiveView() {
                   <td>${task.licensePlate || '--'}</td>
                   <td>${engineerName}</td>
                   <td>${supervisorName}</td>
+                  <td>${(task as any).technicians && (task as any).technicians.length > 0 ? 
+                    (task as any).technicians.join(', ') : 
+                    ((task as any).technicianName || '--')}</td>
+                  <td>${(task as any).assistants && (task as any).assistants.length > 0 ? 
+                    (task as any).assistants.join(', ') : 
+                    ((task as any).assistantName || '--')}</td>
                   <td>${task.estimatedDuration ? task.estimatedDuration + ' دقيقة' : 'غير محدد'}</td>
                   <td>${formatDuration(task.totalDuration)}</td>
                   <td>${workPercentage}</td>
