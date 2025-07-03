@@ -51,8 +51,9 @@ app.get('/ready', (_req, res) => {
   });
 });
 
-// Serve main app route
+// Handle all routes to serve the main interface
 app.get('/', (_req, res) => {
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
   res.send(`
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -326,8 +327,19 @@ app.use((req, res, next) => {
     throw err;
   });
 
-  // Skip Vite setup temporarily to fix preview issue
-  // The main route already serves the dashboard interface
+  // Serve static files from root directory for preview compatibility
+  app.use(express.static('.'));
+  
+  // Add catch-all route for preview compatibility
+  app.get('*', (req, res) => {
+    // Skip API routes
+    if (req.path.startsWith('/api/') || req.path.startsWith('/health') || req.path.startsWith('/ready')) {
+      return;
+    }
+    // Redirect all other routes to main page
+    res.redirect('/');
+  });
+  
   console.log('Preview mode: serving static dashboard interface');
 
   // Autoscale deployment port configuration
