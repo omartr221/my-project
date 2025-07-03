@@ -64,6 +64,7 @@ app.get('/', (req, res) => {
     console.log(`🔍 Replit domain detected: ${req.hostname}`);
   }
   
+  res.status(200);
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
   res.send(`
 <!DOCTYPE html>
@@ -455,71 +456,6 @@ app.use((req, res, next) => {
   });
   
   console.log('Preview mode: serving static dashboard interface');
-  
-  // Force simple HTML response for any request to help with Replit Preview issues
-  app.use((req, res, next) => {
-    if (req.headers['user-agent']?.includes('Replit') || 
-        req.headers['x-replit-preview']) {
-      console.log(`🔍 Replit Preview request detected: ${req.path}`);
-      res.setHeader('Content-Type', 'text/html; charset=utf-8');
-      res.send(`
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>V POWER TUNING - نظام إدارة المهام</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
-            color: white;
-            min-height: 100vh;
-            text-align: center;
-        }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 40px 20px;
-        }
-        h1 {
-            font-size: 2.5rem;
-            margin-bottom: 20px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-        }
-        .status {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 20px;
-            border-radius: 10px;
-            margin: 20px 0;
-            backdrop-filter: blur(10px);
-        }
-        .success {
-            color: #22c55e;
-            font-weight: bold;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>V POWER TUNING</h1>
-        <div class="status">
-            <p class="success">✅ النظام يعمل بنجاح!</p>
-            <p>🔧 الخادم: متصل وجاهز</p>
-            <p>👥 العمال: 12 عامل مسجل</p>
-            <p>⚡ المزايا: اختيار متعدد للفنيين والمساعدين</p>
-        </div>
-        <p>Preview يعمل الآن بشكل صحيح في Replit!</p>
-    </div>
-</body>
-</html>
-      `);
-      return;
-    }
-    next();
-  });
 
   // Autoscale deployment port configuration
   const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 5000;
