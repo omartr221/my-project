@@ -30,13 +30,7 @@ export default function CancelTaskDialog({ task, disabled }: CancelTaskDialogPro
 
   const cancelMutation = useMutation({
     mutationFn: async (data: { cancelledBy: string; reason: string }) => {
-      return apiRequest(`/api/tasks/${task.id}/cancel`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
+      return apiRequest("POST", `/api/tasks/${task.id}/cancel`, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/tasks/active"] });
