@@ -78,6 +78,8 @@ export default function EditTaskForm({ task }: EditTaskFormProps) {
       carModel: task.carModel,
       licensePlate: task.licensePlate,
       estimatedDuration: task.estimatedDuration || 60,
+      repairOperation: (task as any).repairOperation || "",
+      taskType: (task as any).taskType || "",
     },
   });
 
@@ -304,6 +306,45 @@ export default function EditTaskForm({ task }: EditTaskFormProps) {
                         {...field} 
                       />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="repairOperation"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>عملية الإصلاح (اختياري)</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="تفاصيل عملية الإصلاح" 
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="taskType"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>نوع المهمة</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="اختر نوع المهمة" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="ميكانيك">ميكانيك</SelectItem>
+                        <SelectItem value="كهربا">كهربا</SelectItem>
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}

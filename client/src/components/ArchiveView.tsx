@@ -263,6 +263,7 @@ export default function ArchiveView() {
               <th>الدور</th>
               <th>المهمة</th>
               <th>عملية الإصلاح</th>
+              <th>نوع المهمة</th>
               <th>السيارة</th>
               <th>رقم اللوحة</th>
               <th>المهندس</th>
@@ -305,6 +306,7 @@ export default function ArchiveView() {
                   <td>${task.workerRole || '--'}</td>
                   <td>${task.description}</td>
                   <td>${(task as any).repairOperation || '--'}</td>
+                  <td>${(task as any).taskType || '--'}</td>
                   <td>${getCarBrandInArabic(task.carBrand)} ${task.carModel}</td>
                   <td>${task.licensePlate || '--'}</td>
                   <td>${engineerName}</td>
@@ -445,6 +447,16 @@ export default function ArchiveView() {
                       <div>
                         <span className="font-medium">المساعد:</span> {task.assistantName || '--'}
                       </div>
+                      {(task as any).repairOperation && (
+                        <div>
+                          <span className="font-medium">عملية الإصلاح:</span> {(task as any).repairOperation}
+                        </div>
+                      )}
+                      {(task as any).taskType && (
+                        <div>
+                          <span className="font-medium">نوع المهمة:</span> {(task as any).taskType}
+                        </div>
+                      )}
                       <div>
                         <span className="font-medium">الوقت المقدر:</span> {task.estimatedDuration ? `${task.estimatedDuration} دقيقة` : '--'}
                       </div>

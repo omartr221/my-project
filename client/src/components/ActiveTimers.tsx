@@ -162,6 +162,11 @@ export default function ActiveTimers({
                           عملية الإصلاح: {(task as any).repairOperation}
                         </p>
                       )}
+                      {(task as any).taskType && (
+                        <p className="text-xs text-gray-500">
+                          نوع المهمة: {(task as any).taskType}
+                        </p>
+                      )}
                       <p className="text-xs text-gray-500">
                         {task.carModel} - {task.licensePlate}
                       </p>

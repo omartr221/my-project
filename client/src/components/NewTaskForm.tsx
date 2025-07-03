@@ -26,6 +26,7 @@ const taskFormSchema = z.object({
   technicianName: z.string().optional(),
   assistantName: z.string().min(1, "يجب اختيار المساعد"),
   repairOperation: z.string().optional(),
+  taskType: z.string().optional(),
 });
 
 type TaskFormData = z.infer<typeof taskFormSchema>;
@@ -61,6 +62,7 @@ export default function NewTaskForm() {
       technicianName: "",
       assistantName: "",
       repairOperation: "",
+      taskType: "",
     },
   });
 
@@ -186,6 +188,28 @@ export default function NewTaskForm() {
                       <FormControl>
                         <Input placeholder="تفاصيل عملية الإصلاح" {...field} />
                       </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="taskType"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>نوع المهمة</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="اختر نوع المهمة" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="ميكانيك">ميكانيك</SelectItem>
+                          <SelectItem value="كهربا">كهربا</SelectItem>
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}

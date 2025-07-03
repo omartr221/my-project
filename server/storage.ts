@@ -197,6 +197,7 @@ export class DatabaseStorage implements IStorage {
         technicianName: insertTask.technicianName || null,
         assistantName: insertTask.assistantName || null,
         repairOperation: insertTask.repairOperation || null,
+        taskType: insertTask.taskType || null,
         taskNumber,
         startTime: new Date(),
         status: "active",
