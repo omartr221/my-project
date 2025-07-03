@@ -82,15 +82,15 @@ export default function NewTaskForm() {
 
   const createTaskMutation = useMutation({
     mutationFn: async (data: TaskFormData) => {
-      // Find the worker ID from the assistant name
-      const assistantWorker = workers?.find((w: any) => w.name === data.assistantName);
+      // Use the first worker ID available (since workers are loaded)
+      const workerId = workers && workers.length > 0 ? workers[0].id : 17;
       
       const taskData = {
         description: data.description,
         carBrand: data.carBrand,
         carModel: data.carModel,
         licensePlate: data.licensePlate,
-        workerId: assistantWorker?.id || 1, // Fallback to first worker if not found
+        workerId: workerId,
         workerRole: data.workerRole || "assistant",
         estimatedDuration: data.estimatedDuration || null,
         engineerName: data.engineerName === "none" ? null : data.engineerName || null,

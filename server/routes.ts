@@ -113,8 +113,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.status(400).json({ message: "Invalid task data", errors: error.errors });
       } else {
         console.error("Error creating task:", error);
-        console.error("Error stack:", error.stack);
-        res.status(500).json({ message: "Failed to create task", error: error.message });
+        console.error("Error stack:", (error as Error).stack);
+        res.status(500).json({ message: "Failed to create task", error: (error as Error).message });
       }
     }
   });
