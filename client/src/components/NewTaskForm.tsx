@@ -340,8 +340,7 @@ export default function NewTaskForm() {
                         <SelectContent>
                           <SelectItem value="none">بدون مشرف</SelectItem>
                           {workerNames?.filter((name: string) => 
-                            name !== "عامل جديد" && 
-                            !Object.values(selectedWorkers).includes(name)
+                            name !== "عامل جديد"
                           ).map((name: string, index: number) => (
                             <SelectItem key={index} value={name}>
                               {name}
@@ -372,10 +371,9 @@ export default function NewTaskForm() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="none">بدون مساعد</SelectItem>
+                          <SelectItem value="none">بدون فني</SelectItem>
                           {workerNames?.filter((name: string) => 
-                            name !== "عامل جديد" && 
-                            !Object.values(selectedWorkers).includes(name)
+                            name !== "عامل جديد"
                           ).map((name: string, index: number) => (
                             <SelectItem key={index} value={name}>
                               {name}
@@ -411,8 +409,7 @@ export default function NewTaskForm() {
                         <SelectContent>
                           <SelectItem value="none">بدون مساعد</SelectItem>
                           {workerNames?.filter((name: string) => 
-                            name !== "عامل جديد" && 
-                            !Object.values(selectedWorkers).includes(name)
+                            name !== "عامل جديد"
                           ).map((name: string, index: number) => (
                             <SelectItem key={index} value={name}>
                               {name}
