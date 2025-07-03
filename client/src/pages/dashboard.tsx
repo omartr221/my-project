@@ -63,16 +63,16 @@ export default function Dashboard() {
                     <div>
                       <p className="text-gray-600 text-sm">إجمالي العمال</p>
                       <p className="text-2xl font-bold text-primary">
-                        {stats?.totalWorkers || 0}
+                        {(stats as any)?.totalWorkers || 0}
                       </p>
-                      {workers && workers.length > 0 && (
+                      {workers && Array.isArray(workers) && workers.length > 0 && (
                         <div className="mt-2">
                           <p className="text-xs text-gray-500">الأسماء:</p>
                           <p className="text-xs text-gray-600">
-                            {workers.map(w => w.name).join('، ')}
+                            {(workers as any[]).map((w: any) => w.name).join('، ')}
                           </p>
                         </div>
-                      )}
+                      ) as any}
                     </div>
                     <Users className="h-8 w-8 text-primary opacity-20" />
                   </div>
@@ -85,7 +85,7 @@ export default function Dashboard() {
                     <div>
                       <p className="text-gray-600 text-sm">العمال المتاحين</p>
                       <p className="text-2xl font-bold success">
-                        {stats?.availableWorkers || 0}
+                        {(stats as any)?.availableWorkers || 0}
                       </p>
                     </div>
                     <UserCheck className="h-8 w-8 success opacity-20" />
@@ -99,7 +99,7 @@ export default function Dashboard() {
                     <div>
                       <p className="text-gray-600 text-sm">العمال المشغولين</p>
                       <p className="text-2xl font-bold error">
-                        {stats?.busyWorkers || 0}
+                        {(stats as any)?.busyWorkers || 0}
                       </p>
                     </div>
                     <Watch className="h-8 w-8 error opacity-20" />
@@ -113,7 +113,7 @@ export default function Dashboard() {
                     <div>
                       <p className="text-gray-600 text-sm">المهام النشطة</p>
                       <p className="text-2xl font-bold warning">
-                        {stats?.activeTasks || 0}
+                        {(stats as any)?.activeTasks || 0}
                       </p>
                     </div>
                     <ListTodo className="h-8 w-8 warning opacity-20" />
@@ -126,8 +126,8 @@ export default function Dashboard() {
 
             {/* Active Timers */}
             <div className="mt-8 space-y-4">
-              <ActiveTimers tasks={activeTasks || []} />
-              <PausedTasksList tasks={activeTasks || []} />
+              <ActiveTimers tasks={(activeTasks as any[]) || []} />
+              <PausedTasksList tasks={(activeTasks as any[]) || []} />
             </div>
           </div>
         );
@@ -136,8 +136,8 @@ export default function Dashboard() {
         return (
           <div className="space-y-6">
             <SimpleTaskForm />
-            <ActiveTimers tasks={activeTasks || []} showControls />
-            <PausedTasksList tasks={activeTasks || []} />
+            <ActiveTimers tasks={(activeTasks as any[]) || []} showControls />
+            <PausedTasksList tasks={(activeTasks as any[]) || []} />
           </div>
         );
       
