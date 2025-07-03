@@ -31,6 +31,10 @@ process.on('uncaughtException', (error) => {
 });
 
 const app = express();
+
+// Enable trust proxy for Replit
+app.set('trust proxy', true);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
@@ -54,7 +58,12 @@ app.get('/ready', (_req, res) => {
 // Handle all routes to serve the main interface
 app.get('/', (req, res) => {
   console.log(`🔍 [${new Date().toLocaleTimeString()}] طلب وصول للصفحة الرئيسية من: ${req.ip}`);
-  console.log(`🔍 Headers: ${JSON.stringify(req.headers, null, 2)}`);
+  
+  // Special handling for Replit domain
+  if (req.hostname && req.hostname.includes('replit.dev')) {
+    console.log(`🔍 Replit domain detected: ${req.hostname}`);
+  }
+  
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
   res.send(`
 <!DOCTYPE html>
