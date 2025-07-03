@@ -71,6 +71,9 @@ export default function NewTaskForm() {
   });
 
   const workerNames = workers?.map((w: any) => w.name) || [];
+  
+  // Debug log to see what's in workerNames
+  console.log("Worker names:", workerNames);
 
   const createTaskMutation = useMutation({
     mutationFn: async (data: TaskFormData) => {
@@ -280,8 +283,7 @@ export default function NewTaskForm() {
                         <SelectContent>
                           <SelectItem value="none">بدون مهندس</SelectItem>
                           {workerNames?.filter((name: string) => 
-                            name !== "عامل جديد" && 
-                            !Object.values(selectedWorkers).includes(name)
+                            name !== "عامل جديد"
                           ).map((name: string, index: number) => (
                             <SelectItem key={index} value={name}>
                               {name}
@@ -407,9 +409,7 @@ export default function NewTaskForm() {
                   <div className="flex items-center gap-2 p-2 bg-white rounded border">
                     <span className="font-medium text-blue-600 w-20">المهندس:</span>
                     <span className="text-gray-800 bg-yellow-100 px-2 py-1 rounded">
-                      {form.watch("workerId") ? 
-                        workerNames?.[parseInt(form.watch("workerId")) - 26] || "غير محدد" 
-                        : "غير محدد"}
+                      {form.watch("engineerName") || "غير محدد"}
                     </span>
                   </div>
                   <div className="flex items-center gap-2 p-2 bg-white rounded border">
