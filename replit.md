@@ -152,6 +152,7 @@ Changelog:
 - July 3, 2025. Implemented multiple selection for technicians and assistants: converted single select dropdowns to checkbox lists, added technicians and assistants array fields to database schema, updated all views (active timers, task history, archive) to display multiple team members with color-coded badges, resolved React hooks error by replacing Radix Checkbox with native HTML checkboxes
 - July 3, 2025. Fixed data transmission from frontend to backend for multi-select fields: updated NewTaskForm to properly send technicians and assistants arrays to server, corrected task creation mutation to include array fields in API request payload
 - July 3, 2025. Complete system reset: cleared all records from database (tasks, time_entries, workers), recreated clean worker dataset with 12 team members, system now ready for fresh multi-select functionality testing
+- July 3, 2025. Expanded task type options: added 12 task types including ميكانيك 1, ميكانيك 2, كهربا 1, كهربا 2, فحص وتشخيص, فحص دوري, دوزان, طلب مخططات, تجريب في الخارج, اختبارات داخل الورشة, خدمات خارجية, حدادة - updated both NewTaskForm and EditTaskDialog components
 
 ## User Preferences
 

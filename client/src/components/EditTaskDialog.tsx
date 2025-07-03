@@ -186,8 +186,18 @@ export default function EditTaskDialog({ task, disabled }: EditTaskDialogProps) 
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="ميكانيك">ميكانيك</SelectItem>
-                      <SelectItem value="كهربا">كهربا</SelectItem>
+                      <SelectItem value="ميكانيك 1">ميكانيك 1</SelectItem>
+                      <SelectItem value="ميكانيك 2">ميكانيك 2</SelectItem>
+                      <SelectItem value="كهربا 1">كهربا 1</SelectItem>
+                      <SelectItem value="كهربا 2">كهربا 2</SelectItem>
+                      <SelectItem value="فحص وتشخيص">فحص وتشخيص</SelectItem>
+                      <SelectItem value="فحص دوري">فحص دوري</SelectItem>
+                      <SelectItem value="دوزان">دوزان</SelectItem>
+                      <SelectItem value="طلب مخططات">طلب مخططات</SelectItem>
+                      <SelectItem value="تجريب في الخارج">تجريب في الخارج</SelectItem>
+                      <SelectItem value="اختبارات داخل الورشة">اختبارات داخل الورشة</SelectItem>
+                      <SelectItem value="خدمات خارجية">خدمات خارجية</SelectItem>
+                      <SelectItem value="حدادة">حدادة</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
