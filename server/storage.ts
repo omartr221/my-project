@@ -511,9 +511,12 @@ export class DatabaseStorage implements IStorage {
       endTime = new Date();
     }
     
-    const totalDuration = Math.floor((endTime.getTime() - startTime.getTime()) / 1000);
+    // Calculate with millisecond precision
+    const totalDurationMs = endTime.getTime() - startTime.getTime();
+    const totalDuration = totalDurationMs / 1000; // Keep as float for precision
     const pausedTime = task.totalPausedDuration || 0;
     
+    // Return exact duration with decimal precision
     return Math.max(0, totalDuration - pausedTime);
   }
 }

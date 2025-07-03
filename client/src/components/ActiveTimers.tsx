@@ -25,11 +25,15 @@ export default function ActiveTimers({
   const { toast } = useToast();
   const [currentTime, setCurrentTime] = useState(Date.now());
 
-  // Update timer every second
+  // Update timer with more precision (every 100ms for smoother updates)
   useEffect(() => {
+    // Update immediately on mount
+    setCurrentTime(Date.now());
+    
+    // Then update every 100ms for more accurate timing
     const interval = setInterval(() => {
       setCurrentTime(Date.now());
-    }, 1000);
+    }, 100);
 
     return () => clearInterval(interval);
   }, []);
@@ -114,9 +118,12 @@ export default function ActiveTimers({
     
     // For active tasks, calculate from start time minus any paused time
     const startTime = new Date(task.startTime).getTime();
-    const totalElapsed = Math.floor((currentTime - startTime) / 1000);
+    // Use precise millisecond calculation and convert to seconds
+    const totalElapsedMs = currentTime - startTime;
+    const totalElapsed = totalElapsedMs / 1000;
     const pausedTime = task.totalPausedDuration || 0;
     
+    // Return exact duration without rounding for display accuracy
     return Math.max(0, totalElapsed - pausedTime);
   };
 

@@ -302,10 +302,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   }, 30000);
 
-  // Send timer updates every second
+  // Send timer updates more frequently for better precision (every 100ms)
   setInterval(() => {
     broadcastUpdate("timer_tick", { timestamp: Date.now() });
-  }, 1000);
+  }, 100);
 
   return httpServer;
 }
