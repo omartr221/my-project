@@ -7,7 +7,7 @@ import { useWebSocket } from "@/hooks/useWebSocket";
 import logoImage from "@assets/Empty Logo with brands_1750921899348.png";
 import { formatTime, formatDate } from "@/lib/utils";
 import ActiveTimers from "@/components/ActiveTimers";
-import NewTaskForm from "@/components/NewTaskForm";
+import SimpleTaskForm from "@/components/SimpleTaskForm";
 import TaskHistoryTable from "@/components/TaskHistoryTable";
 import ArchiveView from "@/components/ArchiveView";
 import AddWorkerForm from "@/components/AddWorkerForm";
@@ -135,7 +135,7 @@ export default function Dashboard() {
       case "timers":
         return (
           <div className="space-y-6">
-            <NewTaskForm />
+            <SimpleTaskForm />
             <ActiveTimers tasks={activeTasks || []} showControls />
             <PausedTasksList tasks={activeTasks || []} />
           </div>
