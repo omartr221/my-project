@@ -207,30 +207,7 @@ export default function TaskHistoryTable() {
                       {task.engineerName || '--'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      <div className="space-y-1">
-                        {(task as any).technicians && (task as any).technicians.length > 0 && (
-                          <div className="text-xs text-orange-600">
-                            فنيون: {(task as any).technicians.join(", ")}
-                          </div>
-                        )}
-                        {(task as any).assistants && (task as any).assistants.length > 0 && (
-                          <div className="text-xs text-purple-600">
-                            مساعدون: {(task as any).assistants.join(", ")}
-                          </div>
-                        )}
-                        {(task as any).technicianName && (task as any).technicianName !== '' && (
-                          <div className="text-xs text-orange-600">
-                            فني: {(task as any).technicianName}
-                          </div>
-                        )}
-                        {(task as any).assistantName && (task as any).assistantName !== '' && (
-                          <div className="text-xs text-purple-600">
-                            مساعد: {(task as any).assistantName}
-                          </div>
-                        )}
-                        {!(task as any).technicians?.length && !(task as any).assistants?.length && 
-                         !(task as any).technicianName && !(task as any).assistantName && '--'}
-                      </div>
+                      {task.assistantName || '--'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {task.description}
