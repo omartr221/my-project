@@ -162,6 +162,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createTask(insertTask: InsertTask): Promise<Task> {
+    console.log("Storage createTask received:", JSON.stringify(insertTask, null, 2));
+    
     // Validate required fields
     if (!insertTask.workerId) {
       throw new Error("Worker ID is required");
