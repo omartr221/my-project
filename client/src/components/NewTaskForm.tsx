@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { PlusCircle, Play } from "lucide-react";
 import { useForm } from "react-hook-form";
@@ -370,19 +369,21 @@ export default function NewTaskForm() {
                             name !== "عامل جديد"
                           ).map((name: string, index: number) => (
                             <div key={index} className="flex items-center space-x-2">
-                              <Checkbox
+                              <input
+                                type="checkbox"
                                 id={`tech-${index}`}
                                 checked={field.value?.includes(name) || false}
-                                onCheckedChange={(checked) => {
+                                onChange={(e) => {
                                   const currentValue = field.value || [];
-                                  if (checked) {
+                                  if (e.target.checked) {
                                     field.onChange([...currentValue, name]);
                                   } else {
                                     field.onChange(currentValue.filter(v => v !== name));
                                   }
                                 }}
+                                className="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
                               />
-                              <label htmlFor={`tech-${index}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                              <label htmlFor={`tech-${index}`} className="text-sm font-medium leading-none">
                                 {name}
                               </label>
                             </div>
@@ -406,19 +407,21 @@ export default function NewTaskForm() {
                             name !== "عامل جديد"
                           ).map((name: string, index: number) => (
                             <div key={index} className="flex items-center space-x-2">
-                              <Checkbox
+                              <input
+                                type="checkbox"
                                 id={`asst-${index}`}
                                 checked={field.value?.includes(name) || false}
-                                onCheckedChange={(checked: boolean) => {
+                                onChange={(e) => {
                                   const currentValue = field.value || [];
-                                  if (checked) {
+                                  if (e.target.checked) {
                                     field.onChange([...currentValue, name]);
                                   } else {
                                     field.onChange(currentValue.filter(v => v !== name));
                                   }
                                 }}
+                                className="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
                               />
-                              <label htmlFor={`asst-${index}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                              <label htmlFor={`asst-${index}`} className="text-sm font-medium leading-none">
                                 {name}
                               </label>
                             </div>
