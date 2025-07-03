@@ -52,7 +52,8 @@ app.get('/ready', (_req, res) => {
 });
 
 // Handle all routes to serve the main interface
-app.get('/', (_req, res) => {
+app.get('/', (req, res) => {
+  console.log(`🔍 [${new Date().toLocaleTimeString()}] طلب وصول للصفحة الرئيسية من: ${req.ip}`);
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
   res.send(`
 <!DOCTYPE html>
@@ -327,16 +328,22 @@ app.use((req, res, next) => {
     throw err;
   });
 
+  // Special route for Replit Preview compatibility
+  app.get('/preview', (req, res) => {
+    console.log(`🔍 [${new Date().toLocaleTimeString()}] طلب Preview من: ${req.ip}`);
+    res.redirect('/');
+  });
+
   // Serve static files from root directory for preview compatibility
   app.use(express.static('.'));
   
-  // Add catch-all route for preview compatibility
-  app.get('*', (req, res) => {
-    // Skip API routes
+  // Add catch-all route for non-API requests (after all API routes)
+  app.get('*', (req, res, next) => {
+    // Skip API routes - let them handle themselves
     if (req.path.startsWith('/api/') || req.path.startsWith('/health') || req.path.startsWith('/ready')) {
-      return;
+      return next();
     }
-    // Redirect all other routes to main page
+    // For all other routes, serve the main interface
     res.redirect('/');
   });
   
@@ -358,6 +365,7 @@ app.use((req, res, next) => {
       log(`📱 لمعرفة عنوان IP: اكتب ipconfig في cmd`);
       log(`🔧 السيرفر يعمل على جميع عناوين الشبكة (0.0.0.0)`);
       log(`📖 راجع ملف 'تجربة-الاتصال.md' للمساعدة`);
+      log(`🔍 Replit Preview: الخادم جاهز للوصول من Preview`);
     }
   }).on('error', (err: any) => {
     console.error(`❌ Server startup error:`, err);
