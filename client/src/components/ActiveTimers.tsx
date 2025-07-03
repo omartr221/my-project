@@ -148,7 +148,11 @@ export default function ActiveTimers({
                   <div className="flex justify-between items-center mb-2">
                     <div>
                       <p className="font-medium">
-                        {(task as any).engineerName || (task as any).supervisorName || (task as any).technicianName || task.worker.name}
+                        {((task as any).engineerName && (task as any).engineerName !== '') ? (task as any).engineerName : 
+                         ((task as any).supervisorName && (task as any).supervisorName !== '') ? (task as any).supervisorName : 
+                         ((task as any).technicianName && (task as any).technicianName !== '') ? (task as any).technicianName : 
+                         ((task as any).assistantName && (task as any).assistantName !== '') ? (task as any).assistantName : 
+                         task.worker.name}
                       </p>
                       <p className="text-sm text-gray-600">
                         {task.description} - {getCarBrandInArabic(task.carBrand)}

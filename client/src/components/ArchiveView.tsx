@@ -297,7 +297,11 @@ export default function ArchiveView() {
               return `
                 <tr>
                   <td>${task.id}</td>
-                  <td>${task.engineerName || task.supervisorName || task.technicianName || task.worker.name}</td>
+                  <td>${(task.engineerName && task.engineerName !== '') ? task.engineerName : 
+                       (task.supervisorName && task.supervisorName !== '') ? task.supervisorName : 
+                       (task.technicianName && task.technicianName !== '') ? task.technicianName : 
+                       (task.assistantName && task.assistantName !== '') ? task.assistantName : 
+                       task.worker.name}</td>
                   <td>${task.workerRole || '--'}</td>
                   <td>${task.description}</td>
                   <td>${(task as any).repairOperation || '--'}</td>
@@ -414,7 +418,11 @@ export default function ArchiveView() {
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                       <div>
-                        <span className="font-medium">المهندس:</span> {(task as any).engineerName || (task as any).supervisorName || (task as any).technicianName || task.worker.name}
+                        <span className="font-medium">المهندس:</span> {((task as any).engineerName && (task as any).engineerName !== '') ? (task as any).engineerName : 
+                         ((task as any).supervisorName && (task as any).supervisorName !== '') ? (task as any).supervisorName : 
+                         ((task as any).technicianName && (task as any).technicianName !== '') ? (task as any).technicianName : 
+                         ((task as any).assistantName && (task as any).assistantName !== '') ? (task as any).assistantName : 
+                         task.worker.name}
                       </div>
                       <div>
                         <span className="font-medium">المهمة:</span> {task.description}
