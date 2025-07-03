@@ -260,7 +260,7 @@ export default function EditTaskDialog({ task, disabled }: EditTaskDialogProps) 
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="">بدون اختيار</SelectItem>
+                        <SelectItem value="none">بدون اختيار</SelectItem>
                         {workers?.map((worker: any) => (
                           <SelectItem key={worker.id} value={worker.name}>
                             {worker.name}
@@ -286,7 +286,7 @@ export default function EditTaskDialog({ task, disabled }: EditTaskDialogProps) 
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="">بدون اختيار</SelectItem>
+                        <SelectItem value="none">بدون اختيار</SelectItem>
                         {workers?.map((worker: any) => (
                           <SelectItem key={worker.id} value={worker.name}>
                             {worker.name}
@@ -314,7 +314,7 @@ export default function EditTaskDialog({ task, disabled }: EditTaskDialogProps) 
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="">بدون اختيار</SelectItem>
+                        <SelectItem value="none">بدون اختيار</SelectItem>
                         {workers?.map((worker: any) => (
                           <SelectItem key={worker.id} value={worker.name}>
                             {worker.name}
@@ -340,7 +340,7 @@ export default function EditTaskDialog({ task, disabled }: EditTaskDialogProps) 
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="">بدون اختيار</SelectItem>
+                        <SelectItem value="none">بدون اختيار</SelectItem>
                         {workers?.map((worker: any) => (
                           <SelectItem key={worker.id} value={worker.name}>
                             {worker.name}
