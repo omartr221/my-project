@@ -7,7 +7,7 @@ import { useWebSocket } from "@/hooks/useWebSocket";
 import logoImage from "@assets/Empty Logo with brands_1750921899348.png";
 import { formatTime, formatDate } from "@/lib/utils";
 import ActiveTimers from "@/components/ActiveTimers";
-import SimpleTaskForm from "@/components/SimpleTaskForm";
+import NewTaskForm from "@/components/NewTaskForm";
 import TaskHistoryTable from "@/components/TaskHistoryTable";
 import ArchiveView from "@/components/ArchiveView";
 import AddWorkerForm from "@/components/AddWorkerForm";
@@ -63,16 +63,16 @@ export default function Dashboard() {
                     <div>
                       <p className="text-gray-600 text-sm">إجمالي العمال</p>
                       <p className="text-2xl font-bold text-primary">
-                        {(stats as any)?.totalWorkers || 0}
+                        {stats?.totalWorkers || 0}
                       </p>
-                      {workers && Array.isArray(workers) && workers.length > 0 && (
+                      {workers && workers.length > 0 && (
                         <div className="mt-2">
                           <p className="text-xs text-gray-500">الأسماء:</p>
                           <p className="text-xs text-gray-600">
-                            {(workers as any[]).map((w: any) => w.name).join('، ')}
+                            {workers.map(w => w.name).join('، ')}
                           </p>
                         </div>
-                      ) as any}
+                      )}
                     </div>
                     <Users className="h-8 w-8 text-primary opacity-20" />
                   </div>
@@ -85,7 +85,7 @@ export default function Dashboard() {
                     <div>
                       <p className="text-gray-600 text-sm">العمال المتاحين</p>
                       <p className="text-2xl font-bold success">
-                        {(stats as any)?.availableWorkers || 0}
+                        {stats?.availableWorkers || 0}
                       </p>
                     </div>
                     <UserCheck className="h-8 w-8 success opacity-20" />
@@ -99,7 +99,7 @@ export default function Dashboard() {
                     <div>
                       <p className="text-gray-600 text-sm">العمال المشغولين</p>
                       <p className="text-2xl font-bold error">
-                        {(stats as any)?.busyWorkers || 0}
+                        {stats?.busyWorkers || 0}
                       </p>
                     </div>
                     <Watch className="h-8 w-8 error opacity-20" />
@@ -113,7 +113,7 @@ export default function Dashboard() {
                     <div>
                       <p className="text-gray-600 text-sm">المهام النشطة</p>
                       <p className="text-2xl font-bold warning">
-                        {(stats as any)?.activeTasks || 0}
+                        {stats?.activeTasks || 0}
                       </p>
                     </div>
                     <ListTodo className="h-8 w-8 warning opacity-20" />
@@ -126,8 +126,8 @@ export default function Dashboard() {
 
             {/* Active Timers */}
             <div className="mt-8 space-y-4">
-              <ActiveTimers tasks={(activeTasks as any[]) || []} />
-              <PausedTasksList tasks={(activeTasks as any[]) || []} />
+              <ActiveTimers tasks={activeTasks || []} />
+              <PausedTasksList tasks={activeTasks || []} />
             </div>
           </div>
         );
@@ -135,9 +135,9 @@ export default function Dashboard() {
       case "timers":
         return (
           <div className="space-y-6">
-            <SimpleTaskForm />
-            <ActiveTimers tasks={(activeTasks as any[]) || []} showControls />
-            <PausedTasksList tasks={(activeTasks as any[]) || []} />
+            <NewTaskForm />
+            <ActiveTimers tasks={activeTasks || []} showControls />
+            <PausedTasksList tasks={activeTasks || []} />
           </div>
         );
       

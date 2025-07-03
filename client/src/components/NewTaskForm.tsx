@@ -58,15 +58,15 @@ export default function NewTaskForm() {
       carModel: "",
       licensePlate: "",
       workerRole: "assistant",
-      estimatedDuration: undefined,
-      engineerName: undefined,
-      supervisorName: undefined,
-      technicianName: undefined,
-      assistantName: undefined,
+      estimatedDuration: null,
+      engineerName: "",
+      supervisorName: "",
+      technicianName: "",
+      assistantName: "",
       technicians: [],
       assistants: [],
-      repairOperation: undefined,
-      taskType: undefined,
+      repairOperation: "",
+      taskType: "",
     },
   });
 
@@ -82,21 +82,43 @@ export default function NewTaskForm() {
 
   const createTaskMutation = useMutation({
     mutationFn: async (data: TaskFormData) => {
-      const response = await apiRequest("POST", "/api/tasks", {
+      // Find the worker ID from the assistant name
+      const assistantWorker = workers?.find((w: any) => w.name === data.assistantName);
+      
+      const taskData = {
         description: data.description,
         carBrand: data.carBrand,
         carModel: data.carModel,
         licensePlate: data.licensePlate,
-        workerId: 17,
-        workerRole: "assistant",
-        estimatedDuration: data.estimatedDuration,
-        engineerName: data.engineerName,
-        supervisorName: data.supervisorName,
-        technicians: data.technicians,
-        assistants: data.assistants,
-        repairOperation: data.repairOperation,
-        taskType: data.taskType,
+        workerId: assistantWorker?.id || 1, // Fallback to first worker if not found
+        workerRole: data.workerRole || "assistant",
+        estimatedDuration: data.estimatedDuration || null,
+        engineerName: data.engineerName === "none" ? null : data.engineerName || null,
+        supervisorName: data.supervisorName === "none" ? null : data.supervisorName || null,
+        technicianName: data.technicianName === "none" ? null : data.technicianName || null,
+        assistantName: data.assistantName === "none" ? null : data.assistantName || null,
+        technicians: data.technicians || [],
+        assistants: data.assistants || [],
+        repairOperation: data.repairOperation || null,
+        taskType: data.taskType || null,
+      };
+      
+      console.log("Sending task data:", taskData);
+      
+      const response = await fetch("/api/tasks", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(taskData),
       });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("API Error:", errorText);
+        throw new Error(`HTTP ${response.status}: ${errorText}`);
+      }
+      
       return response.json();
     },
     onSuccess: () => {
@@ -126,7 +148,16 @@ export default function NewTaskForm() {
     console.log("Form data:", data);
     console.log("Selected workers state:", selectedWorkers);
     
-    createTaskMutation.mutate(data);
+    // إرسال البيانات مع القوائم المتعددة
+    const taskData = {
+      ...data,
+      technicians: data.technicians || [],
+      assistants: data.assistants || []
+    };
+    
+    console.log("Sending task data:", taskData);
+    
+    createTaskMutation.mutate(taskData);
   };
 
   return (

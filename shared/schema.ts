@@ -109,8 +109,6 @@ export const insertTaskSchema = createInsertSchema(tasks).omit({
   engineerName: true,
   supervisorName: true,
   technicianName: true,
-  technicians: true,
-  assistants: true,
   repairOperation: true,
   taskType: true,
 });
