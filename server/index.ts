@@ -523,7 +523,7 @@ app.use((req, res, next) => {
 
   // Autoscale deployment port configuration
   const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 5000;
-  const host = process.env.NODE_ENV === 'production' ? '0.0.0.0' : '0.0.0.0';
+  const host = '0.0.0.0';
   
   // Enhanced server startup for Autoscale compatibility
   server.listen(port, host, () => {
