@@ -94,6 +94,7 @@ export default function NewTaskForm() {
         technicianName: data.technicianName === "none" ? null : data.technicianName || null,
         assistantName: data.assistantName === "none" ? null : data.assistantName || null,
         repairOperation: data.repairOperation || null,
+        taskType: data.taskType || null,
       };
       
       console.log("Sending task data:", taskData);

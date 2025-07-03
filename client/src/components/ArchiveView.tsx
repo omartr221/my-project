@@ -433,6 +433,9 @@ export default function ArchiveView() {
                         <span className="font-medium">عملية الإصلاح:</span> {(task as any).repairOperation || '--'}
                       </div>
                       <div>
+                        <span className="font-medium">نوع المهمة:</span> {(task as any).taskType || '--'}
+                      </div>
+                      <div>
                         <span className="font-medium">السيارة:</span> {getCarBrandInArabic(task.carBrand)} {task.carModel}
                       </div>
                       <div>

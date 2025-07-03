@@ -144,6 +144,7 @@ Changelog:
 - July 1, 2025. Fixed engineer selection bug: separated engineer and technician form fields which were incorrectly sharing the same schema field, added technicianName field to database schema, corrected form display logic to show proper selected values for each role
 - July 1, 2025. Fixed task display priority: changed all task views to show engineer name as primary instead of assistant name, added color-coded team member badges in active timers, updated task history and archive views to prioritize engineer display
 - July 3, 2025. Implemented sequential delivery numbering system: added deliveryNumber field to database schema, created automatic numbering for archived tasks starting from 1, updated archive views to display delivery numbers instead of task IDs, applied retroactive numbering to existing archived tasks
+- July 3, 2025. Added task type classification system: implemented taskType field with "ميكانيك" (mechanical) and "كهربا" (electrical) options, integrated into task creation form, active timers display, history table, archive view, and task editing functionality, updated server-side storage to handle new field
 
 ## User Preferences
 
