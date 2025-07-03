@@ -207,10 +207,10 @@ export class DatabaseStorage implements IStorage {
       })
       .returning();
 
-    // Create initial time entry
+    // Create initial time entry to start the timer immediately
     await db.insert(timeEntries).values({
       taskId: task.id,
-      startTime: task.startTime!,
+      startTime: new Date(),
       entryType: "work",
     });
 
