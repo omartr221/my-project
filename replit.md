@@ -150,6 +150,8 @@ Changelog:
 - July 3, 2025. System maintenance: removed worker "أحمد" from database and cleared all references in existing tasks, updated worker count to 11 active workers
 - July 3, 2025. Added new worker "محمد العلي" as technician to the system, total active workers now 12
 - July 3, 2025. Implemented multiple selection for technicians and assistants: converted single select dropdowns to checkbox lists, added technicians and assistants array fields to database schema, updated all views (active timers, task history, archive) to display multiple team members with color-coded badges, resolved React hooks error by replacing Radix Checkbox with native HTML checkboxes
+- July 3, 2025. Fixed data transmission from frontend to backend for multi-select fields: updated NewTaskForm to properly send technicians and assistants arrays to server, corrected task creation mutation to include array fields in API request payload
+- July 3, 2025. Complete system reset: cleared all records from database (tasks, time_entries, workers), recreated clean worker dataset with 12 team members, system now ready for fresh multi-select functionality testing
 
 ## User Preferences
 
