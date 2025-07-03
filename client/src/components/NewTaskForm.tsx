@@ -240,6 +240,7 @@ export default function NewTaskForm() {
                           <SelectItem value="اختبارات داخل الورشة">اختبارات داخل الورشة</SelectItem>
                           <SelectItem value="خدمات خارجية">خدمات خارجية</SelectItem>
                           <SelectItem value="حدادة">حدادة</SelectItem>
+                          <SelectItem value="برمجة">برمجة</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />

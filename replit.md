@@ -155,6 +155,8 @@ Changelog:
 - July 3, 2025. Expanded task type options: added 12 task types including ميكانيك 1, ميكانيك 2, كهربا 1, كهربا 2, فحص وتشخيص, فحص دوري, دوزان, طلب مخططات, تجريب في الخارج, اختبارات داخل الورشة, خدمات خارجية, حدادة - updated both NewTaskForm and EditTaskDialog components
 - July 3, 2025. System maintenance: removed worker "علي" from database (ID 21), cleared all task references and associations, updated worker count to 11 active workers (kept "محمد العلي" as requested)
 - July 3, 2025. Enhanced print functionality: added technicians and assistants columns to print report table, displays multiple names with comma separation for multi-select fields, maintains backward compatibility for single-select legacy data
+- July 3, 2025. Added checkboxes for technicians and assistants in EditTaskDialog: users can now select multiple technicians and assistants when editing tasks, maintaining consistency with the create task form
+- July 3, 2025. Added "برمجة" (programming) as a new task type option: expanded task types to 13 categories including programming for technical/software-related tasks
 
 ## User Preferences
 
