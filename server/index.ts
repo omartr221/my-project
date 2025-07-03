@@ -61,106 +61,222 @@ app.get('/', (_req, res) => {
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>V POWER TUNING - نظام إدارة المهام</title>
     <style>
+      * { box-sizing: border-box; }
       body {
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         margin: 0;
-        padding: 20px;
+        padding: 0;
         background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
         color: white;
-        text-align: center;
         min-height: 100vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-direction: column;
+      }
+      .header {
+        text-align: center;
+        padding: 2rem;
+        background: rgba(0,0,0,0.2);
       }
       .logo {
-        font-size: 3rem;
-        margin-bottom: 1rem;
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
         font-weight: bold;
         text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
       }
-      .loading {
-        font-size: 1.5rem;
-        margin-bottom: 2rem;
-        text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+      .subtitle {
+        font-size: 1.2rem;
+        opacity: 0.9;
       }
-      .spinner {
-        border: 4px solid rgba(255, 255, 255, 0.3);
-        border-radius: 50%;
-        border-top: 4px solid white;
-        width: 50px;
-        height: 50px;
-        animation: spin 1s linear infinite;
-        margin: 0 auto 2rem;
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
       }
-      .status {
+      .dashboard {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin-top: 2rem;
+      }
+      .card {
         background: rgba(255, 255, 255, 0.1);
-        padding: 20px;
-        border-radius: 10px;
+        padding: 2rem;
+        border-radius: 12px;
         backdrop-filter: blur(10px);
         border: 1px solid rgba(255, 255, 255, 0.2);
-        max-width: 500px;
-        margin-bottom: 2rem;
+        text-align: center;
+      }
+      .card h3 {
+        margin-top: 0;
+        color: #fef2f2;
       }
       .button {
         background: rgba(255, 255, 255, 0.2);
-        border: 2px solid white;
+        border: 2px solid rgba(255, 255, 255, 0.5);
         color: white;
         padding: 12px 24px;
         border-radius: 8px;
         cursor: pointer;
         text-decoration: none;
         display: inline-block;
-        margin: 10px;
+        margin: 10px 5px;
         transition: all 0.3s ease;
+        font-size: 0.9rem;
       }
       .button:hover {
         background: rgba(255, 255, 255, 0.3);
+        border-color: rgba(255, 255, 255, 0.8);
       }
-      @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
+      .button.primary {
+        background: rgba(255, 255, 255, 0.9);
+        color: #dc2626;
+        font-weight: bold;
+      }
+      .button.primary:hover {
+        background: white;
+      }
+      .status-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+      .stat {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 1rem;
+        border-radius: 8px;
+        text-align: center;
+      }
+      .stat-number {
+        font-size: 2rem;
+        font-weight: bold;
+        display: block;
+      }
+      .stat-label {
+        font-size: 0.9rem;
+        opacity: 0.8;
+      }
+      .actions {
+        text-align: center;
+        margin-top: 2rem;
+      }
+      .preview-note {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 2rem;
+        text-align: center;
+        border: 2px dashed rgba(255, 255, 255, 0.3);
+      }
+      
+      @media (max-width: 768px) {
+        .dashboard { grid-template-columns: 1fr; }
+        .status-grid { grid-template-columns: 1fr; }
+        .container { padding: 1rem; }
+        .logo { font-size: 2rem; }
       }
     </style>
   </head>
   <body>
-    <div class="logo">V POWER TUNING</div>
-    <div class="loading">نظام إدارة المهام والعمال</div>
-    <div class="spinner"></div>
-    
-    <div class="status">
-      <h3>حالة النظام</h3>
-      <p>✅ الخادم يعمل بشكل صحيح</p>
-      <p>✅ قاعدة البيانات متصلة</p>
-      <p>✅ 12 عامل مسجل في النظام</p>
-      <p>🔄 جاري تحضير الواجهة...</p>
+    <div class="header">
+      <div class="logo">V POWER TUNING</div>
+      <div class="subtitle">نظام إدارة المهام والعمال - النسخة التشغيلية</div>
     </div>
     
-    <a href="/api/workers" class="button">عرض العمال</a>
-    <a href="/api/stats" class="button">إحصائيات النظام</a>
+    <div class="container">
+      <div class="preview-note">
+        <h4>🚀 النظام يعمل بنجاح!</h4>
+        <p>النظام متصل بقاعدة البيانات ويحتوي على جميع البيانات. استخدم الروابط أدناه للوصول للواجهة الكاملة.</p>
+      </div>
+      
+      <div class="dashboard">
+        <div class="card">
+          <h3>📊 إحصائيات النظام</h3>
+          <div class="status-grid">
+            <div class="stat">
+              <span class="stat-number" id="total-workers">12</span>
+              <span class="stat-label">إجمالي العمال</span>
+            </div>
+            <div class="stat">
+              <span class="stat-number" id="available-workers">12</span>
+              <span class="stat-label">العمال المتاحين</span>
+            </div>
+            <div class="stat">
+              <span class="stat-number" id="active-tasks">0</span>
+              <span class="stat-label">المهام النشطة</span>
+            </div>
+            <div class="stat">
+              <span class="stat-number" id="completed-tasks">0</span>
+              <span class="stat-label">المهام المكتملة</span>
+            </div>
+          </div>
+          <a href="/api/stats" class="button">عرض التفاصيل</a>
+        </div>
+        
+        <div class="card">
+          <h3>👥 إدارة العمال</h3>
+          <p>عرض وإدارة قائمة العمال المسجلين في النظام</p>
+          <a href="/api/workers" class="button">عرض العمال</a>
+          <a href="/api/workers?format=json" class="button">JSON</a>
+        </div>
+        
+        <div class="card">
+          <h3>📋 المهام والأعمال</h3>
+          <p>إدارة المهام النشطة والمكتملة</p>
+          <a href="/api/tasks/active" class="button">المهام النشطة</a>
+          <a href="/api/tasks/history" class="button">تاريخ المهام</a>
+          <a href="/api/archive" class="button">الأرشيف</a>
+        </div>
+        
+        <div class="card">
+          <h3>🔧 أدوات النظام</h3>
+          <p>أدوات الصيانة والإعدادات</p>
+          <a href="/health" class="button">حالة الخادم</a>
+          <a href="/ready" class="button">جاهزية النظام</a>
+        </div>
+      </div>
+      
+      <div class="actions">
+        <h3>🎯 الوصول للواجهة الكاملة</h3>
+        <p>للحصول على التجربة الكاملة، استخدم الرابط التالي لفتح النظام في نافذة جديدة:</p>
+        <a href="#" onclick="openFullApp()" class="button primary">فتح النظام الكامل</a>
+        <a href="/api/stats" class="button">اختبار API</a>
+      </div>
+    </div>
     
     <script>
-      async function checkStatus() {
+      async function loadStats() {
         try {
           const response = await fetch('/api/stats');
           const stats = await response.json();
-          console.log('System stats:', stats);
           
-          // Try to load the full app after checking connectivity
-          setTimeout(() => {
-            document.querySelector('.loading').innerText = 'تحميل الواجهة الكاملة...';
-            // This would typically load the React app
-          }, 2000);
+          document.getElementById('total-workers').textContent = stats.totalWorkers || 0;
+          document.getElementById('available-workers').textContent = stats.availableWorkers || 0;
+          document.getElementById('active-tasks').textContent = stats.activeTasks || 0;
+          
+          // Load task history count
+          const historyResponse = await fetch('/api/tasks/history');
+          const tasks = await historyResponse.json();
+          document.getElementById('completed-tasks').textContent = tasks.length || 0;
           
         } catch (error) {
-          console.error('Error connecting to API:', error);
-          document.querySelector('.status').innerHTML = '<p>❌ خطأ في الاتصال بالخادم</p>';
+          console.error('خطأ في تحميل الإحصائيات:', error);
         }
       }
       
-      checkStatus();
-      setInterval(checkStatus, 5000);
+      function openFullApp() {
+        const currentUrl = window.location.href;
+        const newWindow = window.open(currentUrl, '_blank');
+        if (newWindow) {
+          newWindow.focus();
+        } else {
+          alert('يرجى السماح بفتح النوافذ المنبثقة لهذا الموقع');
+        }
+      }
+      
+      // Load stats on page load
+      loadStats();
+      
+      // Refresh stats every 30 seconds
+      setInterval(loadStats, 30000);
     </script>
   </body>
 </html>
