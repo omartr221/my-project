@@ -218,6 +218,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Cancel task route
+  app.post("/api/tasks/:id/cancel", async (req, res) => {
+    try {
+      const taskId = parseInt(req.params.id);
+      const { cancelledBy, reason } = req.body;
+      
+      if (!cancelledBy || !reason) {
+        return res.status(400).json({ message: "cancelledBy and reason are required" });
+      }
+      
+      const task = await storage.cancelTask(taskId, cancelledBy, reason);
+      broadcastUpdate("task_cancelled", task);
+      res.json(task);
+    } catch (error) {
+      console.error("Error cancelling task:", error);
+      res.status(500).json({ message: "Failed to cancel task" });
+    }
+  });
+
   app.get("/api/archive", async (req, res) => {
     try {
       const limit = req.query.limit ? parseInt(req.query.limit as string) : 100;

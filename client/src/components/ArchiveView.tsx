@@ -414,8 +414,13 @@ export default function ArchiveView() {
                 {displayTasks.map((task) => (
                   <div key={task.id} className="p-4 border rounded-lg bg-gray-50">
                     <div className="mb-3 pb-2 border-b border-gray-300">
-                      <h3 className="text-lg font-semibold text-blue-800">
-                        تسليم رقم: {(task as any).deliveryNumber || 'غير محدد'}
+                      <h3 className={`text-lg font-semibold ${(task as any).isCancelled ? 'text-red-600' : 'text-blue-800'}`}>
+                        {(task as any).isCancelled ? 'مهمة ملغاة - ' : 'تسليم رقم: '}{(task as any).deliveryNumber || 'غير محدد'}
+                        {(task as any).isCancelled && (
+                          <span className="mr-2 px-2 py-1 bg-red-100 text-red-800 text-sm rounded">
+                            ملغاة
+                          </span>
+                        )}
                       </h3>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -525,6 +530,32 @@ export default function ArchiveView() {
                       {task.archiveNotes && (
                         <div className="col-span-full">
                           <span className="font-medium">ملاحظات التسليم:</span> {task.archiveNotes}
+                        </div>
+                      )}
+                      
+                      {(task as any).isCancelled && (
+                        <div className="col-span-full bg-red-50 border border-red-200 rounded p-3 mt-4">
+                          <h4 className="font-medium text-red-800 mb-2">معلومات الإلغاء:</h4>
+                          <div className="space-y-1">
+                            <div>
+                              <span className="font-medium text-red-700">سبب الإلغاء:</span> {(task as any).cancellationReason || '--'}
+                            </div>
+                            <div>
+                              <span className="font-medium text-red-700">ألغاها:</span> {(task as any).cancelledBy || '--'}
+                            </div>
+                            <div>
+                              <span className="font-medium text-red-700">تاريخ الإلغاء:</span> {(task as any).cancelledAt ? 
+                                new Intl.DateTimeFormat('ar-EG', {
+                                  day: 'numeric',
+                                  month: 'numeric',
+                                  year: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                  calendar: 'gregory',
+                                  timeZone: 'Asia/Damascus'
+                                }).format(new Date((task as any).cancelledAt)) : '--'}
+                            </div>
+                          </div>
                         </div>
                       )}
                     </div>

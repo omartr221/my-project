@@ -146,6 +146,7 @@ Changelog:
 - July 3, 2025. Implemented sequential delivery numbering system: added deliveryNumber field to database schema, created automatic numbering for archived tasks starting from 1, updated archive views to display delivery numbers instead of task IDs, applied retroactive numbering to existing archived tasks
 - July 3, 2025. Added task type classification system: implemented taskType field with "ميكانيك" (mechanical) and "كهربا" (electrical) options, integrated into task creation form, active timers display, history table, archive view, and task editing functionality, updated server-side storage to handle new field
 - July 3, 2025. Enhanced task editing during execution: expanded EditTaskDialog to include all task fields (description, repair operation, task type, car details, worker assignments, estimated time), fixed SelectItem empty value error by using "none" instead of empty string for unselected options
+- July 3, 2025. Implemented task cancellation system: added CancelTaskDialog with reason input, created cancel API endpoint and database fields (isCancelled, cancellationReason, cancelledAt, cancelledBy), integrated cancellation into archive view with red styling and special "ملغاة" badge, cancelled tasks receive sequential delivery numbers and are stored in archive with cancellation details
 
 ## User Preferences
 

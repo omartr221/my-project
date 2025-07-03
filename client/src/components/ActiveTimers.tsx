@@ -11,6 +11,7 @@ import { type TaskWithWorker } from "@shared/schema";
 import { useState, useEffect } from "react";
 import PauseTaskDialog from "./PauseTaskDialog";
 import EditTaskDialog from "./EditTaskDialog";
+import CancelTaskDialog from "./CancelTaskDialog";
 
 interface ActiveTimersProps {
   tasks: TaskWithWorker[];
@@ -225,6 +226,11 @@ export default function ActiveTimers({
                       )}
                       
                       <EditTaskDialog 
+                        task={task} 
+                        disabled={pauseTaskMutation.isPending || resumeTaskMutation.isPending || finishTaskMutation.isPending}
+                      />
+                      
+                      <CancelTaskDialog 
                         task={task} 
                         disabled={pauseTaskMutation.isPending || resumeTaskMutation.isPending || finishTaskMutation.isPending}
                       />

@@ -25,6 +25,7 @@ export interface IStorage {
   
   // Archive management
   archiveTask(taskId: number, archivedBy: string, notes?: string, rating?: number): Promise<Task>;
+  cancelTask(taskId: number, cancelledBy: string, reason: string): Promise<Task>;
   getArchivedTasks(limit?: number): Promise<TaskHistory[]>;
   searchArchive(searchTerm: string): Promise<TaskHistory[]>;
   
@@ -388,6 +389,37 @@ export class DatabaseStorage implements IStorage {
         archivedBy,
         archiveNotes: notes,
         rating: rating || null,
+        status: "archived",
+        deliveryNumber: nextDeliveryNumber,
+      })
+      .where(eq(tasks.id, taskId))
+      .returning();
+
+    return task;
+  }
+
+  async cancelTask(taskId: number, cancelledBy: string, reason: string): Promise<Task> {
+    const now = new Date();
+    
+    // Get the next delivery number
+    const lastArchivedTask = await db.query.tasks.findFirst({
+      where: eq(tasks.isArchived, true),
+      orderBy: [desc(tasks.deliveryNumber)],
+    });
+    
+    const nextDeliveryNumber = (lastArchivedTask?.deliveryNumber || 0) + 1;
+    
+    const [task] = await db
+      .update(tasks)
+      .set({
+        isArchived: true,
+        isCancelled: true,
+        cancelledAt: now,
+        cancelledBy,
+        cancellationReason: reason,
+        archivedAt: now,
+        archivedBy: cancelledBy,
+        archiveNotes: `مهمة ملغاة - السبب: ${reason}`,
         status: "archived",
         deliveryNumber: nextDeliveryNumber,
       })

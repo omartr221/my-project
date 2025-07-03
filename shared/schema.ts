@@ -47,6 +47,10 @@ export const tasks = pgTable("tasks", {
   archiveNotes: varchar("archive_notes", { length: 1000 }),
   rating: integer("rating"), // 1-3 stars rating
   deliveryNumber: integer("delivery_number"), // Sequential number for delivered tasks
+  isCancelled: boolean("is_cancelled").default(false),
+  cancellationReason: text("cancellation_reason"),
+  cancelledAt: timestamp("cancelled_at"),
+  cancelledBy: varchar("cancelled_by", { length: 100 }),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
