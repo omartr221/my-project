@@ -240,6 +240,7 @@ export class DatabaseStorage implements IStorage {
       .set({
         status: "active",
         pausedAt: null,
+        startTime: new Date(), // Set start time for manual timers
       })
       .where(eq(tasks.id, taskId));
 
