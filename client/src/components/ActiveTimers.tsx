@@ -127,14 +127,10 @@ export default function ActiveTimers({
       const startTime = new Date(task.startTime).getTime();
       const elapsedMs = currentTime - startTime;
       const elapsedSeconds = elapsedMs / 1000;
-      const pausedTime = task.totalPausedDuration || 0;
-      const actualElapsed = elapsedSeconds - pausedTime;
       
-      // Start from the stored currentDuration (which should be the manual duration initially)
-      const initialDuration = task.currentDuration !== undefined ? task.currentDuration : manualDurationSeconds;
-      
-      // Calculate remaining time - countdown from initial duration
-      return Math.max(0, initialDuration - elapsedSeconds);
+      // For countdown timers, subtract elapsed time from the initial manual duration
+      // Don't consider pausedTime here as it's already accounted for in the logic
+      return Math.max(0, manualDurationSeconds - elapsedSeconds);
     }
     
     // For automatic timers or manual without duration set
