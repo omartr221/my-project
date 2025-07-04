@@ -31,6 +31,7 @@ const editTaskSchema = z.object({
   technicians: z.array(z.string()).optional(),
   assistants: z.array(z.string()).optional(),
   timerType: z.string().optional(),
+  manualDuration: z.number().optional(),
 });
 
 type EditTaskFormData = z.infer<typeof editTaskSchema>;
@@ -77,6 +78,7 @@ export default function EditTaskDialog({ task, disabled }: EditTaskDialogProps) 
       technicians: (task as any).technicians || [],
       assistants: (task as any).assistants || [],
       timerType: (task as any).timerType || "automatic",
+      manualDuration: (task as any).manualDuration ? (task as any).manualDuration / 60 : undefined, // Convert seconds to minutes
     },
   });
 
@@ -87,7 +89,12 @@ export default function EditTaskDialog({ task, disabled }: EditTaskDialogProps) 
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify({
+          ...data,
+          manualDuration: data.timerType === "manual" && data.manualDuration 
+            ? data.manualDuration * 60  // Convert minutes to seconds
+            : null,
+        }),
       });
       
       if (!response.ok) {
@@ -444,6 +451,32 @@ export default function EditTaskDialog({ task, disabled }: EditTaskDialogProps) 
                 )}
               />
             </div>
+
+            {/* حقل مدة العد التنازلي للمؤقت اليدوي */}
+            {form.watch("timerType") === "manual" && (
+              <FormField
+                control={form.control}
+                name="manualDuration"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>مدة العد التنازلي (بالدقائق)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min="1"
+                        placeholder="مثال: 120 (دقيقتين)"
+                        value={field.value || ""}
+                        onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                    <p className="text-xs text-gray-500">
+                      سيبدأ العد التنازلي من هذه المدة حتى الصفر
+                    </p>
+                  </FormItem>
+                )}
+              />
+            )}
 
             <div className="flex gap-2 pt-4">
               <Button 

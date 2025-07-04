@@ -202,11 +202,9 @@ export class DatabaseStorage implements IStorage {
         repairOperation: insertTask.repairOperation || null,
         taskType: insertTask.taskType || null,
         timerType: insertTask.timerType || "automatic",
-        manualStartTime: insertTask.manualStartTime ? new Date(insertTask.manualStartTime) : null,
+        manualDuration: insertTask.manualDuration || null,
         taskNumber,
-        startTime: insertTask.timerType === "manual" ? 
-          (insertTask.manualStartTime ? new Date(insertTask.manualStartTime) : null) : 
-          new Date(),
+        startTime: insertTask.timerType === "manual" ? null : new Date(),
         status: insertTask.timerType === "manual" ? "paused" : "active",
       })
       .returning();
