@@ -111,11 +111,11 @@ export default function ActiveTimers({
   const calculateCurrentDuration = (task: TaskWithWorker) => {
     // For manual timers with countdown
     if (task.timerType === "manual" && (task as any).manualDuration) {
-      const manualDurationSeconds = (task as any).manualDuration * 60; // Convert minutes to seconds
+      const manualDurationSeconds = (task as any).manualDuration; // Already in seconds from database
       
       if (!task.startTime || task.status === "paused") {
-        // Timer hasn't started yet or is paused
-        return task.currentDuration || manualDurationSeconds;
+        // Timer hasn't started yet or is paused - show remaining time from currentDuration or full duration
+        return task.currentDuration !== undefined ? task.currentDuration : manualDurationSeconds;
       }
       
       // Calculate countdown from manual duration

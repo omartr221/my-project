@@ -206,6 +206,9 @@ export class DatabaseStorage implements IStorage {
         taskNumber,
         startTime: insertTask.timerType === "manual" ? null : new Date(),
         status: insertTask.timerType === "manual" ? "paused" : "active",
+        currentDuration: insertTask.timerType === "manual" && insertTask.manualDuration 
+          ? insertTask.manualDuration 
+          : 0,
       })
       .returning();
 
@@ -293,6 +296,19 @@ export class DatabaseStorage implements IStorage {
         .where(eq(timeEntries.id, currentEntry.id));
     }
 
+    // Calculate current duration based on timer type
+    let newCurrentDuration: number;
+    if (currentTask.timerType === "manual" && currentTask.manualDuration) {
+      // For countdown timers, calculate remaining time
+      const previousWorkTime = currentTask.totalPausedDuration || 0;
+      const totalElapsed = previousWorkTime + currentSessionTime;
+      newCurrentDuration = Math.max(0, currentTask.manualDuration - totalElapsed);
+    } else {
+      // For regular timers, calculate elapsed time
+      const previousWorkTime = currentTask.totalPausedDuration || 0;
+      newCurrentDuration = previousWorkTime + currentSessionTime;
+    }
+
     // Calculate total accumulated work time
     const previousWorkTime = currentTask.totalPausedDuration || 0;
     const newAccumulatedTime = previousWorkTime + currentSessionTime;
@@ -306,6 +322,7 @@ export class DatabaseStorage implements IStorage {
         pauseReason: reason,
         pauseNotes: notes,
         totalPausedDuration: newAccumulatedTime, // Store accumulated work time
+        currentDuration: newCurrentDuration, // Store current duration for display
       })
       .where(eq(tasks.id, taskId))
       .returning();
