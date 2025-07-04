@@ -30,6 +30,7 @@ const editTaskSchema = z.object({
   assistantName: z.string().optional(),
   technicians: z.array(z.string()).optional(),
   assistants: z.array(z.string()).optional(),
+  timerType: z.string().optional(),
 });
 
 type EditTaskFormData = z.infer<typeof editTaskSchema>;
@@ -75,6 +76,7 @@ export default function EditTaskDialog({ task, disabled }: EditTaskDialogProps) 
       assistantName: (task as any).assistantName || "",
       technicians: (task as any).technicians || [],
       assistants: (task as any).assistants || [],
+      timerType: (task as any).timerType || "automatic",
     },
   });
 
@@ -398,7 +400,7 @@ export default function EditTaskDialog({ task, disabled }: EditTaskDialogProps) 
               />
             </div>
 
-            {/* الوقت المقدر */}
+            {/* الوقت المقدر ونوع المؤقت */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -419,6 +421,28 @@ export default function EditTaskDialog({ task, disabled }: EditTaskDialogProps) 
                 </FormItem>
               )}
             />
+
+              <FormField
+                control={form.control}
+                name="timerType"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>نوع المؤقت</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="اختر نوع المؤقت" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="automatic">مؤقت أوتوماتيكي</SelectItem>
+                        <SelectItem value="manual">مؤقت يدوي</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
 
             <div className="flex gap-2 pt-4">

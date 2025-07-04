@@ -157,6 +157,7 @@ Changelog:
 - July 3, 2025. Enhanced print functionality: added technicians and assistants columns to print report table, displays multiple names with comma separation for multi-select fields, maintains backward compatibility for single-select legacy data
 - July 3, 2025. Added checkboxes for technicians and assistants in EditTaskDialog: users can now select multiple technicians and assistants when editing tasks, maintaining consistency with the create task form
 - July 3, 2025. Added "برمجة" (programming) as a new task type option: expanded task types to 13 categories including programming for technical/software-related tasks
+- July 4, 2025. Implemented timer type selection system: added manual vs automatic timer options during task creation, manual timers start in paused state requiring manual activation, automatic timers start immediately, enhanced precision with 100ms updates for both timer types, updated database schema and both create/edit forms to support timer type selection
 
 ## User Preferences
 

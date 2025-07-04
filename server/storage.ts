@@ -201,18 +201,21 @@ export class DatabaseStorage implements IStorage {
         assistants: insertTask.assistants || null,
         repairOperation: insertTask.repairOperation || null,
         taskType: insertTask.taskType || null,
+        timerType: insertTask.timerType || "automatic",
         taskNumber,
-        startTime: new Date(),
-        status: "active",
+        startTime: insertTask.timerType === "manual" ? null : new Date(),
+        status: insertTask.timerType === "manual" ? "paused" : "active",
       })
       .returning();
 
-    // Create initial time entry to start the timer immediately
-    await db.insert(timeEntries).values({
-      taskId: task.id,
-      startTime: new Date(),
-      entryType: "work",
-    });
+    // Create initial time entry only for automatic timers
+    if (insertTask.timerType !== "manual") {
+      await db.insert(timeEntries).values({
+        taskId: task.id,
+        startTime: new Date(),
+        entryType: "work",
+      });
+    }
 
     return task;
   }

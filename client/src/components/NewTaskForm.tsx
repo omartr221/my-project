@@ -29,6 +29,7 @@ const taskFormSchema = z.object({
   assistants: z.array(z.string()).default([]),
   repairOperation: z.string().optional(),
   taskType: z.string().optional(),
+  timerType: z.string().default("automatic"),
 });
 
 type TaskFormData = z.infer<typeof taskFormSchema>;
@@ -67,6 +68,7 @@ export default function NewTaskForm() {
       assistants: [],
       repairOperation: "",
       taskType: "",
+      timerType: "automatic",
     },
   });
 
@@ -315,6 +317,28 @@ export default function NewTaskForm() {
                           onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : null)}
                         />
                       </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="timerType"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>نوع المؤقت</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="اختر نوع المؤقت" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="automatic">مؤقت أوتوماتيكي</SelectItem>
+                          <SelectItem value="manual">مؤقت يدوي</SelectItem>
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
