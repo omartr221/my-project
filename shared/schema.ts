@@ -37,6 +37,7 @@ export const tasks = pgTable("tasks", {
   repairOperation: varchar("repair_operation", { length: 200 }),
   taskType: varchar("task_type", { length: 20 }), // ميكانيك, كهربا
   timerType: varchar("timer_type", { length: 20 }).notNull().default("automatic"), // automatic, manual
+  manualStartTime: timestamp("manual_start_time"), // For manual timer custom start time
   status: varchar("status", { length: 20 }).notNull().default("active"), // active, paused, completed, archived
   startTime: timestamp("start_time").defaultNow(),
   endTime: timestamp("end_time"),
@@ -113,6 +114,7 @@ export const insertTaskSchema = createInsertSchema(tasks).omit({
   repairOperation: true,
   taskType: true,
   timerType: true,
+  manualStartTime: true,
 });
 
 export const insertTimeEntrySchema = createInsertSchema(timeEntries).omit({

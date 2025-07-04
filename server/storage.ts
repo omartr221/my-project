@@ -202,8 +202,11 @@ export class DatabaseStorage implements IStorage {
         repairOperation: insertTask.repairOperation || null,
         taskType: insertTask.taskType || null,
         timerType: insertTask.timerType || "automatic",
+        manualStartTime: insertTask.manualStartTime ? new Date(insertTask.manualStartTime) : null,
         taskNumber,
-        startTime: insertTask.timerType === "manual" ? null : new Date(),
+        startTime: insertTask.timerType === "manual" ? 
+          (insertTask.manualStartTime ? new Date(insertTask.manualStartTime) : null) : 
+          new Date(),
         status: insertTask.timerType === "manual" ? "paused" : "active",
       })
       .returning();
@@ -498,7 +501,11 @@ export class DatabaseStorage implements IStorage {
   private calculateCurrentDuration(task: Task): number {
     if (!task.startTime) return 0;
     
-    const startTime = new Date(task.startTime);
+    // Use manual start time if available for manual timers
+    const effectiveStartTime = (task as any).manualStartTime ? 
+      new Date((task as any).manualStartTime) : 
+      new Date(task.startTime);
+    
     let endTime: Date;
     
     // For completed/archived tasks, use the end time
@@ -515,7 +522,7 @@ export class DatabaseStorage implements IStorage {
     }
     
     // Calculate with millisecond precision
-    const totalDurationMs = endTime.getTime() - startTime.getTime();
+    const totalDurationMs = endTime.getTime() - effectiveStartTime.getTime();
     const totalDuration = totalDurationMs / 1000; // Keep as float for precision
     const pausedTime = task.totalPausedDuration || 0;
     

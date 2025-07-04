@@ -30,6 +30,7 @@ const taskFormSchema = z.object({
   repairOperation: z.string().optional(),
   taskType: z.string().optional(),
   timerType: z.string().default("automatic"),
+  manualStartTime: z.string().optional(),
 });
 
 type TaskFormData = z.infer<typeof taskFormSchema>;
@@ -69,6 +70,7 @@ export default function NewTaskForm() {
       repairOperation: "",
       taskType: "",
       timerType: "automatic",
+      manualStartTime: "",
     },
   });
 
@@ -343,6 +345,30 @@ export default function NewTaskForm() {
                     </FormItem>
                   )}
                 />
+
+                {/* حقل وقت البداية للمؤقت اليدوي */}
+                {form.watch("timerType") === "manual" && (
+                  <FormField
+                    control={form.control}
+                    name="manualStartTime"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>وقت البداية</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="datetime-local"
+                            {...field}
+                            placeholder="اختر وقت البداية"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                        <p className="text-xs text-gray-500">
+                          سيتم بدء العد التنازلي من هذا الوقت
+                        </p>
+                      </FormItem>
+                    )}
+                  />
+                )}
 
                 <FormField
                   control={form.control}
