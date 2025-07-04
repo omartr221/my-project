@@ -41,6 +41,7 @@ export const tasks = pgTable("tasks", {
   status: varchar("status", { length: 20 }).notNull().default("active"), // active, paused, completed, archived
   startTime: timestamp("start_time").defaultNow(),
   endTime: timestamp("end_time"),
+  currentDuration: integer("current_duration").default(0),
   pausedAt: timestamp("paused_at"),
   pauseReason: varchar("pause_reason", { length: 100 }),
   pauseNotes: varchar("pause_notes", { length: 500 }),

@@ -113,20 +113,28 @@ export default function ActiveTimers({
     if (task.timerType === "manual" && (task as any).manualDuration) {
       const manualDurationSeconds = (task as any).manualDuration; // Already in seconds from database
       
-      if (!task.startTime || task.status === "paused") {
-        // Timer hasn't started yet or is paused - show remaining time from currentDuration or full duration
+      if (task.status === "paused") {
+        // Timer is paused - show the frozen duration
         return task.currentDuration !== undefined ? task.currentDuration : manualDurationSeconds;
       }
       
-      // Calculate countdown from manual duration
+      if (!task.startTime) {
+        // Timer hasn't started yet - show full duration
+        return manualDurationSeconds;
+      }
+      
+      // Timer is active - calculate countdown
       const startTime = new Date(task.startTime).getTime();
       const elapsedMs = currentTime - startTime;
       const elapsedSeconds = elapsedMs / 1000;
       const pausedTime = task.totalPausedDuration || 0;
       const actualElapsed = elapsedSeconds - pausedTime;
       
-      // Return remaining time (countdown)
-      return Math.max(0, manualDurationSeconds - actualElapsed);
+      // Start from the stored currentDuration (which should be the manual duration initially)
+      const initialDuration = task.currentDuration !== undefined ? task.currentDuration : manualDurationSeconds;
+      
+      // Calculate remaining time - countdown from initial duration
+      return Math.max(0, initialDuration - elapsedSeconds);
     }
     
     // For automatic timers or manual without duration set
