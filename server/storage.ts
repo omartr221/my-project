@@ -223,6 +223,22 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateTask(id: number, updates: Partial<Task>): Promise<Task> {
+    // If updating manual duration for an active manual timer, reset start time
+    if (updates.manualDuration !== undefined) {
+      const currentTask = await this.getTask(id);
+      if (currentTask?.timerType === "manual" && currentTask.status === "active") {
+        updates.startTime = new Date();
+        updates.currentDuration = updates.manualDuration;
+        
+        // Create a new time entry to restart the timer tracking
+        await db.insert(timeEntries).values({
+          taskId: id,
+          startTime: new Date(),
+          entryType: "work",
+        });
+      }
+    }
+    
     const [task] = await db
       .update(tasks)
       .set(updates)
