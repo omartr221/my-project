@@ -162,6 +162,7 @@ Changelog:
 - July 5, 2025. Enhanced manual timer display: updated TaskHistoryTable and ArchiveView to show user-input consumed time for manual timer tasks instead of calculated duration, corrected efficiency calculations to use actual consumed time, updated print reports to display accurate manual timer data
 - July 5, 2025. Improved automatic timer behavior: automatic timer tasks now start in paused state and begin counting only after successful task creation, ensuring timer starts precisely when user clicks create task button rather than during task creation process
 - July 5, 2025. Database maintenance: cleaned all records and reset sequences for fresh system testing with improved timer functionality
+- July 5, 2025. Fixed actual time calculation for manual timer tasks: updated calculateCurrentDuration function to properly use consumedTime for manual timer tasks instead of calculated time, ensuring accurate display in archive and history views
 
 ## User Preferences
 

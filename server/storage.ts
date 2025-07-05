@@ -516,6 +516,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   private calculateCurrentDuration(task: Task): number {
+    // For manual timer tasks, use the consumed time directly
+    if (task.timerType === 'manual' && task.consumedTime) {
+      return task.consumedTime * 60; // Convert minutes to seconds
+    }
+    
     if (!task.startTime) return 0;
     
     const startTime = new Date(task.startTime);
