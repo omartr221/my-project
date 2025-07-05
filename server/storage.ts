@@ -522,45 +522,51 @@ export class DatabaseStorage implements IStorage {
       return task.consumedTime * 60; // Convert minutes to seconds
     }
     
-    // For automatic timer tasks, calculate based on time entries
-    if (!task.startTime) {
-      // If no start time, check if task was just created and should start automatically
-      if (task.timerType === 'automatic' && task.status === 'active') {
-        // Use created time as start time for new automatic tasks
-        const startTime = new Date(task.createdAt || Date.now());
-        const currentTime = new Date();
-        const durationMs = currentTime.getTime() - startTime.getTime();
-        return Math.max(0, durationMs / 1000);
-      }
+    // For automatic timer tasks, check start and end times
+    let startTime: Date;
+    let endTime: Date;
+    
+    // Determine start time
+    if (task.startTime) {
+      startTime = new Date(task.startTime);
+    } else if (task.createdAt) {
+      // Use creation time as fallback for automatic tasks
+      startTime = new Date(task.createdAt);
+    } else {
       return 0;
     }
     
-    const startTime = new Date(task.startTime);
-    let endTime: Date;
-    
-    // For completed/archived tasks, use the end time
-    if (task.endTime) {
-      endTime = new Date(task.endTime);
-    }
-    // For paused tasks, calculate up to pause time
-    else if (task.status === 'paused' && task.pausedAt) {
+    // Determine end time based on task status
+    if (task.status === 'completed' || task.status === 'archived') {
+      if (task.endTime) {
+        endTime = new Date(task.endTime);
+      } else {
+        // If task is completed but no end time, use reasonable duration
+        // This might happen for old tasks that weren't properly tracked
+        endTime = new Date(startTime.getTime() + (30 * 60 * 1000)); // Default 30 minutes
+      }
+    } else if (task.status === 'paused' && task.pausedAt) {
       endTime = new Date(task.pausedAt);
-    }
-    // For active tasks, use current time
-    else if (task.status === 'active') {
-      endTime = new Date();
-    }
-    else {
+    } else if (task.status === 'active') {
+      endTime = new Date(); // Current time for active tasks
+    } else {
       endTime = new Date();
     }
     
-    // Calculate with millisecond precision
+    // Calculate duration in seconds
     const totalDurationMs = endTime.getTime() - startTime.getTime();
-    const totalDuration = totalDurationMs / 1000; // Keep as float for precision
+    const totalDuration = totalDurationMs / 1000;
     const pausedTime = task.totalPausedDuration || 0;
     
-    // Return exact duration with decimal precision
-    return Math.max(0, totalDuration - pausedTime);
+    // Ensure minimum reasonable duration for completed tasks
+    const calculatedDuration = Math.max(0, totalDuration - pausedTime);
+    
+    // For completed tasks with very small duration, return a minimum of 1 minute
+    if ((task.status === 'completed' || task.status === 'archived') && calculatedDuration < 60) {
+      return 60; // Minimum 1 minute for completed tasks
+    }
+    
+    return calculatedDuration;
   }
 
   async getCarDataByLicensePlate(licensePlate: string): Promise<{ carBrand: string; carModel: string; color?: string } | null> {
