@@ -205,18 +205,12 @@ export class DatabaseStorage implements IStorage {
         consumedTime: insertTask.timerType === "manual" ? (insertTask.consumedTime || 0) : null,
         taskNumber,
         startTime: insertTask.timerType === "manual" ? null : new Date(),
-        status: insertTask.timerType === "manual" ? "completed" : "active",
+        status: insertTask.timerType === "manual" ? "completed" : "paused",
       })
       .returning();
 
-    // Create initial time entry only for automatic timers
-    if (insertTask.timerType !== "manual") {
-      await db.insert(timeEntries).values({
-        taskId: task.id,
-        startTime: new Date(),
-        entryType: "work",
-      });
-    } else {
+    // Handle timer setup based on type
+    if (insertTask.timerType === "manual") {
       // For manual timers, create a completed time entry with the consumed time
       const consumedMinutes = insertTask.consumedTime || 0;
       const startTime = new Date();
@@ -236,6 +230,11 @@ export class DatabaseStorage implements IStorage {
           endTime: endTime
         })
         .where(eq(tasks.id, task.id));
+    }
+
+    // For automatic timers, start the timer immediately after task creation
+    if (insertTask.timerType !== "manual") {
+      await this.startTask(task.id);
     }
 
     return task;
