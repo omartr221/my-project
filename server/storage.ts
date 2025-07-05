@@ -202,43 +202,25 @@ export class DatabaseStorage implements IStorage {
         repairOperation: insertTask.repairOperation || null,
         taskType: insertTask.taskType || null,
         timerType: insertTask.timerType || "automatic",
-        manualDuration: insertTask.manualDuration || null,
         taskNumber,
-        startTime: new Date(), // Always set start time for all timer types
-        status: "active", // Always start active for all timer types
-        currentDuration: insertTask.timerType === "manual" && insertTask.manualDuration 
-          ? insertTask.manualDuration 
-          : 0,
+        startTime: insertTask.timerType === "manual" ? null : new Date(),
+        status: insertTask.timerType === "manual" ? "paused" : "active",
       })
       .returning();
 
-    // Create initial time entry for all timer types
-    await db.insert(timeEntries).values({
-      taskId: task.id,
-      startTime: new Date(),
-      entryType: "work",
-    });
+    // Create initial time entry only for automatic timers
+    if (insertTask.timerType !== "manual") {
+      await db.insert(timeEntries).values({
+        taskId: task.id,
+        startTime: new Date(),
+        entryType: "work",
+      });
+    }
 
     return task;
   }
 
   async updateTask(id: number, updates: Partial<Task>): Promise<Task> {
-    // If updating manual duration for an active manual timer, reset start time
-    if (updates.manualDuration !== undefined) {
-      const currentTask = await this.getTask(id);
-      if (currentTask?.timerType === "manual" && currentTask.status === "active") {
-        updates.startTime = new Date();
-        updates.currentDuration = updates.manualDuration;
-        
-        // Create a new time entry to restart the timer tracking
-        await db.insert(timeEntries).values({
-          taskId: id,
-          startTime: new Date(),
-          entryType: "work",
-        });
-      }
-    }
-    
     const [task] = await db
       .update(tasks)
       .set(updates)
@@ -254,7 +236,6 @@ export class DatabaseStorage implements IStorage {
       .set({
         status: "active",
         pausedAt: null,
-        startTime: new Date(), // Set start time for manual timers
       })
       .where(eq(tasks.id, taskId));
 
@@ -311,19 +292,6 @@ export class DatabaseStorage implements IStorage {
         .where(eq(timeEntries.id, currentEntry.id));
     }
 
-    // Calculate current duration based on timer type
-    let newCurrentDuration: number;
-    if (currentTask.timerType === "manual" && currentTask.manualDuration) {
-      // For countdown timers, calculate remaining time
-      const previousWorkTime = currentTask.totalPausedDuration || 0;
-      const totalElapsed = previousWorkTime + currentSessionTime;
-      newCurrentDuration = Math.max(0, currentTask.manualDuration - totalElapsed);
-    } else {
-      // For regular timers, calculate elapsed time
-      const previousWorkTime = currentTask.totalPausedDuration || 0;
-      newCurrentDuration = previousWorkTime + currentSessionTime;
-    }
-
     // Calculate total accumulated work time
     const previousWorkTime = currentTask.totalPausedDuration || 0;
     const newAccumulatedTime = previousWorkTime + currentSessionTime;
@@ -337,7 +305,6 @@ export class DatabaseStorage implements IStorage {
         pauseReason: reason,
         pauseNotes: notes,
         totalPausedDuration: newAccumulatedTime, // Store accumulated work time
-        currentDuration: newCurrentDuration, // Store current duration for display
       })
       .where(eq(tasks.id, taskId))
       .returning();
@@ -531,11 +498,7 @@ export class DatabaseStorage implements IStorage {
   private calculateCurrentDuration(task: Task): number {
     if (!task.startTime) return 0;
     
-    // Use manual start time if available for manual timers
-    const effectiveStartTime = (task as any).manualStartTime ? 
-      new Date((task as any).manualStartTime) : 
-      new Date(task.startTime);
-    
+    const startTime = new Date(task.startTime);
     let endTime: Date;
     
     // For completed/archived tasks, use the end time
@@ -552,7 +515,7 @@ export class DatabaseStorage implements IStorage {
     }
     
     // Calculate with millisecond precision
-    const totalDurationMs = endTime.getTime() - effectiveStartTime.getTime();
+    const totalDurationMs = endTime.getTime() - startTime.getTime();
     const totalDuration = totalDurationMs / 1000; // Keep as float for precision
     const pausedTime = task.totalPausedDuration || 0;
     

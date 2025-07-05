@@ -109,31 +109,6 @@ export default function ActiveTimers({
   });
 
   const calculateCurrentDuration = (task: TaskWithWorker) => {
-    // For manual timers with countdown
-    if (task.timerType === "manual" && (task as any).manualDuration) {
-      const manualDurationSeconds = (task as any).manualDuration; // Already in seconds from database
-      
-      if (task.status === "paused") {
-        // Timer is paused - show the frozen duration
-        return task.currentDuration !== undefined ? task.currentDuration : manualDurationSeconds;
-      }
-      
-      if (!task.startTime) {
-        // Timer hasn't started yet - show full duration
-        return manualDurationSeconds;
-      }
-      
-      // Timer is active - calculate countdown
-      const startTime = new Date(task.startTime).getTime();
-      const elapsedMs = currentTime - startTime;
-      const elapsedSeconds = elapsedMs / 1000;
-      
-      // For countdown timers, subtract elapsed time from the initial manual duration
-      // Don't consider pausedTime here as it's already accounted for in the logic
-      return Math.max(0, manualDurationSeconds - elapsedSeconds);
-    }
-    
-    // For automatic timers or manual without duration set
     if (!task.startTime) return 0;
     
     // If task is paused, return the duration at the time it was paused (frozen)
@@ -143,6 +118,7 @@ export default function ActiveTimers({
     
     // For active tasks, calculate from start time minus any paused time
     const startTime = new Date(task.startTime).getTime();
+    // Use precise millisecond calculation and convert to seconds
     const totalElapsedMs = currentTime - startTime;
     const totalElapsed = totalElapsedMs / 1000;
     const pausedTime = task.totalPausedDuration || 0;
@@ -241,9 +217,7 @@ export default function ActiveTimers({
                         {formatDuration(currentDuration)}
                       </p>
                       <p className="text-xs text-gray-500">
-                        {task.timerType === "manual" && (task as any).manualDuration
-                          ? "العد التنازلي"
-                          : `بدء في ${task.startTime ? formatTime(new Date(task.startTime)) : '--'}`}
+                        بدء في {task.startTime ? formatTime(new Date(task.startTime)) : '--'}
                       </p>
                     </div>
                   </div>

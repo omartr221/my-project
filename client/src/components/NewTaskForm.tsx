@@ -30,7 +30,6 @@ const taskFormSchema = z.object({
   repairOperation: z.string().optional(),
   taskType: z.string().optional(),
   timerType: z.string().default("automatic"),
-  manualDuration: z.number().optional(),
 });
 
 type TaskFormData = z.infer<typeof taskFormSchema>;
@@ -70,7 +69,6 @@ export default function NewTaskForm() {
       repairOperation: "",
       taskType: "",
       timerType: "automatic",
-      manualDuration: undefined,
     },
   });
 
@@ -113,10 +111,6 @@ export default function NewTaskForm() {
         assistants: data.assistants || [],
         repairOperation: data.repairOperation || null,
         taskType: data.taskType || null,
-        timerType: data.timerType || "automatic",
-        manualDuration: data.timerType === "manual" && data.manualDuration 
-          ? data.manualDuration * 60  // Convert minutes to seconds
-          : null,
       };
       
       console.log("Sending task data:", taskData);
@@ -349,32 +343,6 @@ export default function NewTaskForm() {
                     </FormItem>
                   )}
                 />
-
-                {/* حقل مدة العد التنازلي للمؤقت اليدوي */}
-                {form.watch("timerType") === "manual" && (
-                  <FormField
-                    control={form.control}
-                    name="manualDuration"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>مدة العد التنازلي (بالدقائق)</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            min="1"
-                            placeholder="مثال: 120 (دقيقتين)"
-                            value={field.value || ""}
-                            onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : null)}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                        <p className="text-xs text-gray-500">
-                          سيبدأ العد التنازلي من هذه المدة حتى الصفر
-                        </p>
-                      </FormItem>
-                    )}
-                  />
-                )}
 
                 <FormField
                   control={form.control}
