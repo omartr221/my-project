@@ -177,6 +177,7 @@ export default function ActiveTimers({
                       )}
                       <p className="text-xs text-gray-500">
                         {task.carModel} - {task.licensePlate}
+                        {(task as any).color && ` - ${(task as any).color}`}
                       </p>
                       <div className="text-xs text-gray-600 mt-1 flex flex-wrap gap-2">
                         {(task as any).engineerName && (

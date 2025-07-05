@@ -163,6 +163,7 @@ Changelog:
 - July 5, 2025. Improved automatic timer behavior: automatic timer tasks now start in paused state and begin counting only after successful task creation, ensuring timer starts precisely when user clicks create task button rather than during task creation process
 - July 5, 2025. Database maintenance: cleaned all records and reset sequences for fresh system testing with improved timer functionality
 - July 5, 2025. Fixed actual time calculation for manual timer tasks: updated calculateCurrentDuration function to properly use consumedTime for manual timer tasks instead of calculated time, ensuring accurate display in archive and history views
+- July 5, 2025. Added color field to task management system: enhanced task creation and editing forms with color selection dropdown (12 color options), added color column to database schema, integrated color display across all system views including active timers, history table, archive view, and print reports
 
 ## User Preferences
 

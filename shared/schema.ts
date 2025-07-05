@@ -36,6 +36,7 @@ export const tasks = pgTable("tasks", {
   assistants: text("assistants").array(), // Array of assistant names
   repairOperation: varchar("repair_operation", { length: 200 }),
   taskType: varchar("task_type", { length: 20 }), // ميكانيك, كهربا
+  color: varchar("color", { length: 20 }), // اللون
   timerType: varchar("timer_type", { length: 20 }).notNull().default("automatic"), // automatic, manual
   consumedTime: integer("consumed_time"), // in minutes - for manual timer
   status: varchar("status", { length: 20 }).notNull().default("active"), // active, paused, completed, archived

@@ -20,6 +20,7 @@ const editTaskSchema = z.object({
   description: z.string().min(1, "يجب إدخال وصف المهمة"),
   repairOperation: z.string().optional(),
   taskType: z.string().optional(),
+  color: z.string().optional(),
   carBrand: z.string().min(1, "يجب اختيار نوع السيارة"),
   carModel: z.string().min(1, "يجب إدخال موديل السيارة"),
   licensePlate: z.string().min(1, "يجب إدخال رقم اللوحة"),
@@ -67,6 +68,7 @@ export default function EditTaskDialog({ task, disabled }: EditTaskDialogProps) 
       description: task.description,
       repairOperation: (task as any).repairOperation || "",
       taskType: (task as any).taskType || "",
+      color: (task as any).color || "",
       carBrand: task.carBrand,
       carModel: task.carModel,
       licensePlate: task.licensePlate,
@@ -207,6 +209,38 @@ export default function EditTaskDialog({ task, disabled }: EditTaskDialogProps) 
                       <SelectItem value="خدمات خارجية">خدمات خارجية</SelectItem>
                       <SelectItem value="حدادة">حدادة</SelectItem>
                       <SelectItem value="برمجة">برمجة</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="color"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>اللون (اختياري)</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="اختر اللون" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="أبيض">أبيض</SelectItem>
+                      <SelectItem value="أسود">أسود</SelectItem>
+                      <SelectItem value="أحمر">أحمر</SelectItem>
+                      <SelectItem value="أزرق">أزرق</SelectItem>
+                      <SelectItem value="رمادي">رمادي</SelectItem>
+                      <SelectItem value="فضي">فضي</SelectItem>
+                      <SelectItem value="أخضر">أخضر</SelectItem>
+                      <SelectItem value="بني">بني</SelectItem>
+                      <SelectItem value="أصفر">أصفر</SelectItem>
+                      <SelectItem value="برتقالي">برتقالي</SelectItem>
+                      <SelectItem value="ذهبي">ذهبي</SelectItem>
+                      <SelectItem value="بنفسجي">بنفسجي</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />

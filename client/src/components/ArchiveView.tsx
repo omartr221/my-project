@@ -266,6 +266,7 @@ export default function ArchiveView() {
               <th>نوع المهمة</th>
               <th>السيارة</th>
               <th>رقم اللوحة</th>
+              <th>اللون</th>
               <th>المهندس</th>
               <th>المشرف</th>
               <th>الفنيون</th>
@@ -314,6 +315,7 @@ export default function ArchiveView() {
                   <td>${(task as any).taskType || '--'}</td>
                   <td>${getCarBrandInArabic(task.carBrand)} ${task.carModel}</td>
                   <td>${task.licensePlate || '--'}</td>
+                  <td>${(task as any).color || '--'}</td>
                   <td>${engineerName}</td>
                   <td>${supervisorName}</td>
                   <td>${(task as any).technicians && (task as any).technicians.length > 0 ? 
@@ -459,6 +461,11 @@ export default function ArchiveView() {
                       <div>
                         <span className="font-medium">رقم اللوحة:</span> {task.licensePlate || '--'}
                       </div>
+                      {(task as any).color && (
+                        <div>
+                          <span className="font-medium">اللون:</span> {(task as any).color}
+                        </div>
+                      )}
                       <div>
                         <span className="font-medium">المشرف:</span> {task.supervisorName || '--'}
                       </div>
