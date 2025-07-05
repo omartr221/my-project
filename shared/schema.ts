@@ -114,6 +114,7 @@ export const insertTaskSchema = createInsertSchema(tasks).omit({
   technicianName: true,
   repairOperation: true,
   taskType: true,
+  color: true,
   timerType: true,
 });
 

@@ -204,6 +204,7 @@ export class DatabaseStorage implements IStorage {
         assistants: insertTask.assistants || null,
         repairOperation: insertTask.repairOperation || null,
         taskType: insertTask.taskType || null,
+        color: insertTask.color || null,
         timerType: insertTask.timerType || "automatic",
         consumedTime: insertTask.timerType === "manual" ? (insertTask.consumedTime || 0) : null,
         taskNumber,
