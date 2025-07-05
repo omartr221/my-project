@@ -33,7 +33,7 @@ const editTaskSchema = z.object({
   technicians: z.array(z.string()).optional(),
   assistants: z.array(z.string()).optional(),
   timerType: z.string().optional(),
-  consumedTime: z.number().optional(),
+  consumedTime: z.number().nullable().optional(),
 });
 
 type EditTaskFormData = z.infer<typeof editTaskSchema>;
