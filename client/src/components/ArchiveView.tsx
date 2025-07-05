@@ -461,11 +461,9 @@ export default function ArchiveView() {
                       <div>
                         <span className="font-medium">رقم اللوحة:</span> {task.licensePlate || '--'}
                       </div>
-                      {(task as any).color && (
-                        <div>
-                          <span className="font-medium">اللون:</span> {(task as any).color}
-                        </div>
-                      )}
+                      <div>
+                        <span className="font-medium">اللون:</span> {(task as any).color || '--'}
+                      </div>
                       <div>
                         <span className="font-medium">المشرف:</span> {task.supervisorName || '--'}
                       </div>
