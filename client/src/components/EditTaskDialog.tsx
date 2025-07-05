@@ -89,15 +89,19 @@ export default function EditTaskDialog({ task, disabled }: EditTaskDialogProps) 
 
   const updateTaskMutation = useMutation({
     mutationFn: async (data: EditTaskFormData) => {
+      const payload = {
+        ...data,
+        carBrand: data.carBrand === "other" ? data.customCarBrand : data.carBrand,
+      };
+      console.log("Sending PATCH request to:", `/api/tasks/${task.id}`);
+      console.log("Payload:", payload);
+      
       const response = await fetch(`/api/tasks/${task.id}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          ...data,
-          carBrand: data.carBrand === "other" ? data.customCarBrand : data.carBrand,
-        }),
+        body: JSON.stringify(payload),
       });
       
       if (!response.ok) {
@@ -128,6 +132,7 @@ export default function EditTaskDialog({ task, disabled }: EditTaskDialogProps) 
   });
 
   const onSubmit = (data: EditTaskFormData) => {
+    console.log("Form submitted with data:", data);
     updateTaskMutation.mutate(data);
   };
 
