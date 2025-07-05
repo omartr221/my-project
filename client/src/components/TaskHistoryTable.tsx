@@ -257,7 +257,9 @@ export default function TaskHistoryTable() {
                       {task.endTime ? formatTime(new Date(task.endTime)) : '--'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {formatDuration(task.totalDuration)}
+                      {(task as any).timerType === 'manual' && (task as any).consumedTime 
+                        ? formatDuration((task as any).consumedTime * 60) 
+                        : formatDuration(task.totalDuration)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {task.estimatedDuration ? (
@@ -266,11 +268,15 @@ export default function TaskHistoryTable() {
                             مقدر: {formatDuration(task.estimatedDuration * 60)}
                           </span>
                           <span className={`font-medium ${
-                            task.totalDuration > (task.estimatedDuration * 60) 
+                            ((task as any).timerType === 'manual' && (task as any).consumedTime 
+                              ? (task as any).consumedTime * 60 > (task.estimatedDuration * 60)
+                              : task.totalDuration > (task.estimatedDuration * 60))
                               ? 'text-red-600' 
                               : 'text-green-600'
                           }`}>
-                            فعلي: {formatDuration(task.totalDuration)}
+                            فعلي: {(task as any).timerType === 'manual' && (task as any).consumedTime 
+                              ? formatDuration((task as any).consumedTime * 60) 
+                              : formatDuration(task.totalDuration)}
                           </span>
                         </div>
                       ) : (
