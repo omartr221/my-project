@@ -97,6 +97,8 @@ export default function NewTaskForm() {
       if (response.ok) {
         const carData = await response.json();
         
+        console.log("Car data found:", carData); // Debug log
+        
         // Autofill the form with found data
         form.setValue("carBrand", carData.carBrand);
         form.setValue("carModel", carData.carModel);
@@ -106,11 +108,11 @@ export default function NewTaskForm() {
         
         toast({
           title: "تم العثور على بيانات السيارة",
-          description: "تم تعبئة البيانات تلقائياً من السجلات السابقة",
+          description: `تم تعبئة: ${carData.carBrand} ${carData.carModel}${carData.color ? ' - ' + carData.color : ''}`,
         });
       }
     } catch (error) {
-      // Silently fail - no need to show error for missing data
+      console.error("Error fetching car data:", error);
     }
   };
 
