@@ -155,7 +155,12 @@ export default function EditTaskDialog({ task, disabled }: EditTaskDialogProps) 
         </DialogHeader>
         
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6" 
+                onClick={(e) => {
+                  if (e.target instanceof HTMLButtonElement && e.target.type === 'submit') {
+                    console.log("Submit button clicked");
+                  }
+                }}>
             {/* معلومات المهمة الأساسية */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <FormField
@@ -535,6 +540,10 @@ export default function EditTaskDialog({ task, disabled }: EditTaskDialogProps) 
                 type="submit" 
                 disabled={updateTaskMutation.isPending}
                 className="flex-1"
+                onClick={(e) => {
+                  console.log("Button clicked", e);
+                  console.log("Form errors:", form.formState.errors);
+                }}
               >
                 {updateTaskMutation.isPending ? "جاري الحفظ..." : "حفظ التعديلات"}
               </Button>
