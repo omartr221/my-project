@@ -1,6 +1,6 @@
 import { workers, tasks, timeEntries, type Worker, type InsertWorker, type Task, type InsertTask, type TimeEntry, type InsertTimeEntry, type WorkerWithTasks, type TaskWithWorker, type TaskHistory } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, isNull, or, like, isNotNull } from "drizzle-orm";
+import { eq, desc, and, isNull, or, like, isNotNull, asc } from "drizzle-orm";
 
 export interface IStorage {
   // Worker management
@@ -392,9 +392,7 @@ export class DatabaseStorage implements IStorage {
 
     return tasksData.map(task => ({
       ...task,
-      totalDuration: task.timeEntries.reduce((total, entry) => {
-        return total + (entry.duration || 0);
-      }, 0),
+      totalDuration: this.calculateCurrentDuration(task),
     }));
   }
 
@@ -524,7 +522,18 @@ export class DatabaseStorage implements IStorage {
       return task.consumedTime * 60; // Convert minutes to seconds
     }
     
-    if (!task.startTime) return 0;
+    // For automatic timer tasks, calculate based on time entries
+    if (!task.startTime) {
+      // If no start time, check if task was just created and should start automatically
+      if (task.timerType === 'automatic' && task.status === 'active') {
+        // Use created time as start time for new automatic tasks
+        const startTime = new Date(task.createdAt || Date.now());
+        const currentTime = new Date();
+        const durationMs = currentTime.getTime() - startTime.getTime();
+        return Math.max(0, durationMs / 1000);
+      }
+      return 0;
+    }
     
     const startTime = new Date(task.startTime);
     let endTime: Date;
@@ -538,6 +547,9 @@ export class DatabaseStorage implements IStorage {
       endTime = new Date(task.pausedAt);
     }
     // For active tasks, use current time
+    else if (task.status === 'active') {
+      endTime = new Date();
+    }
     else {
       endTime = new Date();
     }
