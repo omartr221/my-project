@@ -161,6 +161,7 @@ Changelog:
 - July 5, 2025. Fixed manual timer functionality: corrected data transmission to include timerType and consumedTime fields in API requests, manual timer tasks now automatically complete and go to final delivery status with recorded consumed time, enhanced NewTaskForm to properly send timer data to server
 - July 5, 2025. Enhanced manual timer display: updated TaskHistoryTable and ArchiveView to show user-input consumed time for manual timer tasks instead of calculated duration, corrected efficiency calculations to use actual consumed time, updated print reports to display accurate manual timer data
 - July 5, 2025. Improved automatic timer behavior: automatic timer tasks now start in paused state and begin counting only after successful task creation, ensuring timer starts precisely when user clicks create task button rather than during task creation process
+- July 5, 2025. Database maintenance: cleaned all records and reset sequences for fresh system testing with improved timer functionality
 
 ## User Preferences
 
