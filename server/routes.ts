@@ -157,6 +157,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const id = parseInt(req.params.id);
       const updates = req.body;
       
+      console.log(`Updating task ${id} with data:`, updates);
+      
       // التحقق من صحة البيانات
       if (updates.description !== undefined && typeof updates.description !== 'string') {
         return res.status(400).json({ error: "وصف المهمة يجب أن يكون نص" });
@@ -167,6 +169,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const task = await storage.updateTask(id, updates);
+      console.log("Task updated successfully:", task);
       
       broadcastUpdate('task_updated', task);
       res.json(task);
