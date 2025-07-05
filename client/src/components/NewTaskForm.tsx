@@ -30,6 +30,7 @@ const taskFormSchema = z.object({
   repairOperation: z.string().optional(),
   taskType: z.string().optional(),
   timerType: z.string().default("automatic"),
+  consumedTime: z.number().optional(),
 });
 
 type TaskFormData = z.infer<typeof taskFormSchema>;
@@ -69,6 +70,7 @@ export default function NewTaskForm() {
       repairOperation: "",
       taskType: "",
       timerType: "automatic",
+      consumedTime: undefined,
     },
   });
 
@@ -343,6 +345,28 @@ export default function NewTaskForm() {
                     </FormItem>
                   )}
                 />
+
+                {/* حقل الوقت المستهلك - يظهر فقط عند اختيار المؤقت اليدوي */}
+                {form.watch("timerType") === "manual" && (
+                  <FormField
+                    control={form.control}
+                    name="consumedTime"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>الوقت المستهلك (دقيقة)</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder="أدخل الوقت المستهلك"
+                            value={field.value || ""}
+                            onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : null)}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
 
                 <FormField
                   control={form.control}

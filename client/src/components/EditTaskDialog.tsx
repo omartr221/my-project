@@ -31,6 +31,7 @@ const editTaskSchema = z.object({
   technicians: z.array(z.string()).optional(),
   assistants: z.array(z.string()).optional(),
   timerType: z.string().optional(),
+  consumedTime: z.number().optional(),
 });
 
 type EditTaskFormData = z.infer<typeof editTaskSchema>;
@@ -77,6 +78,7 @@ export default function EditTaskDialog({ task, disabled }: EditTaskDialogProps) 
       technicians: (task as any).technicians || [],
       assistants: (task as any).assistants || [],
       timerType: (task as any).timerType || "automatic",
+      consumedTime: (task as any).consumedTime,
     },
   });
 
@@ -443,6 +445,28 @@ export default function EditTaskDialog({ task, disabled }: EditTaskDialogProps) 
                   </FormItem>
                 )}
               />
+
+              {/* حقل الوقت المستهلك - يظهر فقط عند اختيار المؤقت اليدوي */}
+              {form.watch("timerType") === "manual" && (
+                <FormField
+                  control={form.control}
+                  name="consumedTime"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>الوقت المستهلك (دقيقة)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          placeholder="أدخل الوقت المستهلك"
+                          value={field.value || ""}
+                          onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
             </div>
 
             <div className="flex gap-2 pt-4">
