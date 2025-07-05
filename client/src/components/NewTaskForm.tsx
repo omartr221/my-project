@@ -113,6 +113,8 @@ export default function NewTaskForm() {
         assistants: data.assistants || [],
         repairOperation: data.repairOperation || null,
         taskType: data.taskType || null,
+        timerType: data.timerType || "automatic",
+        consumedTime: data.consumedTime || null,
       };
       
       console.log("Sending task data:", taskData);

@@ -158,6 +158,7 @@ Changelog:
 - July 3, 2025. Added checkboxes for technicians and assistants in EditTaskDialog: users can now select multiple technicians and assistants when editing tasks, maintaining consistency with the create task form
 - July 3, 2025. Added "برمجة" (programming) as a new task type option: expanded task types to 13 categories including programming for technical/software-related tasks
 - July 4, 2025. Implemented timer type selection system: added manual vs automatic timer options during task creation, manual timers start in paused state requiring manual activation, automatic timers start immediately, enhanced precision with 100ms updates for both timer types, updated database schema and both create/edit forms to support timer type selection
+- July 5, 2025. Fixed manual timer functionality: corrected data transmission to include timerType and consumedTime fields in API requests, manual timer tasks now automatically complete and go to final delivery status with recorded consumed time, enhanced NewTaskForm to properly send timer data to server
 
 ## User Preferences
 
