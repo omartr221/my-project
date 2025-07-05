@@ -263,6 +263,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get car data by license plate for autofill
+  app.get("/api/cars/:licensePlate", async (req, res) => {
+    try {
+      const licensePlate = req.params.licensePlate;
+      const carData = await storage.getCarDataByLicensePlate(licensePlate);
+      
+      if (!carData) {
+        return res.status(404).json({ message: "Car not found" });
+      }
+      
+      res.json(carData);
+    } catch (error) {
+      console.error("Error fetching car data:", error);
+      res.status(500).json({ message: "Failed to fetch car data" });
+    }
+  });
+
   const httpServer = createServer(app);
 
   // WebSocket server setup

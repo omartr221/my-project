@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -87,6 +87,45 @@ export default function NewTaskForm() {
   });
 
   const workerNames = workers?.map((w: any) => w.name) || [];
+
+  // Function to fetch car data by license plate for autofill
+  const fetchCarData = async (licensePlate: string) => {
+    if (!licensePlate.trim()) return;
+    
+    try {
+      const response = await fetch(`/api/cars/${encodeURIComponent(licensePlate)}`);
+      if (response.ok) {
+        const carData = await response.json();
+        
+        // Autofill the form with found data
+        form.setValue("carBrand", carData.carBrand);
+        form.setValue("carModel", carData.carModel);
+        if (carData.color) {
+          form.setValue("color", carData.color);
+        }
+        
+        toast({
+          title: "تم العثور على بيانات السيارة",
+          description: "تم تعبئة البيانات تلقائياً من السجلات السابقة",
+        });
+      }
+    } catch (error) {
+      // Silently fail - no need to show error for missing data
+    }
+  };
+
+  // Watch license plate changes for autofill
+  const licensePlateValue = form.watch("licensePlate");
+  
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (licensePlateValue && licensePlateValue.length >= 3) {
+        fetchCarData(licensePlateValue);
+      }
+    }, 500); // Debounce for 500ms
+    
+    return () => clearTimeout(timeoutId);
+  }, [licensePlateValue]);
 
   const createTaskMutation = useMutation({
     mutationFn: async (data: TaskFormData) => {

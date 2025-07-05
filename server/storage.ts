@@ -32,6 +32,9 @@ export interface IStorage {
   // History and reporting  
   getTaskHistory(limit?: number): Promise<TaskHistory[]>;
   getWorkerStats(): Promise<{ totalWorkers: number; availableWorkers: number; busyWorkers: number; activeTasks: number }>;
+  
+  // Car data for autofill
+  getCarDataByLicensePlate(licensePlate: string): Promise<{ carBrand: string; carModel: string; color?: string } | null>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -546,6 +549,41 @@ export class DatabaseStorage implements IStorage {
     
     // Return exact duration with decimal precision
     return Math.max(0, totalDuration - pausedTime);
+  }
+
+  async getCarDataByLicensePlate(licensePlate: string): Promise<{ carBrand: string; carModel: string; color?: string } | null> {
+    // Search in active tasks first
+    const activeTask = await db.query.tasks.findFirst({
+      where: eq(tasks.licensePlate, licensePlate),
+      orderBy: [desc(tasks.createdAt)],
+    });
+
+    if (activeTask) {
+      return {
+        carBrand: activeTask.carBrand,
+        carModel: activeTask.carModel,
+        color: (activeTask as any).color || undefined,
+      };
+    }
+
+    // If not found in active tasks, search in archived tasks
+    const archivedTask = await db.query.tasks.findFirst({
+      where: and(
+        eq(tasks.licensePlate, licensePlate),
+        eq(tasks.isArchived, true)
+      ),
+      orderBy: [desc(tasks.archivedAt)],
+    });
+
+    if (archivedTask) {
+      return {
+        carBrand: archivedTask.carBrand,
+        carModel: archivedTask.carModel,
+        color: (archivedTask as any).color || undefined,
+      };
+    }
+
+    return null;
   }
 }
 
