@@ -18,6 +18,7 @@ const taskFormSchema = z.object({
   workerRole: z.string().default("assistant"),
   description: z.string().min(1, "يجب إدخال وصف المهمة"),
   carBrand: z.string().min(1, "يجب اختيار نوع السيارة"),
+  customCarBrand: z.string().optional(),
   carModel: z.string().min(1, "يجب إدخال موديل السيارة"),
   licensePlate: z.string().min(1, "يجب إدخال رقم اللوحة"),
   estimatedDuration: z.number().nullable().optional(),
@@ -41,6 +42,7 @@ const carBrands = [
   { value: "seat", label: "سيات" },
   { value: "skoda", label: "سكودا" },
   { value: "volkswagen", label: "فولكس فاجن" },
+  { value: "other", label: "أخرى" },
 ];
 
 export default function NewTaskForm() {
@@ -101,7 +103,7 @@ export default function NewTaskForm() {
       
       const taskData = {
         description: data.description,
-        carBrand: data.carBrand,
+        carBrand: data.carBrand === "other" ? data.customCarBrand : data.carBrand,
         carModel: data.carModel,
         licensePlate: data.licensePlate,
         workerId: workerId,
@@ -314,6 +316,22 @@ export default function NewTaskForm() {
                   )}
                 />
 
+                {form.watch("carBrand") === "other" && (
+                  <FormField
+                    control={form.control}
+                    name="customCarBrand"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>نوع السيارة المخصص</FormLabel>
+                        <FormControl>
+                          <Input placeholder="اكتب نوع السيارة" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+
                 <FormField
                   control={form.control}
                   name="carModel"
@@ -321,7 +339,7 @@ export default function NewTaskForm() {
                     <FormItem>
                       <FormLabel>موديل السيارة</FormLabel>
                       <FormControl>
-                        <Input placeholder="مثال: A4 2024" {...field} />
+                        <Input placeholder="مثال: A4" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

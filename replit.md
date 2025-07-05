@@ -164,6 +164,7 @@ Changelog:
 - July 5, 2025. Database maintenance: cleaned all records and reset sequences for fresh system testing with improved timer functionality
 - July 5, 2025. Fixed actual time calculation for manual timer tasks: updated calculateCurrentDuration function to properly use consumedTime for manual timer tasks instead of calculated time, ensuring accurate display in archive and history views
 - July 5, 2025. Added color field to task management system: enhanced task creation and editing forms with color selection dropdown (12 color options), added color column to database schema, integrated color display across all system views including active timers, history table, archive view, and print reports
+- July 5, 2025. Enhanced car brand selection with custom option: added "أخرى" (Other) option to car brand dropdown allowing users to input custom car brands, integrated into both task creation and editing forms, updated car model placeholder to remove year examples (now shows "A4" instead of "A4 2024")
 
 ## User Preferences
 

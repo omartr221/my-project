@@ -22,6 +22,7 @@ const editTaskSchema = z.object({
   taskType: z.string().optional(),
   color: z.string().optional(),
   carBrand: z.string().min(1, "يجب اختيار نوع السيارة"),
+  customCarBrand: z.string().optional(),
   carModel: z.string().min(1, "يجب إدخال موديل السيارة"),
   licensePlate: z.string().min(1, "يجب إدخال رقم اللوحة"),
   estimatedDuration: z.number().min(1, "يجب أن يكون الوقت المقدر أكبر من صفر"),
@@ -60,6 +61,7 @@ export default function EditTaskDialog({ task, disabled }: EditTaskDialogProps) 
     { value: "seat", label: "سيات" },
     { value: "skoda", label: "سكودا" },
     { value: "volkswagen", label: "فولكسواجن" },
+    { value: "other", label: "أخرى" },
   ];
 
   const form = useForm<EditTaskFormData>({
@@ -70,6 +72,7 @@ export default function EditTaskDialog({ task, disabled }: EditTaskDialogProps) 
       taskType: (task as any).taskType || "",
       color: (task as any).color || "",
       carBrand: task.carBrand,
+      customCarBrand: "",
       carModel: task.carModel,
       licensePlate: task.licensePlate,
       estimatedDuration: task.estimatedDuration || 60,
@@ -91,7 +94,10 @@ export default function EditTaskDialog({ task, disabled }: EditTaskDialogProps) 
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify({
+          ...data,
+          carBrand: data.carBrand === "other" ? data.customCarBrand : data.carBrand,
+        }),
       });
       
       if (!response.ok) {
@@ -276,6 +282,22 @@ export default function EditTaskDialog({ task, disabled }: EditTaskDialogProps) 
               )}
             />
 
+            {form.watch("carBrand") === "other" && (
+              <FormField
+                control={form.control}
+                name="customCarBrand"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>نوع السيارة المخصص</FormLabel>
+                    <FormControl>
+                      <Input placeholder="اكتب نوع السيارة" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
             <FormField
               control={form.control}
               name="carModel"
@@ -283,7 +305,7 @@ export default function EditTaskDialog({ task, disabled }: EditTaskDialogProps) 
                 <FormItem>
                   <FormLabel>موديل السيارة</FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder="A4, Golf, Octavia..." />
+                    <Input {...field} placeholder="مثال: A4" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
