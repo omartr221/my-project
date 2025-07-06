@@ -245,9 +245,15 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateTask(id: number, updates: Partial<Task>): Promise<Task> {
+    // Convert createdAt string to Date if provided
+    const processedUpdates = { ...updates };
+    if (updates.createdAt && typeof updates.createdAt === 'string') {
+      processedUpdates.createdAt = new Date(updates.createdAt);
+    }
+    
     const [task] = await db
       .update(tasks)
-      .set(updates)
+      .set(processedUpdates)
       .where(eq(tasks.id, id))
       .returning();
     return task;

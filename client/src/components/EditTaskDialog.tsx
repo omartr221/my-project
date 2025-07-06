@@ -15,6 +15,8 @@ import { TaskWithWorker } from "@shared/schema";
 import { Edit } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { getCarBrandInArabic } from "@/lib/utils";
+import { format } from "date-fns";
+import { ar } from "date-fns/locale";
 
 const editTaskSchema = z.object({
   description: z.string().min(1, "يجب إدخال وصف المهمة"),
@@ -34,6 +36,7 @@ const editTaskSchema = z.object({
   assistants: z.array(z.string()).optional(),
   timerType: z.string().optional(),
   consumedTime: z.number().nullable().optional(),
+  createdAt: z.string().optional(),
 });
 
 type EditTaskFormData = z.infer<typeof editTaskSchema>;
@@ -84,6 +87,7 @@ export default function EditTaskDialog({ task, disabled }: EditTaskDialogProps) 
       assistants: (task as any).assistants || [],
       timerType: (task as any).timerType || "automatic",
       consumedTime: (task as any).consumedTime,
+      createdAt: task.createdAt ? format(new Date(task.createdAt), "yyyy-MM-dd'T'HH:mm") : "",
     },
   });
 
@@ -507,6 +511,23 @@ export default function EditTaskDialog({ task, disabled }: EditTaskDialogProps) 
                         <SelectItem value="manual">مؤقت يدوي</SelectItem>
                       </SelectContent>
                     </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="createdAt"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>تاريخ ووقت إنشاء المهمة</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="datetime-local"
+                        {...field}
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
