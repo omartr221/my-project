@@ -100,10 +100,10 @@ export default function CustomerCard() {
         carBrand: customerForm.carBrand,
         carModel: customerForm.carModel,
         licensePlate: customerForm.licensePlate,
-        color: customerForm.color,
-        year: parseInt(customerForm.year),
-        engineCode: customerForm.engineCode,
-        chassisNumber: customerForm.chassisNumber,
+        color: customerForm.color || undefined,
+        year: customerForm.year ? parseInt(customerForm.year) : undefined,
+        engineCode: customerForm.engineCode || undefined,
+        chassisNumber: customerForm.chassisNumber || undefined,
       };
       
       await apiRequest("POST", "/api/customer-cars", carData);
