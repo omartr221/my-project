@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Plus, Edit, Trash2, Save, X, User, Car, Phone, MapPin } from "lucide-react";
+import { Search, Plus, Edit, Trash2, Save, X, User, Car, Phone, MapPin, ChevronLeft, ChevronRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -20,6 +20,8 @@ export default function CustomerCard() {
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [showAddCarForm, setShowAddCarForm] = useState(false);
   const [editingCar, setEditingCar] = useState<CustomerCar | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
   const { toast } = useToast();
 
   const [customerForm, setCustomerForm] = useState({
@@ -60,6 +62,24 @@ export default function CustomerCard() {
     customer.phoneNumber.includes(searchTerm) ||
     customer.address?.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // Calculate pagination
+  const totalPages = Math.ceil(filteredCustomers.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentCustomers = filteredCustomers.slice(startIndex, endIndex);
+
+  // Handle page change
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+    setSelectedCustomer(null); // Close any open customer details
+  };
+
+  // Reset page when search term changes
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+    setCurrentPage(1); // Reset to first page when searching
+  };
 
   const resetCustomerForm = () => {
     setCustomerForm({
@@ -262,7 +282,7 @@ export default function CustomerCard() {
                 <Input
                   placeholder="ابحث عن زبون (الاسم، رقم الهاتف، العنوان)"
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={(e) => handleSearchChange(e.target.value)}
                   className="pr-10"
                 />
               </div>
@@ -401,7 +421,7 @@ export default function CustomerCard() {
 
             {/* Customer List */}
             <div className="space-y-3">
-              {filteredCustomers.map((customer) => (
+              {currentCustomers.map((customer) => (
                 <Card key={customer.id} className="border-gray-200">
                   <CardContent className="p-4">
                     <div className="flex justify-between items-start">
@@ -772,6 +792,52 @@ export default function CustomerCard() {
                 </Card>
               ))}
             </div>
+
+            {/* Pagination Controls */}
+            {filteredCustomers.length > 0 && totalPages > 1 && (
+              <div className="flex justify-center items-center gap-4 mt-6">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                  السابق
+                </Button>
+                
+                <div className="flex items-center gap-2">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <Button
+                      key={page}
+                      variant={currentPage === page ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => handlePageChange(page)}
+                      className="min-w-[2.5rem]"
+                    >
+                      {page}
+                    </Button>
+                  ))}
+                </div>
+                
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                >
+                  التالي
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+
+            {/* Pagination Info */}
+            {filteredCustomers.length > 0 && (
+              <div className="text-center text-sm text-gray-500 mt-4">
+                عرض {startIndex + 1}-{Math.min(endIndex, filteredCustomers.length)} من {filteredCustomers.length} زبون
+              </div>
+            )}
 
             {filteredCustomers.length === 0 && (
               <div className="text-center py-8 text-gray-500">
