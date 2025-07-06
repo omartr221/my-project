@@ -184,6 +184,16 @@ export default function CustomerCard() {
       return;
     }
 
+    // Validate chassis number length
+    if (customerForm.chassisNumber && customerForm.chassisNumber.length !== 17) {
+      toast({
+        title: "خطأ في رقم الشاسيه",
+        description: "رقم الشاسيه يجب أن يكون 17 حرف ورقم بالضبط",
+        variant: "destructive",
+      });
+      return;
+    }
+
     // Create customer data (only name and phone for customer table)
     const customerData: InsertCustomer = {
       name: customerForm.name,
@@ -222,6 +232,16 @@ export default function CustomerCard() {
       toast({
         title: "خطأ في البيانات",
         description: "يرجى إدخال جميع البيانات المطلوبة للسيارة",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate chassis number length if provided
+    if (carForm.chassisNumber && carForm.chassisNumber.length !== 17) {
+      toast({
+        title: "خطأ في رقم الشاسيه",
+        description: "رقم الشاسيه يجب أن يكون 17 حرف ورقم بالضبط",
         variant: "destructive",
       });
       return;
@@ -268,6 +288,18 @@ export default function CustomerCard() {
   const handleEditCar = () => {
     if (!editingCar) return;
 
+    const chassisNumber = carForm.chassisNumber || (editingCar as any).chassisNumber || "";
+    
+    // Validate chassis number length if provided
+    if (chassisNumber && chassisNumber.length !== 17) {
+      toast({
+        title: "خطأ في رقم الشاسيه",
+        description: "رقم الشاسيه يجب أن يكون 17 حرف ورقم بالضبط",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const updates: Partial<InsertCustomerCar> = {
       carBrand: carForm.carBrand || editingCar.carBrand,
       carModel: carForm.carModel || editingCar.carModel,
@@ -275,7 +307,7 @@ export default function CustomerCard() {
       color: carForm.color || editingCar.color || undefined,
       year: carForm.year ? parseInt(carForm.year) : editingCar.year || undefined,
       engineCode: carForm.engineCode || (editingCar as any).engineCode || undefined,
-      chassisNumber: carForm.chassisNumber || (editingCar as any).chassisNumber || undefined,
+      chassisNumber: chassisNumber || undefined,
       notes: carForm.notes || editingCar.notes || undefined,
     };
 
@@ -446,13 +478,24 @@ export default function CustomerCard() {
                       />
                     </div>
                     <div>
-                      <Label htmlFor="chassisNumber">رقم الشاسيه *</Label>
+                      <Label htmlFor="chassisNumber">رقم الشاسيه * (17 حرف ورقم)</Label>
                       <Input
                         id="chassisNumber"
                         value={customerForm.chassisNumber}
-                        onChange={(e) => setCustomerForm({...customerForm, chassisNumber: e.target.value})}
-                        placeholder="أدخل رقم الشاسيه"
+                        onChange={(e) => {
+                          const value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+                          if (value.length <= 17) {
+                            setCustomerForm({...customerForm, chassisNumber: value});
+                          }
+                        }}
+                        placeholder="أدخل رقم الشاسيه (17 حرف ورقم)"
+                        maxLength={17}
                       />
+                      {customerForm.chassisNumber && customerForm.chassisNumber.length !== 17 && (
+                        <p className="text-red-500 text-sm mt-1">
+                          رقم الشاسيه يجب أن يكون 17 حرف ورقم بالضبط (حالياً: {customerForm.chassisNumber.length})
+                        </p>
+                      )}
                     </div>
                     <div className="md:col-span-2">
                       <Label htmlFor="licensePlate">رقم اللوحة *</Label>
@@ -701,13 +744,24 @@ export default function CustomerCard() {
                                   />
                                 </div>
                                 <div>
-                                  <Label htmlFor="chassisNumber">رقم الشاسيه</Label>
+                                  <Label htmlFor="chassisNumber">رقم الشاسيه (17 حرف ورقم)</Label>
                                   <Input
                                     id="chassisNumber"
                                     value={carForm.chassisNumber}
-                                    onChange={(e) => setCarForm({...carForm, chassisNumber: e.target.value})}
-                                    placeholder="أدخل رقم الشاسيه"
+                                    onChange={(e) => {
+                                      const value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+                                      if (value.length <= 17) {
+                                        setCarForm({...carForm, chassisNumber: value});
+                                      }
+                                    }}
+                                    placeholder="أدخل رقم الشاسيه (17 حرف ورقم)"
+                                    maxLength={17}
                                   />
+                                  {carForm.chassisNumber && carForm.chassisNumber.length !== 17 && (
+                                    <p className="text-red-500 text-sm mt-1">
+                                      رقم الشاسيه يجب أن يكون 17 حرف ورقم بالضبط (حالياً: {carForm.chassisNumber.length})
+                                    </p>
+                                  )}
                                 </div>
                                 <div>
                                   <Label htmlFor="carNotes">ملاحظات</Label>
@@ -842,13 +896,25 @@ export default function CustomerCard() {
                                   />
                                 </div>
                                 <div>
-                                  <Label htmlFor="editChassisNumber">رقم الشاسيه</Label>
+                                  <Label htmlFor="editChassisNumber">رقم الشاسيه (17 حرف ورقم)</Label>
                                   <Input
                                     id="editChassisNumber"
                                     value={carForm.chassisNumber || (editingCar as any).chassisNumber || ""}
-                                    onChange={(e) => setCarForm({...carForm, chassisNumber: e.target.value})}
-                                    placeholder="أدخل رقم الشاسيه"
+                                    onChange={(e) => {
+                                      const value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+                                      if (value.length <= 17) {
+                                        setCarForm({...carForm, chassisNumber: value});
+                                      }
+                                    }}
+                                    placeholder="أدخل رقم الشاسيه (17 حرف ورقم)"
+                                    maxLength={17}
                                   />
+                                  {(carForm.chassisNumber || (editingCar as any).chassisNumber) && 
+                                   (carForm.chassisNumber || (editingCar as any).chassisNumber).length !== 17 && (
+                                    <p className="text-red-500 text-sm mt-1">
+                                      رقم الشاسيه يجب أن يكون 17 حرف ورقم بالضبط (حالياً: {(carForm.chassisNumber || (editingCar as any).chassisNumber).length})
+                                    </p>
+                                  )}
                                 </div>
                                 <div>
                                   <Label htmlFor="editCarNotes">ملاحظات</Label>
