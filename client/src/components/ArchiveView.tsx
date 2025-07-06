@@ -454,6 +454,8 @@ export default function ArchiveView() {
                       </div>
                       <div>
                         <span className="font-medium">نوع المهمة:</span> {(task as any).taskType || '--'}
+                        {/* Debug: Show task data */}
+                        {console.log('Task data:', task)}
                       </div>
                       <div>
                         <span className="font-medium">السيارة:</span> {getCarBrandInArabic(task.carBrand)} {task.carModel}
