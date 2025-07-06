@@ -27,6 +27,8 @@ export default function CustomerCard() {
   const [customerForm, setCustomerForm] = useState({
     name: "",
     phoneNumber: "",
+    address: "",
+    notes: "",
     carBrand: "",
     carModel: "",
     year: "",
@@ -85,6 +87,8 @@ export default function CustomerCard() {
     setCustomerForm({
       name: "",
       phoneNumber: "",
+      address: "",
+      notes: "",
       carBrand: "",
       carModel: "",
       year: "",
@@ -260,6 +264,42 @@ export default function CustomerCard() {
     editCarMutation.mutate({ id: editingCar.id, updates });
   };
 
+  const editCustomerMutation = useMutation({
+    mutationFn: async (data: { id: number; updates: Partial<InsertCustomer> }) => {
+      const response = await apiRequest("PUT", `/api/customers/${data.id}`, data.updates);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/customers"] });
+      toast({
+        title: "تم تحديث الزبون بنجاح",
+        description: "تم تحديث بيانات الزبون بنجاح",
+      });
+      setEditingCustomer(null);
+      resetCustomerForm();
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "خطأ في تحديث الزبون",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleEditCustomer = () => {
+    if (!editingCustomer) return;
+
+    const updates: Partial<InsertCustomer> = {
+      name: customerForm.name || editingCustomer.name,
+      phoneNumber: customerForm.phoneNumber || editingCustomer.phoneNumber,
+      address: customerForm.address || editingCustomer.address || undefined,
+      notes: customerForm.notes || editingCustomer.notes || undefined,
+    };
+
+    editCustomerMutation.mutate({ id: editingCustomer.id, updates });
+  };
+
   const getCustomerCars = (customerId: number) => {
     return customerCars.filter(car => car.customerId === customerId);
   };
@@ -412,6 +452,78 @@ export default function CustomerCard() {
                       resetCustomerForm();
                     }}>
                       <X className="h-4 w-4 ml-1" />
+                      إلغاء
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Edit Customer Form */}
+            {editingCustomer && (
+              <Card className="border-blue-200 bg-blue-50">
+                <CardHeader>
+                  <div className="flex justify-between items-center">
+                    <CardTitle className="text-lg">تعديل بيانات الزبون</CardTitle>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        setEditingCustomer(null);
+                        resetCustomerForm();
+                      }}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="editCustomerName">اسم الزبون *</Label>
+                      <Input
+                        id="editCustomerName"
+                        value={customerForm.name || editingCustomer.name}
+                        onChange={(e) => setCustomerForm({...customerForm, name: e.target.value})}
+                        placeholder="أدخل اسم الزبون"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="editCustomerPhone">الهاتف *</Label>
+                      <Input
+                        id="editCustomerPhone"
+                        value={customerForm.phoneNumber || editingCustomer.phoneNumber}
+                        onChange={(e) => setCustomerForm({...customerForm, phoneNumber: e.target.value})}
+                        placeholder="أدخل رقم الهاتف"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="editCustomerAddress">العنوان</Label>
+                      <Input
+                        id="editCustomerAddress"
+                        value={customerForm.address || editingCustomer.address || ""}
+                        onChange={(e) => setCustomerForm({...customerForm, address: e.target.value})}
+                        placeholder="أدخل العنوان"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="editCustomerNotes">ملاحظات</Label>
+                      <Input
+                        id="editCustomerNotes"
+                        value={customerForm.notes || editingCustomer.notes || ""}
+                        onChange={(e) => setCustomerForm({...customerForm, notes: e.target.value})}
+                        placeholder="أي ملاحظات إضافية"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex gap-2 mt-4">
+                    <Button onClick={handleEditCustomer} disabled={editCustomerMutation.isPending}>
+                      {editCustomerMutation.isPending ? "جاري التحديث..." : "تحديث الزبون"}
+                    </Button>
+                    <Button variant="outline" onClick={() => {
+                      setEditingCustomer(null);
+                      resetCustomerForm();
+                    }}>
                       إلغاء
                     </Button>
                   </div>
