@@ -72,10 +72,29 @@ export default function PausedTasksList({ tasks }: PausedTasksListProps) {
               <div className="flex justify-between items-start">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="font-medium text-gray-900">{task.worker.name}</span>
+                    <span className="font-medium text-gray-900">{(task as any).engineerName || task.worker.name}</span>
                     <Badge variant="outline" className="text-xs">
                       {getCarBrandInArabic(task.carBrand)}
                     </Badge>
+                  </div>
+                  
+                  {/* عرض أعضاء الفريق */}
+                  <div className="flex flex-wrap gap-1 mb-2">
+                    {(task as any).supervisorName && (
+                      <Badge variant="secondary" className="text-xs bg-green-100 text-green-800">
+                        مشرف: {(task as any).supervisorName}
+                      </Badge>
+                    )}
+                    {(task as any).technicians && (task as any).technicians.length > 0 && (
+                      <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-800">
+                        فنيون: {(task as any).technicians.join(', ')}
+                      </Badge>
+                    )}
+                    {(task as any).assistants && (task as any).assistants.length > 0 && (
+                      <Badge variant="secondary" className="text-xs bg-purple-100 text-purple-800">
+                        مساعدون: {(task as any).assistants.join(', ')}
+                      </Badge>
+                    )}
                   </div>
                   
                   <p className="text-sm text-gray-600 mb-1">
