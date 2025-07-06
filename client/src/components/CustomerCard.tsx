@@ -200,6 +200,46 @@ export default function CustomerCard() {
     addCarMutation.mutate(carData);
   };
 
+  const editCarMutation = useMutation({
+    mutationFn: async (data: { id: number; updates: Partial<InsertCustomerCar> }) => {
+      const response = await apiRequest("PUT", `/api/customer-cars/${data.id}`, data.updates);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/customer-cars"] });
+      toast({
+        title: "تم تحديث السيارة بنجاح",
+        description: "تم تحديث بيانات السيارة بنجاح",
+      });
+      setEditingCar(null);
+      resetCarForm();
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "خطأ في تحديث السيارة",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleEditCar = () => {
+    if (!editingCar) return;
+
+    const updates: Partial<InsertCustomerCar> = {
+      carBrand: carForm.carBrand || editingCar.carBrand,
+      carModel: carForm.carModel || editingCar.carModel,
+      licensePlate: carForm.licensePlate || editingCar.licensePlate,
+      color: carForm.color || editingCar.color || undefined,
+      year: carForm.year ? parseInt(carForm.year) : editingCar.year || undefined,
+      engineCode: carForm.engineCode || (editingCar as any).engineCode || undefined,
+      chassisNumber: carForm.chassisNumber || (editingCar as any).chassisNumber || undefined,
+      notes: carForm.notes || editingCar.notes || undefined,
+    };
+
+    editCarMutation.mutate({ id: editingCar.id, updates });
+  };
+
   const getCustomerCars = (customerId: number) => {
     return customerCars.filter(car => car.customerId === customerId);
   };
@@ -530,6 +570,143 @@ export default function CustomerCard() {
                                   setShowAddCarForm(false);
                                   resetCarForm();
                                 }}>
+                                  <X className="h-4 w-4 ml-1" />
+                                  إلغاء
+                                </Button>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        )}
+
+                        {/* Edit Car Form */}
+                        {editingCar && (
+                          <Card className="border-blue-200 bg-blue-50 mb-3">
+                            <CardContent className="p-4">
+                              <div className="flex justify-between items-center mb-3">
+                                <h5 className="font-medium">تعديل بيانات السيارة</h5>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => {
+                                    setEditingCar(null);
+                                    resetCarForm();
+                                  }}
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              </div>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <div>
+                                  <Label htmlFor="editCarBrand">نوع السيارة *</Label>
+                                  <Select 
+                                    value={carForm.carBrand || editingCar.carBrand} 
+                                    onValueChange={(value) => setCarForm({...carForm, carBrand: value})}
+                                  >
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="اختر نوع السيارة" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="audi">Audi</SelectItem>
+                                      <SelectItem value="seat">Seat</SelectItem>
+                                      <SelectItem value="skoda">Skoda</SelectItem>
+                                      <SelectItem value="volkswagen">Volkswagen</SelectItem>
+                                      <SelectItem value="other">أخرى</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                <div>
+                                  <Label htmlFor="editCarModel">الموديل *</Label>
+                                  <Input
+                                    id="editCarModel"
+                                    value={carForm.carModel || editingCar.carModel}
+                                    onChange={(e) => setCarForm({...carForm, carModel: e.target.value})}
+                                    placeholder="A4"
+                                  />
+                                </div>
+                                <div>
+                                  <Label htmlFor="editLicensePlate">رقم اللوحة *</Label>
+                                  <Input
+                                    id="editLicensePlate"
+                                    value={carForm.licensePlate || editingCar.licensePlate}
+                                    onChange={(e) => setCarForm({...carForm, licensePlate: e.target.value})}
+                                    placeholder="123456"
+                                  />
+                                </div>
+                                <div>
+                                  <Label htmlFor="editCarColor">اللون</Label>
+                                  <Select 
+                                    value={carForm.color || editingCar.color || ""} 
+                                    onValueChange={(value) => setCarForm({...carForm, color: value})}
+                                  >
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="اختر اللون" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="أبيض">أبيض</SelectItem>
+                                      <SelectItem value="أسود">أسود</SelectItem>
+                                      <SelectItem value="أزرق">أزرق</SelectItem>
+                                      <SelectItem value="أحمر">أحمر</SelectItem>
+                                      <SelectItem value="أخضر">أخضر</SelectItem>
+                                      <SelectItem value="أصفر">أصفر</SelectItem>
+                                      <SelectItem value="برتقالي">برتقالي</SelectItem>
+                                      <SelectItem value="بنفسجي">بنفسجي</SelectItem>
+                                      <SelectItem value="وردي">وردي</SelectItem>
+                                      <SelectItem value="بني">بني</SelectItem>
+                                      <SelectItem value="رمادي">رمادي</SelectItem>
+                                      <SelectItem value="فضي">فضي</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                <div>
+                                  <Label htmlFor="editCarYear">سنة الصنع</Label>
+                                  <Input
+                                    id="editCarYear"
+                                    value={carForm.year || editingCar.year || ""}
+                                    onChange={(e) => setCarForm({...carForm, year: e.target.value})}
+                                    placeholder="2020"
+                                    type="number"
+                                  />
+                                </div>
+                                <div>
+                                  <Label htmlFor="editEngineCode">رمز المحرك</Label>
+                                  <Input
+                                    id="editEngineCode"
+                                    value={carForm.engineCode || (editingCar as any).engineCode || ""}
+                                    onChange={(e) => setCarForm({...carForm, engineCode: e.target.value})}
+                                    placeholder="أدخل رمز المحرك"
+                                  />
+                                </div>
+                                <div>
+                                  <Label htmlFor="editChassisNumber">رقم الشاسيه</Label>
+                                  <Input
+                                    id="editChassisNumber"
+                                    value={carForm.chassisNumber || (editingCar as any).chassisNumber || ""}
+                                    onChange={(e) => setCarForm({...carForm, chassisNumber: e.target.value})}
+                                    placeholder="أدخل رقم الشاسيه"
+                                  />
+                                </div>
+                                <div>
+                                  <Label htmlFor="editCarNotes">ملاحظات</Label>
+                                  <Input
+                                    id="editCarNotes"
+                                    value={carForm.notes || editingCar.notes || ""}
+                                    onChange={(e) => setCarForm({...carForm, notes: e.target.value})}
+                                    placeholder="أي ملاحظات إضافية"
+                                  />
+                                </div>
+                              </div>
+                              <div className="flex gap-2 mt-3">
+                                <Button onClick={handleEditCar}>
+                                  <Save className="h-4 w-4 ml-1" />
+                                  تحديث السيارة
+                                </Button>
+                                <Button 
+                                  variant="outline" 
+                                  onClick={() => {
+                                    setEditingCar(null);
+                                    resetCarForm();
+                                  }}
+                                >
                                   <X className="h-4 w-4 ml-1" />
                                   إلغاء
                                 </Button>
