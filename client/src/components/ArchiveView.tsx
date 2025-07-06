@@ -275,6 +275,7 @@ export default function ArchiveView() {
               <th>المدة الفعلية</th>
               <th>نسبة العمل المئوية</th>
               <th>التقييم</th>
+              <th>تاريخ انتهاء المهمة</th>
               <th>تاريخ التسليم</th>
               <th>تم التسليم بواسطة</th>
             </tr>
@@ -291,6 +292,17 @@ export default function ArchiveView() {
                   calendar: 'gregory',
                   timeZone: 'Asia/Damascus'
                 }).format(new Date(task.archivedAt)) : '--';
+              
+              const endDate = task.endTime ? 
+                new Intl.DateTimeFormat('ar-EG', {
+                  day: 'numeric',
+                  month: 'numeric',
+                  year: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  calendar: 'gregory',
+                  timeZone: 'Asia/Damascus'
+                }).format(new Date(task.endTime)) : '--';
               
               const ratingText = task.rating === 1 ? 'مقبول' : task.rating === 2 ? 'جيد' : task.rating === 3 ? 'ممتاز' : '--';
               const engineerName = task.engineerName || '--';
@@ -330,6 +342,7 @@ export default function ArchiveView() {
                     : formatDuration(task.totalDuration)}</td>
                   <td>${workPercentage}</td>
                   <td>${ratingText}</td>
+                  <td>${endDate}</td>
                   <td>${archiveDate}</td>
                   <td>${task.archivedBy || '--'}</td>
                 </tr>
@@ -558,6 +571,18 @@ export default function ArchiveView() {
                             </span>
                           </div>
                         ) : '--'}
+                      </div>
+                      <div>
+                        <span className="font-medium">تاريخ انتهاء المهمة:</span> {task.endTime ? 
+                          new Intl.DateTimeFormat('ar-EG', {
+                            day: 'numeric',
+                            month: 'numeric',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            calendar: 'gregory',
+                            timeZone: 'Asia/Damascus'
+                          }).format(new Date(task.endTime)) : '--'}
                       </div>
                       <div>
                         <span className="font-medium">تاريخ التسليم:</span> {task.archivedAt ? 

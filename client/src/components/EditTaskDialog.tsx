@@ -122,6 +122,7 @@ export default function EditTaskDialog({ task, disabled }: EditTaskDialogProps) 
       });
       queryClient.invalidateQueries({ queryKey: ["/api/tasks/active"] });
       queryClient.invalidateQueries({ queryKey: ["/api/tasks/history"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/archive"] });
       queryClient.invalidateQueries({ queryKey: ["/api/workers"] });
       setOpen(false);
       form.reset();
