@@ -468,9 +468,6 @@ export default function ArchiveView() {
                         <span className="font-medium">المشرف:</span> {task.supervisorName || '--'}
                       </div>
                       <div>
-                        <span className="font-medium">المهندس:</span> {task.engineerName || '--'}
-                      </div>
-                      <div>
                         <span className="font-medium">الفنيون:</span>
                         <div className="mt-1">
                           {(task as any).technicians && (task as any).technicians.length > 0 ? (
@@ -510,16 +507,7 @@ export default function ArchiveView() {
                           )}
                         </div>
                       </div>
-                      {(task as any).repairOperation && (
-                        <div>
-                          <span className="font-medium">عملية الإصلاح:</span> {(task as any).repairOperation}
-                        </div>
-                      )}
-                      {(task as any).taskType && (
-                        <div>
-                          <span className="font-medium">نوع المهمة:</span> {(task as any).taskType}
-                        </div>
-                      )}
+
                       <div>
                         <span className="font-medium">الوقت المقدر:</span> {task.estimatedDuration ? `${task.estimatedDuration} دقيقة` : '--'}
                       </div>
