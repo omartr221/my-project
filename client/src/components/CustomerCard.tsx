@@ -64,6 +64,7 @@ export default function CustomerCard() {
     year: "",
     engineCode: "",
     chassisNumber: "",
+    previousOwner: "",
     notes: "",
   });
 
@@ -113,6 +114,7 @@ export default function CustomerCard() {
       color: "",
       engineCode: "",
       chassisNumber: "",
+      previousOwner: "",
       licensePlate: "",
     });
   };
@@ -126,6 +128,7 @@ export default function CustomerCard() {
       year: "",
       engineCode: "",
       chassisNumber: "",
+      previousOwner: "",
       notes: "",
     });
   };
@@ -146,6 +149,7 @@ export default function CustomerCard() {
         year: customerForm.year ? parseInt(customerForm.year) : undefined,
         engineCode: customerForm.engineCode || undefined,
         chassisNumber: customerForm.chassisNumber || undefined,
+        previousOwner: customerForm.previousOwner || undefined,
       };
       
       await apiRequest("POST", "/api/customer-cars", carData);
@@ -256,6 +260,7 @@ export default function CustomerCard() {
       year: carForm.year ? parseInt(carForm.year) : undefined,
       engineCode: carForm.engineCode || undefined,
       chassisNumber: carForm.chassisNumber || undefined,
+      previousOwner: carForm.previousOwner || undefined,
       notes: carForm.notes || undefined,
     };
 
@@ -308,6 +313,7 @@ export default function CustomerCard() {
       year: carForm.year ? parseInt(carForm.year) : editingCar.year || undefined,
       engineCode: carForm.engineCode || (editingCar as any).engineCode || undefined,
       chassisNumber: chassisNumber || undefined,
+      previousOwner: carForm.previousOwner || (editingCar as any).previousOwner || undefined,
       notes: carForm.notes || editingCar.notes || undefined,
     };
 
@@ -496,6 +502,15 @@ export default function CustomerCard() {
                           رقم الشاسيه يجب أن يكون 17 حرف ورقم بالضبط (حالياً: {customerForm.chassisNumber.length})
                         </p>
                       )}
+                    </div>
+                    <div>
+                      <Label htmlFor="previousOwner">المالك السابق (اختياري)</Label>
+                      <Input
+                        id="previousOwner"
+                        value={customerForm.previousOwner}
+                        onChange={(e) => setCustomerForm({...customerForm, previousOwner: e.target.value})}
+                        placeholder="اسم المالك السابق إن وجد"
+                      />
                     </div>
                     <div className="md:col-span-2">
                       <Label htmlFor="licensePlate">رقم اللوحة *</Label>
@@ -764,6 +779,15 @@ export default function CustomerCard() {
                                   )}
                                 </div>
                                 <div>
+                                  <Label htmlFor="previousOwner">المالك السابق (اختياري)</Label>
+                                  <Input
+                                    id="previousOwner"
+                                    value={carForm.previousOwner}
+                                    onChange={(e) => setCarForm({...carForm, previousOwner: e.target.value})}
+                                    placeholder="اسم المالك السابق إن وجد"
+                                  />
+                                </div>
+                                <div>
                                   <Label htmlFor="carNotes">ملاحظات</Label>
                                   <Input
                                     id="carNotes"
@@ -915,6 +939,15 @@ export default function CustomerCard() {
                                       رقم الشاسيه يجب أن يكون 17 حرف ورقم بالضبط (حالياً: {(carForm.chassisNumber || (editingCar as any).chassisNumber).length})
                                     </p>
                                   )}
+                                </div>
+                                <div>
+                                  <Label htmlFor="editPreviousOwner">المالك السابق (اختياري)</Label>
+                                  <Input
+                                    id="editPreviousOwner"
+                                    value={carForm.previousOwner || (editingCar as any).previousOwner || ""}
+                                    onChange={(e) => setCarForm({...carForm, previousOwner: e.target.value})}
+                                    placeholder="اسم المالك السابق إن وجد"
+                                  />
                                 </div>
                                 <div>
                                   <Label htmlFor="editCarNotes">ملاحظات</Label>

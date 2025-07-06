@@ -88,6 +88,7 @@ export const customerCars = pgTable("customer_cars", {
   year: integer("year"),
   engineCode: text("engine_code"),
   chassisNumber: text("chassis_number"),
+  previousOwner: text("previous_owner"),
   notes: text("notes"),
   createdAt: timestamp("created_at").defaultNow(),
 });
