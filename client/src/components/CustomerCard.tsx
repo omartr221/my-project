@@ -13,6 +13,24 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { getCarBrandInArabic } from "@/lib/utils";
 import { type Customer, type CustomerCar, type InsertCustomer, type InsertCustomerCar, type CustomerWithCars } from "@shared/schema";
 
+// Car models by brand
+const getModelsByBrand = (brand: string): string[] => {
+  switch (brand) {
+    case "AUDI":
+      return ["A1", "A3", "A4", "A5", "A6", "A7", "A8", "Q2", "Q3", "Q5", "Q7", "Q8", "TT", "R8", "e-tron", "e-tron GT"];
+    case "VOLKSWAGEN":
+      return ["Golf", "Passat", "Polo", "Tiguan", "Touareg", "Arteon", "T-Cross", "T-Roc", "Sharan", "Touran", "Caddy", "Crafter", "Amarok", "ID.3", "ID.4"];
+    case "SKODA":
+      return ["Fabia", "Octavia", "Superb", "Kamiq", "Karoq", "Kodiaq", "Scala", "Rapid", "Yeti", "Citigo", "Enyaq"];
+    case "SEAT":
+      return ["Ibiza", "Leon", "Ateca", "Tarraco", "Arona", "Mii", "Alhambra", "Toledo", "Altea", "Cupra"];
+    case "porsche":
+      return ["911", "Cayenne", "Macan", "Panamera", "Taycan", "718 Boxster", "718 Cayman", "Carrera", "Turbo", "GT3"];
+    default:
+      return [];
+  }
+};
+
 export default function CustomerCard() {
   const [searchTerm, setSearchTerm] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
@@ -360,27 +378,31 @@ export default function CustomerCard() {
                     </div>
                     <div>
                       <Label htmlFor="carBrand">الصانع *</Label>
-                      <Select value={customerForm.carBrand} onValueChange={(value) => setCustomerForm({...customerForm, carBrand: value})}>
+                      <Select value={customerForm.carBrand} onValueChange={(value) => setCustomerForm({...customerForm, carBrand: value, carModel: ""})}>
                         <SelectTrigger>
-                          <SelectValue placeholder="مثلاً audi" />
+                          <SelectValue placeholder="اختر الصانع" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="audi">Audi</SelectItem>
-                          <SelectItem value="seat">Seat</SelectItem>
-                          <SelectItem value="skoda">Skoda</SelectItem>
-                          <SelectItem value="volkswagen">Volkswagen</SelectItem>
-                          <SelectItem value="other">أخرى</SelectItem>
+                          <SelectItem value="AUDI">AUDI</SelectItem>
+                          <SelectItem value="VOLKSWAGEN">VOLKSWAGEN</SelectItem>
+                          <SelectItem value="SKODA">SKODA</SelectItem>
+                          <SelectItem value="SEAT">SEAT</SelectItem>
+                          <SelectItem value="porsche">porsche</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                     <div>
                       <Label htmlFor="carModel">الطراز *</Label>
-                      <Input
-                        id="carModel"
-                        value={customerForm.carModel}
-                        onChange={(e) => setCustomerForm({...customerForm, carModel: e.target.value})}
-                        placeholder="مثلاً Q5"
-                      />
+                      <Select value={customerForm.carModel} onValueChange={(value) => setCustomerForm({...customerForm, carModel: value})}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="اختر الطراز" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {getModelsByBrand(customerForm.carBrand).map((model) => (
+                            <SelectItem key={model} value={model}>{model}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                     <div>
                       <Label htmlFor="carYear">سنة الصنع *</Label>
@@ -602,27 +624,31 @@ export default function CustomerCard() {
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 <div>
                                   <Label htmlFor="carBrand">نوع السيارة *</Label>
-                                  <Select value={carForm.carBrand} onValueChange={(value) => setCarForm({...carForm, carBrand: value})}>
+                                  <Select value={carForm.carBrand} onValueChange={(value) => setCarForm({...carForm, carBrand: value, carModel: ""})}>
                                     <SelectTrigger>
                                       <SelectValue placeholder="اختر نوع السيارة" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                      <SelectItem value="audi">Audi</SelectItem>
-                                      <SelectItem value="seat">Seat</SelectItem>
-                                      <SelectItem value="skoda">Skoda</SelectItem>
-                                      <SelectItem value="volkswagen">Volkswagen</SelectItem>
-                                      <SelectItem value="other">أخرى</SelectItem>
+                                      <SelectItem value="AUDI">AUDI</SelectItem>
+                                      <SelectItem value="VOLKSWAGEN">VOLKSWAGEN</SelectItem>
+                                      <SelectItem value="SKODA">SKODA</SelectItem>
+                                      <SelectItem value="SEAT">SEAT</SelectItem>
+                                      <SelectItem value="porsche">porsche</SelectItem>
                                     </SelectContent>
                                   </Select>
                                 </div>
                                 <div>
                                   <Label htmlFor="carModel">الموديل *</Label>
-                                  <Input
-                                    id="carModel"
-                                    value={carForm.carModel}
-                                    onChange={(e) => setCarForm({...carForm, carModel: e.target.value})}
-                                    placeholder="A4"
-                                  />
+                                  <Select value={carForm.carModel} onValueChange={(value) => setCarForm({...carForm, carModel: value})}>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="اختر الطراز" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {getModelsByBrand(carForm.carBrand).map((model) => (
+                                        <SelectItem key={model} value={model}>{model}</SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
                                 </div>
                                 <div>
                                   <Label htmlFor="licensePlate">رقم اللوحة *</Label>
@@ -732,28 +758,35 @@ export default function CustomerCard() {
                                   <Label htmlFor="editCarBrand">نوع السيارة *</Label>
                                   <Select 
                                     value={carForm.carBrand || editingCar.carBrand} 
-                                    onValueChange={(value) => setCarForm({...carForm, carBrand: value})}
+                                    onValueChange={(value) => setCarForm({...carForm, carBrand: value, carModel: ""})}
                                   >
                                     <SelectTrigger>
                                       <SelectValue placeholder="اختر نوع السيارة" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                      <SelectItem value="audi">Audi</SelectItem>
-                                      <SelectItem value="seat">Seat</SelectItem>
-                                      <SelectItem value="skoda">Skoda</SelectItem>
-                                      <SelectItem value="volkswagen">Volkswagen</SelectItem>
-                                      <SelectItem value="other">أخرى</SelectItem>
+                                      <SelectItem value="AUDI">AUDI</SelectItem>
+                                      <SelectItem value="VOLKSWAGEN">VOLKSWAGEN</SelectItem>
+                                      <SelectItem value="SKODA">SKODA</SelectItem>
+                                      <SelectItem value="SEAT">SEAT</SelectItem>
+                                      <SelectItem value="porsche">porsche</SelectItem>
                                     </SelectContent>
                                   </Select>
                                 </div>
                                 <div>
                                   <Label htmlFor="editCarModel">الموديل *</Label>
-                                  <Input
-                                    id="editCarModel"
-                                    value={carForm.carModel || editingCar.carModel}
-                                    onChange={(e) => setCarForm({...carForm, carModel: e.target.value})}
-                                    placeholder="A4"
-                                  />
+                                  <Select 
+                                    value={carForm.carModel || editingCar.carModel} 
+                                    onValueChange={(value) => setCarForm({...carForm, carModel: value})}
+                                  >
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="اختر الطراز" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {getModelsByBrand(carForm.carBrand || editingCar.carBrand).map((model) => (
+                                        <SelectItem key={model} value={model}>{model}</SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
                                 </div>
                                 <div>
                                   <Label htmlFor="editLicensePlate">رقم اللوحة *</Label>
