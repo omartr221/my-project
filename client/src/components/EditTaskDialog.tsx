@@ -36,7 +36,7 @@ const editTaskSchema = z.object({
   assistants: z.array(z.string()).optional(),
   timerType: z.string().optional(),
   consumedTime: z.number().nullable().optional(),
-  createdAt: z.string().optional(),
+  endTime: z.string().optional(),
 });
 
 type EditTaskFormData = z.infer<typeof editTaskSchema>;
@@ -87,7 +87,7 @@ export default function EditTaskDialog({ task, disabled }: EditTaskDialogProps) 
       assistants: (task as any).assistants || [],
       timerType: (task as any).timerType || "automatic",
       consumedTime: (task as any).consumedTime,
-      createdAt: task.createdAt ? format(new Date(task.createdAt), "yyyy-MM-dd'T'HH:mm") : "",
+      endTime: task.endTime ? format(new Date(task.endTime), "yyyy-MM-dd'T'HH:mm") : "",
     },
   });
 
@@ -518,10 +518,10 @@ export default function EditTaskDialog({ task, disabled }: EditTaskDialogProps) 
 
               <FormField
                 control={form.control}
-                name="createdAt"
+                name="endTime"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>تاريخ ووقت إنشاء المهمة</FormLabel>
+                    <FormLabel>تاريخ ووقت انتهاء المهمة</FormLabel>
                     <FormControl>
                       <Input 
                         type="datetime-local"

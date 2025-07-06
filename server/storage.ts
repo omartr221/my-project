@@ -245,8 +245,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateTask(id: number, updates: Partial<Task>): Promise<Task> {
-    // Convert createdAt string to Date if provided
+    // Convert date strings to Date objects if provided
     const processedUpdates = { ...updates };
+    if (updates.endTime && typeof updates.endTime === 'string') {
+      processedUpdates.endTime = new Date(updates.endTime);
+    }
     if (updates.createdAt && typeof updates.createdAt === 'string') {
       processedUpdates.createdAt = new Date(updates.createdAt);
     }
