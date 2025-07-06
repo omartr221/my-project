@@ -450,12 +450,10 @@ export default function ArchiveView() {
                         <span className="font-medium">المهمة:</span> {task.description}
                       </div>
                       <div>
-                        <span className="font-medium">عملية الإصلاح:</span> {(task as any).repairOperation || '--'}
+                        <span className="font-medium">عملية الإصلاح:</span> {(task as any).repairOperation && (task as any).repairOperation.trim() !== '' ? (task as any).repairOperation : '--'}
                       </div>
                       <div>
-                        <span className="font-medium">نوع المهمة:</span> {(task as any).taskType || '--'}
-                        {/* Debug: Show task data */}
-                        {console.log('Task data:', task)}
+                        <span className="font-medium">نوع المهمة:</span> {(task as any).taskType && (task as any).taskType.trim() !== '' ? (task as any).taskType : '--'}
                       </div>
                       <div>
                         <span className="font-medium">السيارة:</span> {getCarBrandInArabic(task.carBrand)} {task.carModel}
