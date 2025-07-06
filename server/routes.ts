@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
-import { insertWorkerSchema, insertTaskSchema } from "@shared/schema";
+import { insertWorkerSchema, insertTaskSchema, insertCustomerSchema, insertCustomerCarSchema } from "@shared/schema";
 import { z } from "zod";
 
 interface WebSocketClient extends WebSocket {
@@ -280,6 +280,175 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching car data:", error);
       res.status(500).json({ message: "Failed to fetch car data" });
+    }
+  });
+
+  // Customer routes
+  app.get("/api/customers", async (req, res) => {
+    try {
+      const customers = await storage.getCustomers();
+      res.json(customers);
+    } catch (error) {
+      console.error("Error fetching customers:", error);
+      res.status(500).json({ message: "Failed to fetch customers" });
+    }
+  });
+
+  app.get("/api/customers/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const customer = await storage.getCustomer(id);
+      
+      if (!customer) {
+        return res.status(404).json({ message: "Customer not found" });
+      }
+      
+      res.json(customer);
+    } catch (error) {
+      console.error("Error fetching customer:", error);
+      res.status(500).json({ message: "Failed to fetch customer" });
+    }
+  });
+
+  app.post("/api/customers", async (req, res) => {
+    try {
+      const customerData = insertCustomerSchema.parse(req.body);
+      const customer = await storage.createCustomer(customerData);
+      
+      broadcastUpdate("customer_created", customer);
+      res.status(201).json(customer);
+    } catch (error) {
+      console.error("Error creating customer:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          message: "Invalid customer data", 
+          errors: error.errors 
+        });
+      }
+      res.status(500).json({ message: "Failed to create customer" });
+    }
+  });
+
+  app.put("/api/customers/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updates = insertCustomerSchema.partial().parse(req.body);
+      const customer = await storage.updateCustomer(id, updates);
+      
+      broadcastUpdate("customer_updated", customer);
+      res.json(customer);
+    } catch (error) {
+      console.error("Error updating customer:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          message: "Invalid customer data", 
+          errors: error.errors 
+        });
+      }
+      res.status(500).json({ message: "Failed to update customer" });
+    }
+  });
+
+  app.delete("/api/customers/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteCustomer(id);
+      
+      broadcastUpdate("customer_deleted", { id });
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting customer:", error);
+      res.status(500).json({ message: "Failed to delete customer" });
+    }
+  });
+
+  // Customer cars routes
+  app.get("/api/customer-cars", async (req, res) => {
+    try {
+      const cars = await storage.getCustomerCars();
+      res.json(cars);
+    } catch (error) {
+      console.error("Error fetching customer cars:", error);
+      res.status(500).json({ message: "Failed to fetch customer cars" });
+    }
+  });
+
+  app.get("/api/customer-cars/customer/:customerId", async (req, res) => {
+    try {
+      const customerId = parseInt(req.params.customerId);
+      const cars = await storage.getCustomerCarsByCustomerId(customerId);
+      res.json(cars);
+    } catch (error) {
+      console.error("Error fetching customer cars:", error);
+      res.status(500).json({ message: "Failed to fetch customer cars" });
+    }
+  });
+
+  app.get("/api/customer-cars/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const car = await storage.getCustomerCar(id);
+      
+      if (!car) {
+        return res.status(404).json({ message: "Car not found" });
+      }
+      
+      res.json(car);
+    } catch (error) {
+      console.error("Error fetching car:", error);
+      res.status(500).json({ message: "Failed to fetch car" });
+    }
+  });
+
+  app.post("/api/customer-cars", async (req, res) => {
+    try {
+      const carData = insertCustomerCarSchema.parse(req.body);
+      const car = await storage.createCustomerCar(carData);
+      
+      broadcastUpdate("customer_car_created", car);
+      res.status(201).json(car);
+    } catch (error) {
+      console.error("Error creating customer car:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          message: "Invalid car data", 
+          errors: error.errors 
+        });
+      }
+      res.status(500).json({ message: "Failed to create customer car" });
+    }
+  });
+
+  app.put("/api/customer-cars/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updates = insertCustomerCarSchema.partial().parse(req.body);
+      const car = await storage.updateCustomerCar(id, updates);
+      
+      broadcastUpdate("customer_car_updated", car);
+      res.json(car);
+    } catch (error) {
+      console.error("Error updating customer car:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          message: "Invalid car data", 
+          errors: error.errors 
+        });
+      }
+      res.status(500).json({ message: "Failed to update customer car" });
+    }
+  });
+
+  app.delete("/api/customer-cars/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteCustomerCar(id);
+      
+      broadcastUpdate("customer_car_deleted", { id });
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting customer car:", error);
+      res.status(500).json({ message: "Failed to delete customer car" });
     }
   });
 

@@ -12,8 +12,9 @@ import TaskHistoryTable from "@/components/TaskHistoryTable";
 import ArchiveView from "@/components/ArchiveView";
 import AddWorkerForm from "@/components/AddWorkerForm";
 import PausedTasksList from "@/components/PausedTasksList";
+import CustomerCard from "@/components/CustomerCard";
 
-type TabType = "dashboard" | "timers" | "history" | "archive" | "addworker";
+type TabType = "dashboard" | "timers" | "history" | "archive" | "addworker" | "customercard";
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<TabType>("dashboard");
@@ -152,6 +153,9 @@ export default function Dashboard() {
       case "addworker":
         return <AddWorkerForm />;
       
+      case "customercard":
+        return <CustomerCard />;
+      
       default:
         return null;
     }
@@ -246,6 +250,15 @@ export default function Dashboard() {
             >
               <UserCheck className="ml-2 h-4 w-4" />
               إضافة موظف
+            </Button>
+            
+            <Button
+              variant={activeTab === "customercard" ? "default" : "ghost"}
+              onClick={() => setActiveTab("customercard")}
+              className="font-medium"
+            >
+              <Users className="ml-2 h-4 w-4" />
+              بطاقة زبون
             </Button>
           </nav>
         </div>

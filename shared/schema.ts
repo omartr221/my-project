@@ -69,6 +69,27 @@ export const timeEntries = pgTable("time_entries", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const customers = pgTable("customers", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  phoneNumber: text("phone_number").notNull(),
+  address: text("address"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const customerCars = pgTable("customer_cars", {
+  id: serial("id").primaryKey(),
+  customerId: integer("customer_id").references(() => customers.id, { onDelete: "cascade" }),
+  carBrand: text("car_brand").notNull(),
+  carModel: text("car_model").notNull(),
+  licensePlate: text("license_plate").notNull(),
+  color: text("color"),
+  year: integer("year"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Relations
 export const workersRelations = relations(workers, ({ many }) => ({
   tasks: many(tasks),
@@ -86,6 +107,17 @@ export const timeEntriesRelations = relations(timeEntries, ({ one }) => ({
   task: one(tasks, {
     fields: [timeEntries.taskId],
     references: [tasks.id],
+  }),
+}));
+
+export const customersRelations = relations(customers, ({ many }) => ({
+  cars: many(customerCars),
+}));
+
+export const customerCarsRelations = relations(customerCars, ({ one }) => ({
+  customer: one(customers, {
+    fields: [customerCars.customerId],
+    references: [customers.id],
   }),
 }));
 
@@ -123,6 +155,23 @@ export const insertTimeEntrySchema = createInsertSchema(timeEntries).omit({
   createdAt: true,
 });
 
+export const insertCustomerSchema = createInsertSchema(customers).omit({
+  id: true,
+  createdAt: true,
+}).extend({
+  name: z.string().min(1, "يجب إدخال اسم الزبون"),
+  phoneNumber: z.string().min(1, "يجب إدخال رقم الهاتف"),
+});
+
+export const insertCustomerCarSchema = createInsertSchema(customerCars).omit({
+  id: true,
+  createdAt: true,
+}).extend({
+  carBrand: z.string().min(1, "يجب اختيار نوع السيارة"),
+  carModel: z.string().min(1, "يجب إدخال موديل السيارة"),
+  licensePlate: z.string().min(1, "يجب إدخال رقم اللوحة"),
+});
+
 // Types
 export type Worker = typeof workers.$inferSelect;
 export type InsertWorker = z.infer<typeof insertWorkerSchema>;
@@ -130,6 +179,10 @@ export type Task = typeof tasks.$inferSelect;
 export type InsertTask = z.infer<typeof insertTaskSchema>;
 export type TimeEntry = typeof timeEntries.$inferSelect;
 export type InsertTimeEntry = z.infer<typeof insertTimeEntrySchema>;
+export type Customer = typeof customers.$inferSelect;
+export type InsertCustomer = z.infer<typeof insertCustomerSchema>;
+export type CustomerCar = typeof customerCars.$inferSelect;
+export type InsertCustomerCar = z.infer<typeof insertCustomerCarSchema>;
 
 // Extended types for API responses
 export type WorkerWithTasks = Worker & {
@@ -147,4 +200,8 @@ export type TaskWithWorker = Task & {
 export type TaskHistory = Task & {
   worker: Worker;
   totalDuration: number;
+};
+
+export type CustomerWithCars = Customer & {
+  cars: CustomerCar[];
 };

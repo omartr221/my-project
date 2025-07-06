@@ -1,0 +1,473 @@
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Search, Plus, Edit, Trash2, Save, X, User, Car, Phone, MapPin } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { getCarBrandInArabic } from "@/lib/utils";
+import { type Customer, type CustomerCar, type InsertCustomer, type InsertCustomerCar, type CustomerWithCars } from "@shared/schema";
+
+export default function CustomerCard() {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  const [showAddCarForm, setShowAddCarForm] = useState(false);
+  const [editingCar, setEditingCar] = useState<CustomerCar | null>(null);
+  const { toast } = useToast();
+
+  const [customerForm, setCustomerForm] = useState({
+    name: "",
+    phoneNumber: "",
+    address: "",
+    notes: "",
+  });
+
+  const [carForm, setCarForm] = useState({
+    carBrand: "",
+    carModel: "",
+    licensePlate: "",
+    color: "",
+    year: "",
+    notes: "",
+  });
+
+  // Fetch customers data
+  const { data: customers = [] } = useQuery({
+    queryKey: ['/api/customers'],
+  });
+
+  // Fetch customer cars data  
+  const { data: customerCars = [] } = useQuery({
+    queryKey: ['/api/customer-cars'],
+  });
+
+  const filteredCustomers = customers.filter(customer =>
+    customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    customer.phoneNumber.includes(searchTerm) ||
+    customer.address?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const resetCustomerForm = () => {
+    setCustomerForm({
+      name: "",
+      phoneNumber: "",
+      address: "",
+      notes: "",
+    });
+  };
+
+  const resetCarForm = () => {
+    setCarForm({
+      carBrand: "",
+      carModel: "",
+      licensePlate: "",
+      color: "",
+      year: "",
+      notes: "",
+    });
+  };
+
+  const addCustomerMutation = useMutation({
+    mutationFn: async (data: InsertCustomer) => {
+      const response = await apiRequest("POST", "/api/customers", data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/customers"] });
+      toast({
+        title: "تم إضافة الزبون بنجاح",
+        description: `تم إضافة ${customerForm.name} إلى قاعدة البيانات`,
+      });
+      resetCustomerForm();
+      setShowAddForm(false);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "خطأ في إضافة الزبون",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleAddCustomer = () => {
+    if (!customerForm.name || !customerForm.phoneNumber) {
+      toast({
+        title: "خطأ في البيانات",
+        description: "يرجى إدخال الاسم ورقم الهاتف على الأقل",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    addCustomerMutation.mutate(customerForm);
+  };
+
+  const addCarMutation = useMutation({
+    mutationFn: async (data: InsertCustomerCar) => {
+      const response = await apiRequest("POST", "/api/customer-cars", data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/customer-cars"] });
+      toast({
+        title: "تم إضافة السيارة بنجاح",
+        description: `تم إضافة ${getCarBrandInArabic(carForm.carBrand)} ${carForm.carModel} للزبون ${selectedCustomer?.name}`,
+      });
+      resetCarForm();
+      setShowAddCarForm(false);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "خطأ في إضافة السيارة",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleAddCar = () => {
+    if (!selectedCustomer || !carForm.carBrand || !carForm.carModel || !carForm.licensePlate) {
+      toast({
+        title: "خطأ في البيانات",
+        description: "يرجى إدخال جميع البيانات المطلوبة للسيارة",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const carData: InsertCustomerCar = {
+      customerId: selectedCustomer.id,
+      carBrand: carForm.carBrand,
+      carModel: carForm.carModel,
+      licensePlate: carForm.licensePlate,
+      color: carForm.color || undefined,
+      year: carForm.year ? parseInt(carForm.year) : undefined,
+      notes: carForm.notes || undefined,
+    };
+
+    addCarMutation.mutate(carData);
+  };
+
+  const getCustomerCars = (customerId: number) => {
+    return customerCars.filter(car => car.customerId === customerId);
+  };
+
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <User className="ml-2 h-5 w-5" />
+            إدارة بطاقات الزبائن
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {/* Search Bar */}
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute right-3 top-3 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="ابحث عن زبون (الاسم، رقم الهاتف، العنوان)"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pr-10"
+                />
+              </div>
+              <Button onClick={() => setShowAddForm(true)}>
+                <Plus className="h-4 w-4 ml-1" />
+                إضافة زبون جديد
+              </Button>
+            </div>
+
+            {/* Add Customer Form */}
+            {showAddForm && (
+              <Card className="border-blue-200 bg-blue-50">
+                <CardHeader>
+                  <CardTitle className="text-lg">إضافة زبون جديد</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="customerName">اسم الزبون *</Label>
+                      <Input
+                        id="customerName"
+                        value={customerForm.name}
+                        onChange={(e) => setCustomerForm({...customerForm, name: e.target.value})}
+                        placeholder="أدخل اسم الزبون"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="customerPhone">رقم الهاتف *</Label>
+                      <Input
+                        id="customerPhone"
+                        value={customerForm.phoneNumber}
+                        onChange={(e) => setCustomerForm({...customerForm, phoneNumber: e.target.value})}
+                        placeholder="0991234567"
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <Label htmlFor="customerAddress">العنوان</Label>
+                      <Input
+                        id="customerAddress"
+                        value={customerForm.address}
+                        onChange={(e) => setCustomerForm({...customerForm, address: e.target.value})}
+                        placeholder="أدخل عنوان الزبون"
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <Label htmlFor="customerNotes">ملاحظات</Label>
+                      <Textarea
+                        id="customerNotes"
+                        value={customerForm.notes}
+                        onChange={(e) => setCustomerForm({...customerForm, notes: e.target.value})}
+                        placeholder="أي ملاحظات إضافية"
+                        rows={2}
+                      />
+                    </div>
+                  </div>
+                  <div className="flex gap-2 mt-4">
+                    <Button onClick={handleAddCustomer}>
+                      <Save className="h-4 w-4 ml-1" />
+                      حفظ الزبون
+                    </Button>
+                    <Button variant="outline" onClick={() => {
+                      setShowAddForm(false);
+                      resetCustomerForm();
+                    }}>
+                      <X className="h-4 w-4 ml-1" />
+                      إلغاء
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Customer List */}
+            <div className="space-y-3">
+              {filteredCustomers.map((customer) => (
+                <Card key={customer.id} className="border-gray-200">
+                  <CardContent className="p-4">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <h3 className="font-semibold text-lg">{customer.name}</h3>
+                          <Badge variant="outline">
+                            {getCustomerCars(customer.id).length} سيارة
+                          </Badge>
+                        </div>
+                        <div className="space-y-1 text-sm text-gray-600">
+                          <div className="flex items-center gap-2">
+                            <Phone className="h-4 w-4" />
+                            {customer.phoneNumber}
+                          </div>
+                          {customer.address && (
+                            <div className="flex items-center gap-2">
+                              <MapPin className="h-4 w-4" />
+                              {customer.address}
+                            </div>
+                          )}
+                          {customer.notes && (
+                            <div className="text-gray-500 italic">
+                              {customer.notes}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setSelectedCustomer(customer)}
+                        >
+                          <Car className="h-4 w-4 ml-1" />
+                          السيارات
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setEditingCustomer(customer)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Customer's Cars */}
+                    {selectedCustomer?.id === customer.id && (
+                      <div className="mt-4 pt-4 border-t">
+                        <div className="flex justify-between items-center mb-3">
+                          <h4 className="font-medium">سيارات الزبون</h4>
+                          <Button
+                            size="sm"
+                            onClick={() => setShowAddCarForm(true)}
+                          >
+                            <Plus className="h-4 w-4 ml-1" />
+                            إضافة سيارة
+                          </Button>
+                        </div>
+
+                        {/* Add Car Form */}
+                        {showAddCarForm && (
+                          <Card className="border-green-200 bg-green-50 mb-3">
+                            <CardContent className="p-4">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <div>
+                                  <Label htmlFor="carBrand">نوع السيارة *</Label>
+                                  <Select value={carForm.carBrand} onValueChange={(value) => setCarForm({...carForm, carBrand: value})}>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="اختر نوع السيارة" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="audi">Audi</SelectItem>
+                                      <SelectItem value="seat">Seat</SelectItem>
+                                      <SelectItem value="skoda">Skoda</SelectItem>
+                                      <SelectItem value="volkswagen">Volkswagen</SelectItem>
+                                      <SelectItem value="other">أخرى</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                <div>
+                                  <Label htmlFor="carModel">الموديل *</Label>
+                                  <Input
+                                    id="carModel"
+                                    value={carForm.carModel}
+                                    onChange={(e) => setCarForm({...carForm, carModel: e.target.value})}
+                                    placeholder="A4"
+                                  />
+                                </div>
+                                <div>
+                                  <Label htmlFor="licensePlate">رقم اللوحة *</Label>
+                                  <Input
+                                    id="licensePlate"
+                                    value={carForm.licensePlate}
+                                    onChange={(e) => setCarForm({...carForm, licensePlate: e.target.value})}
+                                    placeholder="123456"
+                                  />
+                                </div>
+                                <div>
+                                  <Label htmlFor="carColor">اللون</Label>
+                                  <Select value={carForm.color} onValueChange={(value) => setCarForm({...carForm, color: value})}>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="اختر اللون" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="أبيض">أبيض</SelectItem>
+                                      <SelectItem value="أسود">أسود</SelectItem>
+                                      <SelectItem value="أزرق">أزرق</SelectItem>
+                                      <SelectItem value="أحمر">أحمر</SelectItem>
+                                      <SelectItem value="أخضر">أخضر</SelectItem>
+                                      <SelectItem value="أصفر">أصفر</SelectItem>
+                                      <SelectItem value="برتقالي">برتقالي</SelectItem>
+                                      <SelectItem value="بنفسجي">بنفسجي</SelectItem>
+                                      <SelectItem value="وردي">وردي</SelectItem>
+                                      <SelectItem value="بني">بني</SelectItem>
+                                      <SelectItem value="رمادي">رمادي</SelectItem>
+                                      <SelectItem value="فضي">فضي</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                <div>
+                                  <Label htmlFor="carYear">سنة الصنع</Label>
+                                  <Input
+                                    id="carYear"
+                                    value={carForm.year}
+                                    onChange={(e) => setCarForm({...carForm, year: e.target.value})}
+                                    placeholder="2020"
+                                    type="number"
+                                  />
+                                </div>
+                                <div>
+                                  <Label htmlFor="carNotes">ملاحظات</Label>
+                                  <Input
+                                    id="carNotes"
+                                    value={carForm.notes}
+                                    onChange={(e) => setCarForm({...carForm, notes: e.target.value})}
+                                    placeholder="أي ملاحظات إضافية"
+                                  />
+                                </div>
+                              </div>
+                              <div className="flex gap-2 mt-3">
+                                <Button onClick={handleAddCar}>
+                                  <Save className="h-4 w-4 ml-1" />
+                                  حفظ السيارة
+                                </Button>
+                                <Button variant="outline" onClick={() => {
+                                  setShowAddCarForm(false);
+                                  resetCarForm();
+                                }}>
+                                  <X className="h-4 w-4 ml-1" />
+                                  إلغاء
+                                </Button>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        )}
+
+                        {/* Cars List */}
+                        <div className="space-y-2">
+                          {getCustomerCars(customer.id).map((car) => (
+                            <div key={car.id} className="flex items-center justify-between p-3 bg-gray-50 rounded">
+                              <div className="flex items-center gap-3">
+                                <Car className="h-5 w-5 text-gray-500" />
+                                <div>
+                                  <div className="font-medium">
+                                    {getCarBrandInArabic(car.carBrand)} {car.carModel}
+                                  </div>
+                                  <div className="text-sm text-gray-600">
+                                    {car.licensePlate}
+                                    {car.color && ` - ${car.color}`}
+                                    {car.year && ` - ${car.year}`}
+                                  </div>
+                                  {car.notes && (
+                                    <div className="text-xs text-gray-500 italic">
+                                      {car.notes}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="flex gap-1">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => setEditingCar(car)}
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="text-red-600 hover:text-red-700"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            {filteredCustomers.length === 0 && (
+              <div className="text-center py-8 text-gray-500">
+                {searchTerm ? "لا توجد نتائج للبحث" : "لا يوجد زبائن مسجلون"}
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

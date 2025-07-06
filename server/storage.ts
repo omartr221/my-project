@@ -1,4 +1,4 @@
-import { workers, tasks, timeEntries, type Worker, type InsertWorker, type Task, type InsertTask, type TimeEntry, type InsertTimeEntry, type WorkerWithTasks, type TaskWithWorker, type TaskHistory } from "@shared/schema";
+import { workers, tasks, timeEntries, customers, customerCars, type Worker, type InsertWorker, type Task, type InsertTask, type TimeEntry, type InsertTimeEntry, type WorkerWithTasks, type TaskWithWorker, type TaskHistory, type Customer, type InsertCustomer, type CustomerCar, type InsertCustomerCar, type CustomerWithCars } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, isNull, or, like, isNotNull, asc } from "drizzle-orm";
 
@@ -35,6 +35,21 @@ export interface IStorage {
   
   // Car data for autofill
   getCarDataByLicensePlate(licensePlate: string): Promise<{ carBrand: string; carModel: string; color?: string } | null>;
+  
+  // Customer management
+  getCustomers(): Promise<Customer[]>;
+  getCustomer(id: number): Promise<Customer | undefined>;
+  createCustomer(customer: InsertCustomer): Promise<Customer>;
+  updateCustomer(id: number, updates: Partial<InsertCustomer>): Promise<Customer>;
+  deleteCustomer(id: number): Promise<void>;
+  
+  // Customer cars management
+  getCustomerCars(): Promise<CustomerCar[]>;
+  getCustomerCarsByCustomerId(customerId: number): Promise<CustomerCar[]>;
+  getCustomerCar(id: number): Promise<CustomerCar | undefined>;
+  createCustomerCar(car: InsertCustomerCar): Promise<CustomerCar>;
+  updateCustomerCar(id: number, updates: Partial<InsertCustomerCar>): Promise<CustomerCar>;
+  deleteCustomerCar(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -612,6 +627,75 @@ export class DatabaseStorage implements IStorage {
     }
 
     return null;
+  }
+
+  // Customer management methods
+  async getCustomers(): Promise<Customer[]> {
+    return await db.query.customers.findMany({
+      orderBy: [desc(customers.createdAt)],
+    });
+  }
+
+  async getCustomer(id: number): Promise<Customer | undefined> {
+    return await db.query.customers.findFirst({
+      where: eq(customers.id, id),
+    });
+  }
+
+  async createCustomer(customer: InsertCustomer): Promise<Customer> {
+    const [newCustomer] = await db.insert(customers).values(customer).returning();
+    return newCustomer;
+  }
+
+  async updateCustomer(id: number, updates: Partial<InsertCustomer>): Promise<Customer> {
+    const [updatedCustomer] = await db
+      .update(customers)
+      .set(updates)
+      .where(eq(customers.id, id))
+      .returning();
+    return updatedCustomer;
+  }
+
+  async deleteCustomer(id: number): Promise<void> {
+    await db.delete(customers).where(eq(customers.id, id));
+  }
+
+  // Customer cars management methods
+  async getCustomerCars(): Promise<CustomerCar[]> {
+    return await db.query.customerCars.findMany({
+      orderBy: [desc(customerCars.createdAt)],
+    });
+  }
+
+  async getCustomerCarsByCustomerId(customerId: number): Promise<CustomerCar[]> {
+    return await db.query.customerCars.findMany({
+      where: eq(customerCars.customerId, customerId),
+      orderBy: [desc(customerCars.createdAt)],
+    });
+  }
+
+  async getCustomerCar(id: number): Promise<CustomerCar | undefined> {
+    return await db.query.customerCars.findFirst({
+      where: eq(customerCars.id, id),
+    });
+  }
+
+  async createCustomerCar(car: InsertCustomerCar): Promise<CustomerCar> {
+    const [newCar] = await db.insert(customerCars).values(car).returning();
+    return newCar;
+  }
+
+  async updateCustomerCar(id: number, updates: Partial<InsertCustomerCar>): Promise<CustomerCar> {
+    const [updatedCar] = await db
+      .update(customerCars)
+      .set(updates)
+      .where(eq(customerCars.id, id))
+      .returning();
+    return updatedCar;
+  }
+
+  async deleteCustomerCar(id: number): Promise<void> {
+    await db.delete(customerCars).where(eq(customerCars.id, id));
   }
 }
 
