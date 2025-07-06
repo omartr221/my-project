@@ -86,6 +86,8 @@ export const customerCars = pgTable("customer_cars", {
   licensePlate: text("license_plate").notNull(),
   color: text("color"),
   year: integer("year"),
+  engineCode: text("engine_code"),
+  chassisNumber: text("chassis_number"),
   notes: text("notes"),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -170,6 +172,9 @@ export const insertCustomerCarSchema = createInsertSchema(customerCars).omit({
   carBrand: z.string().min(1, "يجب اختيار نوع السيارة"),
   carModel: z.string().min(1, "يجب إدخال موديل السيارة"),
   licensePlate: z.string().min(1, "يجب إدخال رقم اللوحة"),
+}).partial({
+  engineCode: true,
+  chassisNumber: true,
 });
 
 // Types

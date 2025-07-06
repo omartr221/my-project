@@ -25,8 +25,13 @@ export default function CustomerCard() {
   const [customerForm, setCustomerForm] = useState({
     name: "",
     phoneNumber: "",
-    address: "",
-    notes: "",
+    carBrand: "",
+    carModel: "",
+    year: "",
+    color: "",
+    engineCode: "",
+    chassisNumber: "",
+    licensePlate: "",
   });
 
   const [carForm, setCarForm] = useState({
@@ -35,6 +40,8 @@ export default function CustomerCard() {
     licensePlate: "",
     color: "",
     year: "",
+    engineCode: "",
+    chassisNumber: "",
     notes: "",
   });
 
@@ -58,8 +65,13 @@ export default function CustomerCard() {
     setCustomerForm({
       name: "",
       phoneNumber: "",
-      address: "",
-      notes: "",
+      carBrand: "",
+      carModel: "",
+      year: "",
+      color: "",
+      engineCode: "",
+      chassisNumber: "",
+      licensePlate: "",
     });
   };
 
@@ -70,20 +82,40 @@ export default function CustomerCard() {
       licensePlate: "",
       color: "",
       year: "",
+      engineCode: "",
+      chassisNumber: "",
       notes: "",
     });
   };
 
   const addCustomerMutation = useMutation({
     mutationFn: async (data: InsertCustomer) => {
-      const response = await apiRequest("POST", "/api/customers", data);
-      return response.json();
+      // First create the customer
+      const customerResponse = await apiRequest("POST", "/api/customers", data);
+      const customer = await customerResponse.json();
+      
+      // Then create the car for this customer
+      const carData: InsertCustomerCar = {
+        customerId: customer.id,
+        carBrand: customerForm.carBrand,
+        carModel: customerForm.carModel,
+        licensePlate: customerForm.licensePlate,
+        color: customerForm.color,
+        year: parseInt(customerForm.year),
+        engineCode: customerForm.engineCode,
+        chassisNumber: customerForm.chassisNumber,
+      };
+      
+      await apiRequest("POST", "/api/customer-cars", carData);
+      
+      return customer;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/customers"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/customer-cars"] });
       toast({
         title: "تم إضافة الزبون بنجاح",
-        description: `تم إضافة ${customerForm.name} إلى قاعدة البيانات`,
+        description: `تم إضافة ${customerForm.name} والسيارة إلى قاعدة البيانات`,
       });
       resetCustomerForm();
       setShowAddForm(false);
@@ -98,16 +130,26 @@ export default function CustomerCard() {
   });
 
   const handleAddCustomer = () => {
-    if (!customerForm.name || !customerForm.phoneNumber) {
+    // Validate required fields
+    if (!customerForm.name || !customerForm.phoneNumber || !customerForm.carBrand || 
+        !customerForm.carModel || !customerForm.year || !customerForm.color || 
+        !customerForm.engineCode || !customerForm.chassisNumber || !customerForm.licensePlate) {
       toast({
         title: "خطأ في البيانات",
-        description: "يرجى إدخال الاسم ورقم الهاتف على الأقل",
+        description: "يرجى إدخال جميع البيانات المطلوبة",
         variant: "destructive",
       });
       return;
     }
 
-    addCustomerMutation.mutate(customerForm);
+    // Create customer data (only name and phone for customer table)
+    const customerData: InsertCustomer = {
+      name: customerForm.name,
+      phoneNumber: customerForm.phoneNumber,
+    };
+
+    // Create mutation that will also create the car
+    addCustomerMutation.mutate(customerData);
   };
 
   const addCarMutation = useMutation({
@@ -150,6 +192,8 @@ export default function CustomerCard() {
       licensePlate: carForm.licensePlate,
       color: carForm.color || undefined,
       year: carForm.year ? parseInt(carForm.year) : undefined,
+      engineCode: carForm.engineCode || undefined,
+      chassisNumber: carForm.chassisNumber || undefined,
       notes: carForm.notes || undefined,
     };
 
@@ -206,7 +250,7 @@ export default function CustomerCard() {
                       />
                     </div>
                     <div>
-                      <Label htmlFor="customerPhone">رقم الهاتف *</Label>
+                      <Label htmlFor="customerPhone">الهاتف *</Label>
                       <Input
                         id="customerPhone"
                         value={customerForm.phoneNumber}
@@ -214,23 +258,87 @@ export default function CustomerCard() {
                         placeholder="0991234567"
                       />
                     </div>
-                    <div className="md:col-span-2">
-                      <Label htmlFor="customerAddress">العنوان</Label>
+                    <div>
+                      <Label htmlFor="carBrand">الصانع *</Label>
+                      <Select value={customerForm.carBrand} onValueChange={(value) => setCustomerForm({...customerForm, carBrand: value})}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="مثلاً audi" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="audi">Audi</SelectItem>
+                          <SelectItem value="seat">Seat</SelectItem>
+                          <SelectItem value="skoda">Skoda</SelectItem>
+                          <SelectItem value="volkswagen">Volkswagen</SelectItem>
+                          <SelectItem value="other">أخرى</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="carModel">الطراز *</Label>
                       <Input
-                        id="customerAddress"
-                        value={customerForm.address}
-                        onChange={(e) => setCustomerForm({...customerForm, address: e.target.value})}
-                        placeholder="أدخل عنوان الزبون"
+                        id="carModel"
+                        value={customerForm.carModel}
+                        onChange={(e) => setCustomerForm({...customerForm, carModel: e.target.value})}
+                        placeholder="مثلاً Q5"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="carYear">سنة الصنع *</Label>
+                      <Input
+                        id="carYear"
+                        value={customerForm.year}
+                        onChange={(e) => setCustomerForm({...customerForm, year: e.target.value})}
+                        placeholder="2020"
+                        type="number"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="carColor">اللون *</Label>
+                      <Select value={customerForm.color} onValueChange={(value) => setCustomerForm({...customerForm, color: value})}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="اختر اللون" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="أبيض">أبيض</SelectItem>
+                          <SelectItem value="أسود">أسود</SelectItem>
+                          <SelectItem value="أزرق">أزرق</SelectItem>
+                          <SelectItem value="أحمر">أحمر</SelectItem>
+                          <SelectItem value="أخضر">أخضر</SelectItem>
+                          <SelectItem value="أصفر">أصفر</SelectItem>
+                          <SelectItem value="برتقالي">برتقالي</SelectItem>
+                          <SelectItem value="بنفسجي">بنفسجي</SelectItem>
+                          <SelectItem value="وردي">وردي</SelectItem>
+                          <SelectItem value="بني">بني</SelectItem>
+                          <SelectItem value="رمادي">رمادي</SelectItem>
+                          <SelectItem value="فضي">فضي</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="engineCode">رمز المحرك *</Label>
+                      <Input
+                        id="engineCode"
+                        value={customerForm.engineCode}
+                        onChange={(e) => setCustomerForm({...customerForm, engineCode: e.target.value})}
+                        placeholder="أدخل رمز المحرك"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="chassisNumber">رقم الشاسيه *</Label>
+                      <Input
+                        id="chassisNumber"
+                        value={customerForm.chassisNumber}
+                        onChange={(e) => setCustomerForm({...customerForm, chassisNumber: e.target.value})}
+                        placeholder="أدخل رقم الشاسيه"
                       />
                     </div>
                     <div className="md:col-span-2">
-                      <Label htmlFor="customerNotes">ملاحظات</Label>
-                      <Textarea
-                        id="customerNotes"
-                        value={customerForm.notes}
-                        onChange={(e) => setCustomerForm({...customerForm, notes: e.target.value})}
-                        placeholder="أي ملاحظات إضافية"
-                        rows={2}
+                      <Label htmlFor="licensePlate">رقم اللوحة *</Label>
+                      <Input
+                        id="licensePlate"
+                        value={customerForm.licensePlate}
+                        onChange={(e) => setCustomerForm({...customerForm, licensePlate: e.target.value})}
+                        placeholder="أدخل رقم اللوحة"
                       />
                     </div>
                   </div>
@@ -386,6 +494,24 @@ export default function CustomerCard() {
                                   />
                                 </div>
                                 <div>
+                                  <Label htmlFor="engineCode">رمز المحرك</Label>
+                                  <Input
+                                    id="engineCode"
+                                    value={carForm.engineCode}
+                                    onChange={(e) => setCarForm({...carForm, engineCode: e.target.value})}
+                                    placeholder="أدخل رمز المحرك"
+                                  />
+                                </div>
+                                <div>
+                                  <Label htmlFor="chassisNumber">رقم الشاسيه</Label>
+                                  <Input
+                                    id="chassisNumber"
+                                    value={carForm.chassisNumber}
+                                    onChange={(e) => setCarForm({...carForm, chassisNumber: e.target.value})}
+                                    placeholder="أدخل رقم الشاسيه"
+                                  />
+                                </div>
+                                <div>
                                   <Label htmlFor="carNotes">ملاحظات</Label>
                                   <Input
                                     id="carNotes"
@@ -427,6 +553,16 @@ export default function CustomerCard() {
                                     {car.color && ` - ${car.color}`}
                                     {car.year && ` - ${car.year}`}
                                   </div>
+                                  {(car as any).engineCode && (
+                                    <div className="text-xs text-gray-600">
+                                      رمز المحرك: {(car as any).engineCode}
+                                    </div>
+                                  )}
+                                  {(car as any).chassisNumber && (
+                                    <div className="text-xs text-gray-600">
+                                      رقم الشاسيه: {(car as any).chassisNumber}
+                                    </div>
+                                  )}
                                   {car.notes && (
                                     <div className="text-xs text-gray-500 italic">
                                       {car.notes}
