@@ -152,6 +152,24 @@ async function initializeDefaultUsers() {
       });
       console.log("✓ تم إنشاء مستخدم العمليات: بدوي");
     }
+
+    // Check if the viewer user exists
+    const existingViewerUser = await storage.getUserByUsername("هبة");
+    if (!existingViewerUser) {
+      // Create the viewer user
+      await storage.createUser({
+        username: "هبة",
+        password: await hashPassword("123456"),
+        role: "viewer",
+        permissions: [
+          "dashboard:read",
+          "timers:read",
+          "tasks:read",
+          "customers:read"
+        ],
+      });
+      console.log("✓ تم إنشاء مستخدم المشاهدة: هبة");
+    }
   } catch (error) {
     console.error("خطأ في إنشاء المستخدمين الافتراضيين:", error);
   }

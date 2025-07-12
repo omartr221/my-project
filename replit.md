@@ -168,6 +168,7 @@ Changelog:
 - July 12, 2025. Implemented AUTO FILL functionality for task creation: when entering license plate number, system automatically searches customer database and fills car brand, model, and color from previously saved customer car data, enhanced user experience with real-time data lookup and toast notifications
 - July 12, 2025. Implemented comprehensive authentication system with role-based permissions: created user authentication with PostgreSQL session storage, added protected routes, implemented finance user group with view-only permissions (dashboard, tasks, archive, customers read-only), added login/logout functionality with Arabic interface, integrated permission-based component rendering to hide create/edit/delete buttons for finance users
 - July 12, 2025. Enhanced operator permissions for multi-tier access control: operator users can create/edit tasks, access dashboard and timers, view customer cards in read-only mode, but cannot add new workers - maintaining clear separation between operational and administrative functions
+- July 12, 2025. Added third-tier viewer user "هبة" (password: 123456) with limited read-only access: can view dashboard, timers (no editing), task history (no editing), and customer cards (no editing) - final delivery and add worker sections completely hidden from this user group
 
 ## User Preferences
 

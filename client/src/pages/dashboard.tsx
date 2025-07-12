@@ -22,7 +22,7 @@ export default function Dashboard() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const { isConnected } = useWebSocket();
   const { user, logoutMutation } = useAuth();
-  const { canRead, canWrite, isFinance, isOperator } = usePermissions();
+  const { canRead, canWrite, isFinance, isOperator, isViewer } = usePermissions();
 
   const handleLogout = async () => {
     await logoutMutation.mutateAsync();
@@ -264,7 +264,7 @@ export default function Dashboard() {
               </Button>
             )}
             
-            {canRead("archive") && (
+            {canRead("archive") && !isViewer && (
               <Button
                 variant={activeTab === "archive" ? "default" : "ghost"}
                 onClick={() => setActiveTab("archive")}
@@ -275,7 +275,7 @@ export default function Dashboard() {
               </Button>
             )}
 
-            {!isFinance && !isOperator && (
+            {!isFinance && !isOperator && !isViewer && (
               <Button
                 variant={activeTab === "addworker" ? "default" : "ghost"}
                 onClick={() => setActiveTab("addworker")}
