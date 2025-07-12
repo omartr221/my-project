@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
-import { Clock, Users, UserCheck, Watch, ListTodo, Archive } from "lucide-react";
+import { Clock, Users, UserCheck, Watch, ListTodo, Archive, LogOut } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { useWebSocket } from "@/hooks/useWebSocket";
+import { useAuth, usePermissions } from "@/hooks/use-auth";
 import logoImage from "@assets/Empty Logo with brands_1750921899348.png";
 import { formatTime, formatDate } from "@/lib/utils";
 import ActiveTimers from "@/components/ActiveTimers";
@@ -20,6 +21,12 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<TabType>("dashboard");
   const [currentTime, setCurrentTime] = useState(new Date());
   const { isConnected } = useWebSocket();
+  const { user, logoutMutation } = useAuth();
+  const { canRead, canWrite, isFinance } = usePermissions();
+
+  const handleLogout = async () => {
+    await logoutMutation.mutateAsync();
+  };
 
 
   // Update current time every second
@@ -200,6 +207,21 @@ export default function Dashboard() {
                   timeZone: 'Asia/Damascus'
                 }).format(currentTime)}
               </span>
+              <div className="flex items-center space-x-reverse space-x-4">
+                <span className="text-sm">
+                  مرحباً، {user?.username || 'المستخدم'}
+                </span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleLogout}
+                  className="text-white hover:bg-red-700"
+                  disabled={logoutMutation.isPending}
+                >
+                  <LogOut className="h-4 w-4 ml-2" />
+                  خروج
+                </Button>
+              </div>
             </div>
           </div>
         </div>
@@ -209,57 +231,71 @@ export default function Dashboard() {
         {/* Navigation */}
         <div className="mb-6">
           <nav className="flex space-x-reverse space-x-4 bg-white rounded-lg shadow p-2">
-            <Button
-              variant={activeTab === "dashboard" ? "default" : "ghost"}
-              onClick={() => setActiveTab("dashboard")}
-              className="font-medium"
-            >
-              <Users className="ml-2 h-4 w-4" />
-              لوحة المتابعة
-            </Button>
-            <Button
-              variant={activeTab === "timers" ? "default" : "ghost"}
-              onClick={() => setActiveTab("timers")}
-              className="font-medium"
-            >
-              <Clock className="ml-2 h-4 w-4" />
-              المؤقتات
-            </Button>
-
-            <Button
-              variant={activeTab === "history" ? "default" : "ghost"}
-              onClick={() => setActiveTab("history")}
-              className="font-medium"
-            >
-              <Clock className="ml-2 h-4 w-4" />
-              سجل المهام
-            </Button>
-            <Button
-              variant={activeTab === "archive" ? "default" : "ghost"}
-              onClick={() => setActiveTab("archive")}
-              className="font-medium"
-            >
-              <Archive className="ml-2 h-4 w-4" />
-              استلام نهائي
-            </Button>
-
-            <Button
-              variant={activeTab === "addworker" ? "default" : "ghost"}
-              onClick={() => setActiveTab("addworker")}
-              className="font-medium"
-            >
-              <UserCheck className="ml-2 h-4 w-4" />
-              إضافة موظف
-            </Button>
+            {canRead("dashboard") && (
+              <Button
+                variant={activeTab === "dashboard" ? "default" : "ghost"}
+                onClick={() => setActiveTab("dashboard")}
+                className="font-medium"
+              >
+                <Users className="ml-2 h-4 w-4" />
+                لوحة المتابعة
+              </Button>
+            )}
             
-            <Button
-              variant={activeTab === "customercard" ? "default" : "ghost"}
-              onClick={() => setActiveTab("customercard")}
-              className="font-medium"
-            >
-              <Users className="ml-2 h-4 w-4" />
-              بطاقة زبون
-            </Button>
+            {!isFinance && (
+              <Button
+                variant={activeTab === "timers" ? "default" : "ghost"}
+                onClick={() => setActiveTab("timers")}
+                className="font-medium"
+              >
+                <Clock className="ml-2 h-4 w-4" />
+                المؤقتات
+              </Button>
+            )}
+
+            {canRead("tasks") && (
+              <Button
+                variant={activeTab === "history" ? "default" : "ghost"}
+                onClick={() => setActiveTab("history")}
+                className="font-medium"
+              >
+                <Clock className="ml-2 h-4 w-4" />
+                سجل المهام
+              </Button>
+            )}
+            
+            {canRead("archive") && (
+              <Button
+                variant={activeTab === "archive" ? "default" : "ghost"}
+                onClick={() => setActiveTab("archive")}
+                className="font-medium"
+              >
+                <Archive className="ml-2 h-4 w-4" />
+                استلام نهائي
+              </Button>
+            )}
+
+            {!isFinance && (
+              <Button
+                variant={activeTab === "addworker" ? "default" : "ghost"}
+                onClick={() => setActiveTab("addworker")}
+                className="font-medium"
+              >
+                <UserCheck className="ml-2 h-4 w-4" />
+                إضافة موظف
+              </Button>
+            )}
+            
+            {canRead("customers") && (
+              <Button
+                variant={activeTab === "customercard" ? "default" : "ghost"}
+                onClick={() => setActiveTab("customercard")}
+                className="font-medium"
+              >
+                <Users className="ml-2 h-4 w-4" />
+                بطاقة زبون
+              </Button>
+            )}
           </nav>
         </div>
 

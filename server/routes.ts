@@ -4,6 +4,7 @@ import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { insertWorkerSchema, insertTaskSchema, insertCustomerSchema, insertCustomerCarSchema } from "@shared/schema";
 import { z } from "zod";
+import { setupAuth } from "./auth";
 
 interface WebSocketClient extends WebSocket {
   isAlive?: boolean;
@@ -13,6 +14,9 @@ let wss: WebSocketServer;
 const clients = new Set<WebSocketClient>();
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Setup authentication
+  setupAuth(app);
+
   // Health check endpoint - required for Autoscale deployment
   app.get("/health", (req, res) => {
     res.status(200).json({ 

@@ -1,6 +1,9 @@
-import { workers, tasks, timeEntries, customers, customerCars, type Worker, type InsertWorker, type Task, type InsertTask, type TimeEntry, type InsertTimeEntry, type WorkerWithTasks, type TaskWithWorker, type TaskHistory, type Customer, type InsertCustomer, type CustomerCar, type InsertCustomerCar, type CustomerWithCars } from "@shared/schema";
+import { workers, tasks, timeEntries, customers, customerCars, users, type Worker, type InsertWorker, type Task, type InsertTask, type TimeEntry, type InsertTimeEntry, type WorkerWithTasks, type TaskWithWorker, type TaskHistory, type Customer, type InsertCustomer, type CustomerCar, type InsertCustomerCar, type CustomerWithCars, type User, type InsertUser } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, isNull, or, like, isNotNull, asc } from "drizzle-orm";
+import session from "express-session";
+import connectPg from "connect-pg-simple";
+import { pool } from "./db";
 
 export interface IStorage {
   // Worker management
@@ -50,9 +53,29 @@ export interface IStorage {
   createCustomerCar(car: InsertCustomerCar): Promise<CustomerCar>;
   updateCustomerCar(id: number, updates: Partial<InsertCustomerCar>): Promise<CustomerCar>;
   deleteCustomerCar(id: number): Promise<void>;
+  
+  // User management
+  getUser(id: number): Promise<User | undefined>;
+  getUserByUsername(username: string): Promise<User | undefined>;
+  createUser(user: InsertUser): Promise<User>;
+  updateUser(id: number, updates: Partial<InsertUser>): Promise<User>;
+  deleteUser(id: number): Promise<void>;
+  
+  // Session store
+  sessionStore: any;
 }
 
+const PostgresSessionStore = connectPg(session);
+
 export class DatabaseStorage implements IStorage {
+  sessionStore: any;
+  
+  constructor() {
+    this.sessionStore = new PostgresSessionStore({ 
+      pool, 
+      createTableIfMissing: true 
+    });
+  }
   async getWorkers(): Promise<WorkerWithTasks[]> {
     const workersData = await db.query.workers.findMany({
       with: {
@@ -696,6 +719,35 @@ export class DatabaseStorage implements IStorage {
 
   async deleteCustomerCar(id: number): Promise<void> {
     await db.delete(customerCars).where(eq(customerCars.id, id));
+  }
+
+  // User management methods
+  async getUser(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || undefined;
+  }
+
+  async createUser(user: InsertUser): Promise<User> {
+    const [newUser] = await db.insert(users).values(user).returning();
+    return newUser;
+  }
+
+  async updateUser(id: number, updates: Partial<InsertUser>): Promise<User> {
+    const [updatedUser] = await db
+      .update(users)
+      .set(updates)
+      .where(eq(users.id, id))
+      .returning();
+    return updatedUser;
+  }
+
+  async deleteUser(id: number): Promise<void> {
+    await db.delete(users).where(eq(users.id, id));
   }
 }
 

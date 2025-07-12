@@ -124,6 +124,17 @@ export const customerCarsRelations = relations(customerCars, ({ one }) => ({
   }),
 }));
 
+// Users table for authentication
+export const users = pgTable("users", {
+  id: serial("id").primaryKey(),
+  username: varchar("username", { length: 50 }).notNull().unique(),
+  password: varchar("password", { length: 255 }).notNull(),
+  role: varchar("role", { length: 50 }).notNull(),
+  permissions: text("permissions").array().default([]),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
 // Insert schemas
 export const insertWorkerSchema = createInsertSchema(workers).omit({
   id: true,
@@ -178,6 +189,12 @@ export const insertCustomerCarSchema = createInsertSchema(customerCars).omit({
   chassisNumber: true,
 });
 
+export const insertUserSchema = createInsertSchema(users).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type Worker = typeof workers.$inferSelect;
 export type InsertWorker = z.infer<typeof insertWorkerSchema>;
@@ -189,6 +206,8 @@ export type Customer = typeof customers.$inferSelect;
 export type InsertCustomer = z.infer<typeof insertCustomerSchema>;
 export type CustomerCar = typeof customerCars.$inferSelect;
 export type InsertCustomerCar = z.infer<typeof insertCustomerCarSchema>;
+export type User = typeof users.$inferSelect;
+export type InsertUser = z.infer<typeof insertUserSchema>;
 
 // Extended types for API responses
 export type WorkerWithTasks = Worker & {

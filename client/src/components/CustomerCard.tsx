@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { getCarBrandInArabic } from "@/lib/utils";
+import { usePermissions } from "@/hooks/use-auth";
 import { type Customer, type CustomerCar, type InsertCustomer, type InsertCustomerCar, type CustomerWithCars } from "@shared/schema";
 
 // Car models by brand
@@ -41,6 +42,7 @@ export default function CustomerCard() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const { toast } = useToast();
+  const { canWrite, isFinance } = usePermissions();
 
   const [customerForm, setCustomerForm] = useState({
     name: "",
@@ -382,14 +384,16 @@ export default function CustomerCard() {
                   className="pr-10"
                 />
               </div>
-              <Button onClick={() => setShowAddForm(true)}>
-                <Plus className="h-4 w-4 ml-1" />
-                إضافة زبون جديد
-              </Button>
+              {canWrite("customers") && (
+                <Button onClick={() => setShowAddForm(true)}>
+                  <Plus className="h-4 w-4 ml-1" />
+                  إضافة زبون جديد
+                </Button>
+              )}
             </div>
 
             {/* Add Customer Form */}
-            {showAddForm && (
+            {showAddForm && canWrite("customers") && (
               <Card className="border-blue-200 bg-blue-50">
                 <CardHeader>
                   <CardTitle className="text-lg">إضافة زبون جديد</CardTitle>
@@ -540,7 +544,7 @@ export default function CustomerCard() {
             )}
 
             {/* Edit Customer Form */}
-            {editingCustomer && (
+            {editingCustomer && canWrite("customers") && (
               <Card className="border-blue-200 bg-blue-50">
                 <CardHeader>
                   <div className="flex justify-between items-center">
@@ -651,13 +655,15 @@ export default function CustomerCard() {
                           <Car className="h-4 w-4 ml-1" />
                           السيارات
                         </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => setEditingCustomer(customer)}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
+                        {canWrite("customers") && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setEditingCustomer(customer)}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        )}
                       </div>
                     </div>
 
@@ -666,17 +672,19 @@ export default function CustomerCard() {
                       <div className="mt-4 pt-4 border-t">
                         <div className="flex justify-between items-center mb-3">
                           <h4 className="font-medium">سيارات الزبون</h4>
-                          <Button
-                            size="sm"
-                            onClick={() => setShowAddCarForm(true)}
-                          >
-                            <Plus className="h-4 w-4 ml-1" />
-                            إضافة سيارة
-                          </Button>
+                          {canWrite("customers") && (
+                            <Button
+                              size="sm"
+                              onClick={() => setShowAddCarForm(true)}
+                            >
+                              <Plus className="h-4 w-4 ml-1" />
+                              إضافة سيارة
+                            </Button>
+                          )}
                         </div>
 
                         {/* Add Car Form */}
-                        {showAddCarForm && (
+                        {showAddCarForm && canWrite("customers") && (
                           <Card className="border-green-200 bg-green-50 mb-3">
                             <CardContent className="p-4">
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -815,7 +823,7 @@ export default function CustomerCard() {
                         )}
 
                         {/* Edit Car Form */}
-                        {editingCar && (
+                        {editingCar && canWrite("customers") && (
                           <Card className="border-blue-200 bg-blue-50 mb-3">
                             <CardContent className="p-4">
                               <div className="flex justify-between items-center mb-3">
@@ -1012,20 +1020,24 @@ export default function CustomerCard() {
                                 </div>
                               </div>
                               <div className="flex gap-1">
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => setEditingCar(car)}
-                                >
-                                  <Edit className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="text-red-600 hover:text-red-700"
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
+                                {canWrite("customers") && (
+                                  <>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => setEditingCar(car)}
+                                    >
+                                      <Edit className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      className="text-red-600 hover:text-red-700"
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </>
+                                )}
                               </div>
                             </div>
                           ))}
