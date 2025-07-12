@@ -7,6 +7,7 @@ import { format } from 'date-fns';
 import { ar } from 'date-fns/locale';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useEffect } from 'react';
+import TestNotification from './TestNotification';
 
 export default function RequestsList() {
   const { data: requests, isLoading, error } = useQuery({
@@ -79,6 +80,7 @@ export default function RequestsList() {
 
   return (
     <div className="space-y-4">
+      <TestNotification />
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-semibold">
           إجمالي الطلبات: {requests.length}
