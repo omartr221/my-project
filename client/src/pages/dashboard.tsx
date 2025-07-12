@@ -330,7 +330,7 @@ export default function Dashboard() {
             )}
 
             {/* الطلبات - خاص بحساب هبة */}
-            {user?.username === "هبة" && (
+            {(user?.username === "هبة" || user?.role === "viewer") && (
               <Button
                 variant={activeTab === "requests" ? "default" : "ghost"}
                 onClick={() => setActiveTab("requests")}
