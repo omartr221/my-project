@@ -129,10 +129,15 @@ export function usePermissions() {
     return hasPermission(`${resource}:write`);
   };
 
+  const canCreate = (resource: string) => {
+    return hasPermission(`${resource}:create`);
+  };
+
   return {
     hasPermission,
     canRead,
     canWrite,
+    canCreate,
     isFinance: user?.role === "finance",
     isOperator: user?.role === "operator",
     isViewer: user?.role === "viewer",

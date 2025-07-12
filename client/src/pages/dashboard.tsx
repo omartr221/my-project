@@ -22,7 +22,7 @@ export default function Dashboard() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const { isConnected } = useWebSocket();
   const { user, logoutMutation } = useAuth();
-  const { canRead, canWrite, isFinance, isOperator, isViewer, isSupervisor } = usePermissions();
+  const { canRead, canWrite, canCreate, isFinance, isOperator, isViewer, isSupervisor } = usePermissions();
 
   const handleLogout = async () => {
     await logoutMutation.mutateAsync();
@@ -143,7 +143,7 @@ export default function Dashboard() {
       case "timers":
         return (
           <div className="space-y-6">
-            {canWrite("tasks") && !isSupervisor && <NewTaskForm />}
+            {(canWrite("tasks") || canCreate("tasks")) && <NewTaskForm />}
             <ActiveTimers tasks={activeTasks || []} showControls />
             <PausedTasksList tasks={activeTasks || []} />
           </div>

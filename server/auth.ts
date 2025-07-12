@@ -183,6 +183,7 @@ async function initializeDefaultUsers() {
           "dashboard:read",
           "timers:read",
           "tasks:read",
+          "tasks:create",
           "archive:read",
           "customers:read"
         ],
