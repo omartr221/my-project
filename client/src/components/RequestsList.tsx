@@ -5,12 +5,23 @@ import { Button } from '@/components/ui/button';
 import { Package2, Calendar, User, Car, FileText } from 'lucide-react';
 import { format } from 'date-fns';
 import { ar } from 'date-fns/locale';
+import { useNotifications } from '@/hooks/useNotifications';
+import { useEffect } from 'react';
 
 export default function RequestsList() {
   const { data: requests, isLoading, error } = useQuery({
     queryKey: ['/api/parts-requests'],
     refetchInterval: 3000, // تحديث كل 3 ثوان
   });
+
+  const { checkForNewRequests, hasPermission } = useNotifications();
+
+  // مراقبة الطلبات الجديدة
+  useEffect(() => {
+    if (requests) {
+      checkForNewRequests(requests);
+    }
+  }, [requests, checkForNewRequests]);
 
   if (isLoading) {
     return (
@@ -79,6 +90,11 @@ export default function RequestsList() {
           <Badge variant="outline">
             {requests.filter(r => r.status === 'approved').length} موافق عليه
           </Badge>
+          {hasPermission && (
+            <Badge variant="default" className="bg-green-100 text-green-800">
+              🔔 الإشعارات مفعلة
+            </Badge>
+          )}
         </div>
       </div>
 

@@ -86,6 +86,20 @@ export function useWebSocket() {
         queryClient.invalidateQueries({ queryKey: ['/api/archive'] });
         break;
         
+      case 'parts_request_created':
+        // Invalidate parts requests query to refresh data
+        queryClient.invalidateQueries({ queryKey: ['/api/parts-requests'] });
+        
+        // إرسال إشعار فوري للمستخدم هبة
+        const user = queryClient.getQueryData(['/api/user']) as any;
+        if (user?.username === 'هبة') {
+          // إرسال الإشعار عبر custom event
+          window.dispatchEvent(new CustomEvent('newPartsRequest', { 
+            detail: message.data 
+          }));
+        }
+        break;
+        
       case 'timer_tick':
         // Update timer displays - handled by components
         break;

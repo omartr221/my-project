@@ -1,0 +1,132 @@
+import { useEffect, useRef, useState } from 'react';
+import { useAuth } from './use-auth';
+
+export function useNotifications() {
+  const { user } = useAuth();
+  const [hasPermission, setHasPermission] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const lastRequestCountRef = useRef(0);
+  const [newRequestsCount, setNewRequestsCount] = useState(0);
+
+  // إنشاء الصوت التلقائي للإشعار
+  useEffect(() => {
+    // إنشاء نغمة بسيطة باستخدام Web Audio API
+    const createNotificationSound = () => {
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+      oscillator.frequency.setValueAtTime(600, audioContext.currentTime + 0.1);
+      oscillator.frequency.setValueAtTime(800, audioContext.currentTime + 0.2);
+      
+      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+      
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.3);
+    };
+
+    // تشغيل الصوت
+    const playNotificationSound = () => {
+      try {
+        createNotificationSound();
+      } catch (error) {
+        console.warn('Unable to play notification sound:', error);
+      }
+    };
+
+    // تعيين الصوت
+    audioRef.current = { play: playNotificationSound } as any;
+  }, []);
+
+  // طلب إذن الإشعارات
+  useEffect(() => {
+    if ('Notification' in window && user?.username === 'هبة') {
+      if (Notification.permission === 'granted') {
+        setHasPermission(true);
+      } else if (Notification.permission !== 'denied') {
+        Notification.requestPermission().then(permission => {
+          setHasPermission(permission === 'granted');
+        });
+      }
+    }
+  }, [user]);
+
+  // دالة إرسال الإشعار
+  const sendNotification = (title: string, body: string, options?: NotificationOptions) => {
+    // تشغيل الصوت أولاً
+    if (audioRef.current) {
+      audioRef.current.play();
+    }
+
+    // إرسال إشعار المتصفح
+    if (hasPermission && user?.username === 'هبة') {
+      new Notification(title, {
+        body,
+        icon: '/favicon.ico',
+        badge: '/favicon.ico',
+        tag: 'parts-request',
+        requireInteraction: true,
+        ...options
+      });
+    }
+  };
+
+  // مراقبة الطلبات الجديدة
+  const checkForNewRequests = (currentRequests: any[]) => {
+    if (user?.username === 'هبة' && currentRequests && currentRequests.length > 0) {
+      const currentCount = currentRequests.length;
+      const lastCount = lastRequestCountRef.current;
+      
+      if (currentCount > lastCount && lastCount > 0) {
+        const newRequests = currentRequests.slice(0, currentCount - lastCount);
+        
+        newRequests.forEach(request => {
+          sendNotification(
+            '📦 طلب قطعة جديد',
+            `طلب جديد من ${request.engineer}: ${request.partName}`,
+            {
+              data: { requestId: request.id, type: 'parts-request' }
+            }
+          );
+        });
+      }
+      
+      lastRequestCountRef.current = currentCount;
+    }
+  };
+
+  // مراقبة الأحداث المخصصة للطلبات الجديدة
+  useEffect(() => {
+    const handleNewPartsRequest = (event: CustomEvent) => {
+      if (user?.username === 'هبة') {
+        const request = event.detail;
+        sendNotification(
+          '📦 طلب قطعة جديد',
+          `طلب جديد من ${request.engineer}: ${request.partName}`,
+          {
+            data: { requestId: request.id, type: 'parts-request' }
+          }
+        );
+        setNewRequestsCount(prev => prev + 1);
+      }
+    };
+
+    window.addEventListener('newPartsRequest', handleNewPartsRequest as EventListener);
+    
+    return () => {
+      window.removeEventListener('newPartsRequest', handleNewPartsRequest as EventListener);
+    };
+  }, [user, sendNotification]);
+
+  return {
+    sendNotification,
+    checkForNewRequests,
+    hasPermission,
+    newRequestsCount
+  };
+}

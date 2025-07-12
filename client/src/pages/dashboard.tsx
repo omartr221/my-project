@@ -17,6 +17,7 @@ import CustomerCard from "@/components/CustomerCard";
 import PartsRequestForm from "@/components/PartsRequestForm";
 import PartsRequestsList from "@/components/PartsRequestsList";
 import RequestsList from "@/components/RequestsList";
+import { useNotifications } from "@/hooks/useNotifications";
 
 type TabType = "dashboard" | "timers" | "history" | "archive" | "addworker" | "customercard" | "parts-requests" | "requests";
 
@@ -26,6 +27,7 @@ export default function Dashboard() {
   const { isConnected } = useWebSocket();
   const { user, logoutMutation } = useAuth();
   const { canRead, canWrite, canCreate, isFinance, isOperator, isViewer, isSupervisor } = usePermissions();
+  const { newRequestsCount } = useNotifications();
 
   const handleLogout = async () => {
     await logoutMutation.mutateAsync();
@@ -334,10 +336,15 @@ export default function Dashboard() {
               <Button
                 variant={activeTab === "requests" ? "default" : "ghost"}
                 onClick={() => setActiveTab("requests")}
-                className="font-medium"
+                className="font-medium relative"
               >
                 <ListTodo className="ml-2 h-4 w-4" />
                 الطلبات
+                {newRequestsCount > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-pulse">
+                    {newRequestsCount}
+                  </span>
+                )}
               </Button>
             )}
           </nav>

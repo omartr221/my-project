@@ -173,6 +173,7 @@ Changelog:
 - July 12, 2025. Added fourth-tier supervisor user "روان" (password: 1234567) with view-only access similar to operator role: can access dashboard, timers, task history, archive, and customers but cannot create tasks or edit existing ones - maintains supervisory oversight without modification rights
 - July 12, 2025. Updated supervisor user "روان" permissions: now allowed to create new tasks and edit existing ones, but cannot delete/cancel tasks - maintains balance between operational capability and data protection
 - July 12, 2025. Implemented comprehensive parts request system: added parts_requests table with fields for engineer, car info (license/chassis/customer name), request reason (expense/loan), part name, quantity, and status tracking, integrated auto-search functionality for car data, created parts request form and management interface, added sequential numbering system (طلب-1, طلب-2, etc.), implemented role-based permissions for parts requests with read access for all users and create access for operators and supervisors
+- July 12, 2025. Added comprehensive notification system for user "هبة": implemented sound alerts using Web Audio API, browser push notifications with permission requests, real-time WebSocket integration for instant notifications, visual notification badge counter on requests tab, custom event handling for new parts requests, notification display shows engineer name and part details
 
 ## User Preferences
 
