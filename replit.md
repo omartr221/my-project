@@ -172,6 +172,7 @@ Changelog:
 - July 12, 2025. Enhanced viewer user restrictions: removed task creation capabilities from user "هبة" - NewTaskForm component now hidden from viewer users in both dashboard and timers tabs, ensuring complete read-only access
 - July 12, 2025. Added fourth-tier supervisor user "روان" (password: 1234567) with view-only access similar to operator role: can access dashboard, timers, task history, archive, and customers but cannot create tasks or edit existing ones - maintains supervisory oversight without modification rights
 - July 12, 2025. Updated supervisor user "روان" permissions: now allowed to create new tasks and edit existing ones, but cannot delete/cancel tasks - maintains balance between operational capability and data protection
+- July 12, 2025. Implemented comprehensive parts request system: added parts_requests table with fields for engineer, car info (license/chassis/customer name), request reason (expense/loan), part name, quantity, and status tracking, integrated auto-search functionality for car data, created parts request form and management interface, added sequential numbering system (طلب-1, طلب-2, etc.), implemented role-based permissions for parts requests with read access for all users and create access for operators and supervisors
 
 ## User Preferences
 

@@ -1,4 +1,4 @@
-import { workers, tasks, timeEntries, customers, customerCars, users, type Worker, type InsertWorker, type Task, type InsertTask, type TimeEntry, type InsertTimeEntry, type WorkerWithTasks, type TaskWithWorker, type TaskHistory, type Customer, type InsertCustomer, type CustomerCar, type InsertCustomerCar, type CustomerWithCars, type User, type InsertUser } from "@shared/schema";
+import { workers, tasks, timeEntries, customers, customerCars, users, partsRequests, type Worker, type InsertWorker, type Task, type InsertTask, type TimeEntry, type InsertTimeEntry, type WorkerWithTasks, type TaskWithWorker, type TaskHistory, type Customer, type InsertCustomer, type CustomerCar, type InsertCustomerCar, type CustomerWithCars, type User, type InsertUser, type PartsRequest, type InsertPartsRequest } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, isNull, or, like, isNotNull, asc } from "drizzle-orm";
 import session from "express-session";
@@ -60,6 +60,13 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, updates: Partial<InsertUser>): Promise<User>;
   deleteUser(id: number): Promise<void>;
+  
+  // Parts requests management
+  getPartsRequests(): Promise<PartsRequest[]>;
+  getPartsRequest(id: number): Promise<PartsRequest | undefined>;
+  createPartsRequest(request: InsertPartsRequest): Promise<PartsRequest>;
+  updatePartsRequestStatus(id: number, status: string, notes?: string): Promise<PartsRequest>;
+  searchCarInfoForParts(searchTerm: string): Promise<{ carBrand: string; carModel: string; color?: string } | null>;
   
   // Session store
   sessionStore: any;
@@ -748,6 +755,81 @@ export class DatabaseStorage implements IStorage {
 
   async deleteUser(id: number): Promise<void> {
     await db.delete(users).where(eq(users.id, id));
+  }
+
+  // Parts requests management
+  async getPartsRequests(): Promise<PartsRequest[]> {
+    return await db.select().from(partsRequests).orderBy(desc(partsRequests.requestedAt));
+  }
+
+  async getPartsRequest(id: number): Promise<PartsRequest | undefined> {
+    const [request] = await db.select().from(partsRequests).where(eq(partsRequests.id, id));
+    return request || undefined;
+  }
+
+  async createPartsRequest(request: InsertPartsRequest): Promise<PartsRequest> {
+    // Generate sequential request number
+    const existingRequests = await db.select().from(partsRequests);
+    const requestNumber = `طلب-${existingRequests.length + 1}`;
+    
+    const [newRequest] = await db
+      .insert(partsRequests)
+      .values({
+        ...request,
+        requestNumber,
+        requestedAt: new Date(),
+      })
+      .returning();
+    
+    return newRequest;
+  }
+
+  async updatePartsRequestStatus(id: number, status: string, notes?: string): Promise<PartsRequest> {
+    const updateData: any = { status };
+    
+    if (status === "approved") {
+      updateData.approvedAt = new Date();
+    } else if (status === "delivered") {
+      updateData.deliveredAt = new Date();
+    }
+    
+    if (notes) {
+      updateData.notes = notes;
+    }
+
+    const [updated] = await db
+      .update(partsRequests)
+      .set(updateData)
+      .where(eq(partsRequests.id, id))
+      .returning();
+    
+    return updated;
+  }
+
+  async searchCarInfoForParts(searchTerm: string): Promise<{ carBrand: string; carModel: string; color?: string } | null> {
+    // Search in customer cars by license plate, chassis number, or customer name
+    const [result] = await db
+      .select({
+        carBrand: customerCars.carBrand,
+        carModel: customerCars.carModel,
+        color: customerCars.color,
+      })
+      .from(customerCars)
+      .leftJoin(customers, eq(customerCars.customerId, customers.id))
+      .where(
+        or(
+          like(customerCars.licensePlate, `%${searchTerm}%`),
+          like(customerCars.chassisNumber, `%${searchTerm}%`),
+          like(customers.name, `%${searchTerm}%`)
+        )
+      )
+      .limit(1);
+    
+    return result ? {
+      carBrand: result.carBrand,
+      carModel: result.carModel,
+      color: result.color || undefined,
+    } : null;
   }
 }
 

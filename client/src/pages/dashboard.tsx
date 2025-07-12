@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Clock, Users, UserCheck, Watch, ListTodo, Archive, LogOut } from "lucide-react";
+import { Clock, Users, UserCheck, Watch, ListTodo, Archive, LogOut, Package2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
@@ -14,8 +14,10 @@ import ArchiveView from "@/components/ArchiveView";
 import AddWorkerForm from "@/components/AddWorkerForm";
 import PausedTasksList from "@/components/PausedTasksList";
 import CustomerCard from "@/components/CustomerCard";
+import PartsRequestForm from "@/components/PartsRequestForm";
+import PartsRequestsList from "@/components/PartsRequestsList";
 
-type TabType = "dashboard" | "timers" | "history" | "archive" | "addworker" | "customercard";
+type TabType = "dashboard" | "timers" | "history" | "archive" | "addworker" | "customercard" | "parts-requests";
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<TabType>("dashboard");
@@ -163,6 +165,14 @@ export default function Dashboard() {
       case "customercard":
         return <CustomerCard />;
       
+      case "parts-requests":
+        return (
+          <div className="space-y-6">
+            {canCreate("parts") && <PartsRequestForm />}
+            <PartsRequestsList />
+          </div>
+        );
+      
       default:
         return null;
     }
@@ -294,6 +304,17 @@ export default function Dashboard() {
               >
                 <Users className="ml-2 h-4 w-4" />
                 بطاقة زبون
+              </Button>
+            )}
+
+            {canRead("parts") && (
+              <Button
+                variant={activeTab === "parts-requests" ? "default" : "ghost"}
+                onClick={() => setActiveTab("parts-requests")}
+                className="font-medium"
+              >
+                <Package2 className="ml-2 h-4 w-4" />
+                طلبات القطع
               </Button>
             )}
           </nav>

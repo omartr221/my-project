@@ -124,6 +124,8 @@ export const customerCarsRelations = relations(customerCars, ({ one }) => ({
   }),
 }));
 
+
+
 // Users table for authentication
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
@@ -134,6 +136,10 @@ export const users = pgTable("users", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
+
+
+
+
 
 // Insert schemas
 export const insertWorkerSchema = createInsertSchema(workers).omit({
@@ -189,10 +195,51 @@ export const insertCustomerCarSchema = createInsertSchema(customerCars).omit({
   chassisNumber: true,
 });
 
+export const partsRequests = pgTable("parts_requests", {
+  id: serial("id").primaryKey(),
+  requestNumber: varchar("request_number", { length: 50 }).unique(),
+  engineerName: varchar("engineer_name", { length: 100 }).notNull(),
+  carInfo: varchar("car_info", { length: 255 }).notNull(), // License plate, chassis number, or customer name
+  carBrand: varchar("car_brand", { length: 50 }),
+  carModel: varchar("car_model", { length: 100 }),
+  reasonType: varchar("reason_type", { length: 50 }).notNull(), // "expense" or "loan"
+  partName: varchar("part_name", { length: 255 }).notNull(),
+  quantity: integer("quantity").notNull(),
+  status: varchar("status", { length: 50 }).default("pending"), // pending, approved, rejected, delivered
+  notes: text("notes"),
+  requestedBy: varchar("requested_by", { length: 100 }),
+  requestedAt: timestamp("requested_at").defaultNow(),
+  approvedBy: varchar("approved_by", { length: 100 }),
+  approvedAt: timestamp("approved_at"),
+  deliveredBy: varchar("delivered_by", { length: 100 }),
+  deliveredAt: timestamp("delivered_at"),
+});
+
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+});
+
+export const insertPartsRequestSchema = createInsertSchema(partsRequests).omit({
+  id: true,
+  requestNumber: true,
+  requestedAt: true,
+  approvedAt: true,
+  deliveredAt: true,
+}).extend({
+  engineerName: z.string().min(1, "يجب اختيار المهندس"),
+  carInfo: z.string().min(1, "يجب إدخال معلومات السيارة"),
+  reasonType: z.string().min(1, "يجب اختيار سبب الطلب"),
+  partName: z.string().min(1, "يجب إدخال اسم القطعة"),
+  quantity: z.number().min(1, "يجب إدخال العدد"),
+}).partial({
+  carBrand: true,
+  carModel: true,
+  notes: true,
+  requestedBy: true,
+  approvedBy: true,
+  deliveredBy: true,
 });
 
 // Types
@@ -208,6 +255,8 @@ export type CustomerCar = typeof customerCars.$inferSelect;
 export type InsertCustomerCar = z.infer<typeof insertCustomerCarSchema>;
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
+export type PartsRequest = typeof partsRequests.$inferSelect;
+export type InsertPartsRequest = z.infer<typeof insertPartsRequestSchema>;
 
 // Extended types for API responses
 export type WorkerWithTasks = Worker & {

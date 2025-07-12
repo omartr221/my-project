@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
-import { insertWorkerSchema, insertTaskSchema, insertCustomerSchema, insertCustomerCarSchema } from "@shared/schema";
+import { insertWorkerSchema, insertTaskSchema, insertCustomerSchema, insertCustomerCarSchema, insertPartsRequestSchema } from "@shared/schema";
 import { z } from "zod";
 import { setupAuth } from "./auth";
 
@@ -453,6 +453,82 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting customer car:", error);
       res.status(500).json({ message: "Failed to delete customer car" });
+    }
+  });
+
+  // Parts requests routes
+  app.get("/api/parts-requests", async (req, res) => {
+    try {
+      const requests = await storage.getPartsRequests();
+      res.json(requests);
+    } catch (error) {
+      console.error("Error fetching parts requests:", error);
+      res.status(500).json({ message: "Failed to fetch parts requests" });
+    }
+  });
+
+  app.get("/api/parts-requests/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const request = await storage.getPartsRequest(id);
+      
+      if (!request) {
+        return res.status(404).json({ message: "Parts request not found" });
+      }
+      
+      res.json(request);
+    } catch (error) {
+      console.error("Error fetching parts request:", error);
+      res.status(500).json({ message: "Failed to fetch parts request" });
+    }
+  });
+
+  app.post("/api/parts-requests", async (req, res) => {
+    try {
+      const requestData = insertPartsRequestSchema.parse(req.body);
+      const request = await storage.createPartsRequest(requestData);
+      
+      broadcastUpdate("parts_request_created", request);
+      res.status(201).json(request);
+    } catch (error) {
+      console.error("Error creating parts request:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          message: "Invalid request data", 
+          errors: error.errors 
+        });
+      }
+      res.status(500).json({ message: "Failed to create parts request" });
+    }
+  });
+
+  app.patch("/api/parts-requests/:id/status", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { status, notes } = req.body;
+      
+      const request = await storage.updatePartsRequestStatus(id, status, notes);
+      
+      broadcastUpdate("parts_request_updated", request);
+      res.json(request);
+    } catch (error) {
+      console.error("Error updating parts request status:", error);
+      res.status(500).json({ message: "Failed to update parts request status" });
+    }
+  });
+
+  app.get("/api/search-car-info", async (req, res) => {
+    try {
+      const { term } = req.query;
+      if (!term) {
+        return res.status(400).json({ message: "Search term is required" });
+      }
+      
+      const carInfo = await storage.searchCarInfoForParts(term as string);
+      res.json(carInfo);
+    } catch (error) {
+      console.error("Error searching car info:", error);
+      res.status(500).json({ message: "Failed to search car info" });
     }
   });
 
