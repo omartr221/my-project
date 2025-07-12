@@ -17,6 +17,7 @@ import { z } from "zod";
 const taskFormSchema = z.object({
   workerRole: z.string().default("assistant"),
   description: z.string().min(1, "يجب إدخال وصف المهمة"),
+  customerId: z.string().optional(),
   carBrand: z.string().min(1, "يجب اختيار نوع السيارة"),
   customCarBrand: z.string().optional(),
   carModel: z.string().min(1, "يجب إدخال موديل السيارة"),
@@ -59,6 +60,7 @@ export default function NewTaskForm() {
     resolver: zodResolver(taskFormSchema),
     defaultValues: {
       description: "",
+      customerId: "",
       carBrand: "audi",
       carModel: "",
       licensePlate: "",
@@ -86,29 +88,52 @@ export default function NewTaskForm() {
     },
   });
 
+  const { data: customers } = useQuery({
+    queryKey: ['/api/customers'],
+    queryFn: async () => {
+      const response = await fetch('/api/customers');
+      return response.json();
+    },
+  });
+
+  const { data: customerCars } = useQuery({
+    queryKey: ['/api/customer-cars'],
+    queryFn: async () => {
+      const response = await fetch('/api/customer-cars');
+      return response.json();
+    },
+  });
+
   const workerNames = workers?.map((w: any) => w.name) || [];
 
-  // Function to fetch car data by license plate for autofill
-  const fetchCarData = async (licensePlate: string) => {
-    if (!licensePlate.trim()) return;
+  // Function to fetch car data by customer ID for autofill
+  const fetchCarDataByCustomerId = async (customerId: string) => {
+    if (!customerId.trim()) return;
     
     try {
-      const response = await fetch(`/api/cars/${encodeURIComponent(licensePlate)}`);
-      if (response.ok) {
-        const carData = await response.json();
+      const customerIdNum = parseInt(customerId);
+      if (isNaN(customerIdNum)) return;
+      
+      // Find cars for this customer
+      const customerCarList = customerCars?.filter((car: any) => car.customerId === customerIdNum);
+      
+      if (customerCarList && customerCarList.length > 0) {
+        // Use the first car (or you can add logic to select which car)
+        const carData = customerCarList[0];
         
         console.log("Car data found:", carData); // Debug log
         
         // Autofill the form with found data
         form.setValue("carBrand", carData.carBrand);
         form.setValue("carModel", carData.carModel);
+        form.setValue("licensePlate", carData.licensePlate);
         if (carData.color) {
           form.setValue("color", carData.color);
         }
         
         toast({
           title: "تم العثور على بيانات السيارة",
-          description: `تم تعبئة: ${carData.carBrand} ${carData.carModel}${carData.color ? ' - ' + carData.color : ''}`,
+          description: `تم تعبئة: ${carData.carBrand} ${carData.carModel} - ${carData.licensePlate}${carData.color ? ' - ' + carData.color : ''}`,
         });
       }
     } catch (error) {
@@ -116,18 +141,18 @@ export default function NewTaskForm() {
     }
   };
 
-  // Watch license plate changes for autofill
-  const licensePlateValue = form.watch("licensePlate");
+  // Watch customer ID changes for autofill
+  const customerIdValue = form.watch("customerId");
   
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      if (licensePlateValue && licensePlateValue.length >= 3) {
-        fetchCarData(licensePlateValue);
+      if (customerIdValue && customerIdValue.length >= 1) {
+        fetchCarDataByCustomerId(customerIdValue);
       }
     }, 500); // Debounce for 500ms
     
     return () => clearTimeout(timeoutId);
-  }, [licensePlateValue]);
+  }, [customerIdValue, customerCars]);
 
   const createTaskMutation = useMutation({
     mutationFn: async (data: TaskFormData) => {
@@ -239,6 +264,24 @@ export default function NewTaskForm() {
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <FormField
+                  control={form.control}
+                  name="customerId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>رقم الزبون (AUTO FILL)</FormLabel>
+                      <FormControl>
+                        <Input 
+                          placeholder="أدخل رقم الزبون للتعبئة التلقائية" 
+                          {...field}
+                          className="bg-blue-50 border-blue-200 focus:border-blue-500"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
                 <FormField
                   control={form.control}
                   name="description"
