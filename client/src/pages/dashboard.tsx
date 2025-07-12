@@ -16,8 +16,9 @@ import PausedTasksList from "@/components/PausedTasksList";
 import CustomerCard from "@/components/CustomerCard";
 import PartsRequestForm from "@/components/PartsRequestForm";
 import PartsRequestsList from "@/components/PartsRequestsList";
+import RequestsList from "@/components/RequestsList";
 
-type TabType = "dashboard" | "timers" | "history" | "archive" | "addworker" | "customercard" | "parts-requests";
+type TabType = "dashboard" | "timers" | "history" | "archive" | "addworker" | "customercard" | "parts-requests" | "requests";
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<TabType>("dashboard");
@@ -173,6 +174,16 @@ export default function Dashboard() {
           </div>
         );
       
+      case "requests":
+        return (
+          <div className="space-y-6">
+            <div className="bg-white rounded-lg shadow p-6">
+              <h2 className="text-xl font-bold mb-4">الطلبات الواردة</h2>
+              <RequestsList />
+            </div>
+          </div>
+        );
+      
       default:
         return null;
     }
@@ -315,6 +326,18 @@ export default function Dashboard() {
               >
                 <Package2 className="ml-2 h-4 w-4" />
                 طلبات القطع
+              </Button>
+            )}
+
+            {/* الطلبات - خاص بحساب هبة */}
+            {user?.username === "هبة" && (
+              <Button
+                variant={activeTab === "requests" ? "default" : "ghost"}
+                onClick={() => setActiveTab("requests")}
+                className="font-medium"
+              >
+                <ListTodo className="ml-2 h-4 w-4" />
+                الطلبات
               </Button>
             )}
           </nav>
