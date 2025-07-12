@@ -55,7 +55,7 @@ export default function NewTaskForm() {
     assistant: ""
   });
   const { toast } = useToast();
-  const { canWrite } = usePermissions();
+  const { canWrite, isSupervisor } = usePermissions();
 
   const form = useForm<TaskFormData>({
     resolver: zodResolver(taskFormSchema),

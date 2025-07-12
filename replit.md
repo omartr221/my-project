@@ -170,6 +170,7 @@ Changelog:
 - July 12, 2025. Enhanced operator permissions for multi-tier access control: operator users can create/edit tasks, access dashboard and timers, view customer cards in read-only mode, but cannot add new workers - maintaining clear separation between operational and administrative functions
 - July 12, 2025. Added third-tier viewer user "هبة" (password: 123456) with limited read-only access: can view dashboard, timers (no editing), task history (no editing), and customer cards (no editing) - final delivery and add worker sections completely hidden from this user group
 - July 12, 2025. Enhanced viewer user restrictions: removed task creation capabilities from user "هبة" - NewTaskForm component now hidden from viewer users in both dashboard and timers tabs, ensuring complete read-only access
+- July 12, 2025. Added fourth-tier supervisor user "روان" (password: 1234567) with view-only access similar to operator role: can access dashboard, timers, task history, archive, and customers but cannot create tasks or edit existing ones - maintains supervisory oversight without modification rights
 
 ## User Preferences
 

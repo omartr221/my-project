@@ -22,7 +22,7 @@ export default function Dashboard() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const { isConnected } = useWebSocket();
   const { user, logoutMutation } = useAuth();
-  const { canRead, canWrite, isFinance, isOperator, isViewer } = usePermissions();
+  const { canRead, canWrite, isFinance, isOperator, isViewer, isSupervisor } = usePermissions();
 
   const handleLogout = async () => {
     await logoutMutation.mutateAsync();
@@ -143,7 +143,7 @@ export default function Dashboard() {
       case "timers":
         return (
           <div className="space-y-6">
-            {canWrite("tasks") && <NewTaskForm />}
+            {canWrite("tasks") && !isSupervisor && <NewTaskForm />}
             <ActiveTimers tasks={activeTasks || []} showControls />
             <PausedTasksList tasks={activeTasks || []} />
           </div>
@@ -275,7 +275,7 @@ export default function Dashboard() {
               </Button>
             )}
 
-            {!isFinance && !isOperator && !isViewer && (
+            {!isFinance && !isOperator && !isViewer && !isSupervisor && (
               <Button
                 variant={activeTab === "addworker" ? "default" : "ghost"}
                 onClick={() => setActiveTab("addworker")}

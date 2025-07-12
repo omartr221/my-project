@@ -170,6 +170,25 @@ async function initializeDefaultUsers() {
       });
       console.log("✓ تم إنشاء مستخدم المشاهدة: هبة");
     }
+
+    // Check if the supervisor user exists
+    const existingSupervisorUser = await storage.getUserByUsername("روان");
+    if (!existingSupervisorUser) {
+      // Create the supervisor user
+      await storage.createUser({
+        username: "روان",
+        password: await hashPassword("1234567"),
+        role: "supervisor",
+        permissions: [
+          "dashboard:read",
+          "timers:read",
+          "tasks:read",
+          "archive:read",
+          "customers:read"
+        ],
+      });
+      console.log("✓ تم إنشاء مستخدم المشرف: روان");
+    }
   } catch (error) {
     console.error("خطأ في إنشاء المستخدمين الافتراضيين:", error);
   }

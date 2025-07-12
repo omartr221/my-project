@@ -24,7 +24,7 @@ export default function ActiveTimers({
   showControls = false 
 }: ActiveTimersProps) {
   const { toast } = useToast();
-  const { canWrite } = usePermissions();
+  const { canWrite, isSupervisor } = usePermissions();
   const [currentTime, setCurrentTime] = useState(Date.now());
 
   // Update timer with more precision (every 100ms for smoother updates)
@@ -225,7 +225,7 @@ export default function ActiveTimers({
                     </div>
                   </div>
                   
-                  {showControls && canWrite("tasks") && (
+                  {showControls && canWrite("tasks") && !isSupervisor && (
                     <div className="flex space-x-reverse space-x-2">
                       {isActive ? (
                         <PauseTaskDialog 

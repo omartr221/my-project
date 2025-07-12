@@ -136,6 +136,7 @@ export function usePermissions() {
     isFinance: user?.role === "finance",
     isOperator: user?.role === "operator",
     isViewer: user?.role === "viewer",
+    isSupervisor: user?.role === "supervisor",
     isAdmin: user?.role === "admin",
   };
 }
