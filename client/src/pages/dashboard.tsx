@@ -143,7 +143,7 @@ export default function Dashboard() {
       case "timers":
         return (
           <div className="space-y-6">
-            <NewTaskForm />
+            {canWrite("tasks") && <NewTaskForm />}
             <ActiveTimers tasks={activeTasks || []} showControls />
             <PausedTasksList tasks={activeTasks || []} />
           </div>
