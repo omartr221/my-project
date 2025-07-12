@@ -6,6 +6,7 @@ import { Clock, Pause, Play, CheckCircle, User, UserCheck, Wrench, Edit } from "
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { usePermissions } from "@/hooks/use-auth";
 import { formatDuration, formatTime, getCarBrandInArabic, getWorkerCategoryInArabic, getTaskStatusInArabic, getTaskStatusColor } from "@/lib/utils";
 import { type TaskWithWorker } from "@shared/schema";
 import { useState, useEffect } from "react";
@@ -23,6 +24,7 @@ export default function ActiveTimers({
   showControls = false 
 }: ActiveTimersProps) {
   const { toast } = useToast();
+  const { canWrite } = usePermissions();
   const [currentTime, setCurrentTime] = useState(Date.now());
 
   // Update timer with more precision (every 100ms for smoother updates)
@@ -223,7 +225,7 @@ export default function ActiveTimers({
                     </div>
                   </div>
                   
-                  {showControls && (
+                  {showControls && canWrite("tasks") && (
                     <div className="flex space-x-reverse space-x-2">
                       {isActive ? (
                         <PauseTaskDialog 

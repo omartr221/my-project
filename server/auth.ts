@@ -115,8 +115,8 @@ export function setupAuth(app: Express) {
 async function initializeDefaultUsers() {
   try {
     // Check if the finance user exists
-    const existingUser = await storage.getUserByUsername("ملك");
-    if (!existingUser) {
+    const existingFinanceUser = await storage.getUserByUsername("ملك");
+    if (!existingFinanceUser) {
       // Create the default finance user
       await storage.createUser({
         username: "ملك",
@@ -130,6 +130,27 @@ async function initializeDefaultUsers() {
         ],
       });
       console.log("✓ تم إنشاء مستخدم المالية: ملك");
+    }
+
+    // Check if the operator user exists
+    const existingOperatorUser = await storage.getUserByUsername("بدوي");
+    if (!existingOperatorUser) {
+      // Create the operator user
+      await storage.createUser({
+        username: "بدوي",
+        password: await hashPassword("0000"),
+        role: "operator",
+        permissions: [
+          "dashboard:read",
+          "timers:read",
+          "timers:write",
+          "tasks:read",
+          "tasks:write",
+          "archive:read",
+          "customers:read"
+        ],
+      });
+      console.log("✓ تم إنشاء مستخدم العمليات: بدوي");
     }
   } catch (error) {
     console.error("خطأ في إنشاء المستخدمين الافتراضيين:", error);

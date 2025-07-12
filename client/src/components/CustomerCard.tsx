@@ -42,7 +42,7 @@ export default function CustomerCard() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const { toast } = useToast();
-  const { canWrite, isFinance } = usePermissions();
+  const { canWrite, isFinance, isOperator } = usePermissions();
 
   const [customerForm, setCustomerForm] = useState({
     name: "",

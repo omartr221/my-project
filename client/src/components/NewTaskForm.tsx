@@ -12,6 +12,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { insertTaskSchema, type InsertTask } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { usePermissions } from "@/hooks/use-auth";
 import { z } from "zod";
 
 const taskFormSchema = z.object({
@@ -54,6 +55,7 @@ export default function NewTaskForm() {
     assistant: ""
   });
   const { toast } = useToast();
+  const { canWrite } = usePermissions();
 
   const form = useForm<TaskFormData>({
     resolver: zodResolver(taskFormSchema),

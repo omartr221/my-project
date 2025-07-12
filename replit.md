@@ -167,6 +167,7 @@ Changelog:
 - July 5, 2025. Enhanced car brand selection with custom option: added "أخرى" (Other) option to car brand dropdown allowing users to input custom car brands, integrated into both task creation and editing forms, updated car model placeholder to remove year examples (now shows "A4" instead of "A4 2024")
 - July 12, 2025. Implemented AUTO FILL functionality for task creation: when entering license plate number, system automatically searches customer database and fills car brand, model, and color from previously saved customer car data, enhanced user experience with real-time data lookup and toast notifications
 - July 12, 2025. Implemented comprehensive authentication system with role-based permissions: created user authentication with PostgreSQL session storage, added protected routes, implemented finance user group with view-only permissions (dashboard, tasks, archive, customers read-only), added login/logout functionality with Arabic interface, integrated permission-based component rendering to hide create/edit/delete buttons for finance users
+- July 12, 2025. Enhanced operator permissions for multi-tier access control: operator users can create/edit tasks, access dashboard and timers, view customer cards in read-only mode, but cannot add new workers - maintaining clear separation between operational and administrative functions
 
 ## User Preferences
 
