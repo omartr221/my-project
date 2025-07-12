@@ -17,7 +17,6 @@ import { z } from "zod";
 const taskFormSchema = z.object({
   workerRole: z.string().default("assistant"),
   description: z.string().min(1, "يجب إدخال وصف المهمة"),
-  customerId: z.string().optional(),
   carBrand: z.string().min(1, "يجب اختيار نوع السيارة"),
   customCarBrand: z.string().optional(),
   carModel: z.string().min(1, "يجب إدخال موديل السيارة"),
@@ -60,7 +59,6 @@ export default function NewTaskForm() {
     resolver: zodResolver(taskFormSchema),
     defaultValues: {
       description: "",
-      customerId: "",
       carBrand: "audi",
       carModel: "",
       licensePlate: "",
@@ -88,14 +86,6 @@ export default function NewTaskForm() {
     },
   });
 
-  const { data: customers } = useQuery({
-    queryKey: ['/api/customers'],
-    queryFn: async () => {
-      const response = await fetch('/api/customers');
-      return response.json();
-    },
-  });
-
   const { data: customerCars } = useQuery({
     queryKey: ['/api/customer-cars'],
     queryFn: async () => {
@@ -106,34 +96,30 @@ export default function NewTaskForm() {
 
   const workerNames = workers?.map((w: any) => w.name) || [];
 
-  // Function to fetch car data by customer ID for autofill
-  const fetchCarDataByCustomerId = async (customerId: string) => {
-    if (!customerId.trim()) return;
+  // Function to fetch car data by license plate for autofill
+  const fetchCarDataByLicensePlate = async (licensePlate: string) => {
+    if (!licensePlate.trim()) return;
     
     try {
-      const customerIdNum = parseInt(customerId);
-      if (isNaN(customerIdNum)) return;
+      // Find car by license plate (exact match or partial match)
+      const carData = customerCars?.find((car: any) => 
+        car.licensePlate.toLowerCase() === licensePlate.toLowerCase() ||
+        car.licensePlate.toLowerCase().includes(licensePlate.toLowerCase())
+      );
       
-      // Find cars for this customer
-      const customerCarList = customerCars?.filter((car: any) => car.customerId === customerIdNum);
-      
-      if (customerCarList && customerCarList.length > 0) {
-        // Use the first car (or you can add logic to select which car)
-        const carData = customerCarList[0];
-        
+      if (carData) {
         console.log("Car data found:", carData); // Debug log
         
         // Autofill the form with found data
-        form.setValue("carBrand", carData.carBrand);
+        form.setValue("carBrand", carData.carBrand.toLowerCase());
         form.setValue("carModel", carData.carModel);
-        form.setValue("licensePlate", carData.licensePlate);
         if (carData.color) {
           form.setValue("color", carData.color);
         }
         
         toast({
           title: "تم العثور على بيانات السيارة",
-          description: `تم تعبئة: ${carData.carBrand} ${carData.carModel} - ${carData.licensePlate}${carData.color ? ' - ' + carData.color : ''}`,
+          description: `تم تعبئة: ${carData.carBrand} ${carData.carModel}${carData.color ? ' - ' + carData.color : ''}`,
         });
       }
     } catch (error) {
@@ -141,18 +127,18 @@ export default function NewTaskForm() {
     }
   };
 
-  // Watch customer ID changes for autofill
-  const customerIdValue = form.watch("customerId");
+  // Watch license plate changes for autofill
+  const licensePlateValue = form.watch("licensePlate");
   
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      if (customerIdValue && customerIdValue.length >= 1) {
-        fetchCarDataByCustomerId(customerIdValue);
+      if (licensePlateValue && licensePlateValue.length >= 3) {
+        fetchCarDataByLicensePlate(licensePlateValue);
       }
     }, 500); // Debounce for 500ms
     
     return () => clearTimeout(timeoutId);
-  }, [customerIdValue, customerCars]);
+  }, [licensePlateValue, customerCars]);
 
   const createTaskMutation = useMutation({
     mutationFn: async (data: TaskFormData) => {
@@ -264,24 +250,6 @@ export default function NewTaskForm() {
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FormField
-                  control={form.control}
-                  name="customerId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>رقم الزبون (AUTO FILL)</FormLabel>
-                      <FormControl>
-                        <Input 
-                          placeholder="أدخل رقم الزبون للتعبئة التلقائية" 
-                          {...field}
-                          className="bg-blue-50 border-blue-200 focus:border-blue-500"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
                 <FormField
                   control={form.control}
                   name="description"
@@ -435,9 +403,13 @@ export default function NewTaskForm() {
                   name="licensePlate"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>رقم اللوحة</FormLabel>
+                      <FormLabel>رقم اللوحة (AUTO FILL)</FormLabel>
                       <FormControl>
-                        <Input placeholder="أدخل رقم اللوحة" {...field} />
+                        <Input 
+                          placeholder="أدخل رقم اللوحة - سيتم تعبئة البيانات تلقائياً" 
+                          {...field}
+                          className="bg-blue-50 border-blue-200 focus:border-blue-500"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
