@@ -24,10 +24,10 @@ export default function TestNotification() {
     <div className="p-4 bg-blue-50 rounded-lg mb-4">
       <h3 className="font-semibold mb-2">اختبار الإشعارات</h3>
       <p className="text-sm text-gray-600 mb-3">
-        اضغط على الزر لاختبار الإشعارات والصوت
+        اضغط على الزر لاختبار الإشعارات والصوت الجديد القوي
       </p>
-      <Button onClick={testNotification} size="sm">
-        اختبار الإشعار والصوت
+      <Button onClick={testNotification} size="sm" className="bg-blue-600 hover:bg-blue-700">
+        🔊 اختبار الإشعار والصوت القوي
       </Button>
     </div>
   );

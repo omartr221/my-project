@@ -10,24 +10,35 @@ export function useNotifications() {
 
   // إنشاء الصوت التلقائي للإشعار
   useEffect(() => {
-    // إنشاء نغمة بسيطة باستخدام Web Audio API
+    // إنشاء نغمة قوية ولافتة للانتباه باستخدام Web Audio API
     const createNotificationSound = () => {
       const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-      const oscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
       
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
+      // إنشاء نغمة متكررة مع ترددات عالية
+      const playTone = (frequency: number, startTime: number, duration: number) => {
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        oscillator.frequency.setValueAtTime(frequency, startTime);
+        oscillator.type = 'square'; // نوع موجة مربعة لصوت أقوى
+        
+        gainNode.gain.setValueAtTime(0.6, startTime); // صوت أعلى
+        gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
+        
+        oscillator.start(startTime);
+        oscillator.stop(startTime + duration);
+      };
       
-      oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
-      oscillator.frequency.setValueAtTime(600, audioContext.currentTime + 0.1);
-      oscillator.frequency.setValueAtTime(800, audioContext.currentTime + 0.2);
-      
-      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
-      
-      oscillator.start(audioContext.currentTime);
-      oscillator.stop(audioContext.currentTime + 0.3);
+      // تشغيل سلسلة من النغمات المتتالية
+      const now = audioContext.currentTime;
+      playTone(1000, now, 0.15);        // نغمة عالية
+      playTone(800, now + 0.2, 0.15);   // نغمة متوسطة
+      playTone(1200, now + 0.4, 0.15);  // نغمة أعلى
+      playTone(900, now + 0.6, 0.15);   // نغمة متوسطة
+      playTone(1400, now + 0.8, 0.2);   // نغمة نهائية قوية
     };
 
     // تشغيل الصوت
@@ -61,6 +72,11 @@ export function useNotifications() {
     // تشغيل الصوت أولاً
     if (audioRef.current) {
       audioRef.current.play();
+    }
+
+    // اهتزاز الهاتف إذا كان متاحاً
+    if ('vibrate' in navigator) {
+      navigator.vibrate([200, 100, 200, 100, 200]); // نمط اهتزاز لافت للانتباه
     }
 
     // إرسال إشعار المتصفح
