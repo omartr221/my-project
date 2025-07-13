@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Package2, Calendar, User, Car, FileText, Check, X } from 'lucide-react';
+import { Package2, Calendar, User, Car, FileText, Check, X, Clock } from 'lucide-react';
 import { format } from 'date-fns';
 import { ar } from 'date-fns/locale';
 import { useNotifications } from '@/hooks/useNotifications';
@@ -27,25 +27,50 @@ export default function RequestsList() {
   const canApprove = user?.permissions?.includes('parts:approve');
   const canReject = user?.permissions?.includes('parts:reject');
 
-  // وظيفة الموافقة على الطلب
+  // وظيفة الموافقة على الطلب - تحويل إلى قيد التحضير
   const approveMutation = useMutation({
     mutationFn: async (requestId: number) => {
       const response = await apiRequest('PATCH', `/api/parts-requests/${requestId}/status`, {
-        status: 'approved',
-        notes: 'تم الموافقة على الطلب'
+        status: 'in_preparation',
+        notes: 'تم الموافقة على الطلب وهو الآن قيد التحضير'
       });
       return response.json();
     },
     onSuccess: () => {
       toast({
         title: "تم الموافقة على الطلب",
-        description: "تم الموافقة على طلب القطعة بنجاح",
+        description: "الطلب الآن قيد التحضير",
       });
       queryClient.invalidateQueries({ queryKey: ['/api/parts-requests'] });
     },
     onError: (error: Error) => {
       toast({
         title: "خطأ في الموافقة",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // وظيفة تغيير الحالة إلى بانتظار الاستلام
+  const readyForPickupMutation = useMutation({
+    mutationFn: async (requestId: number) => {
+      const response = await apiRequest('PATCH', `/api/parts-requests/${requestId}/status`, {
+        status: 'awaiting_pickup',
+        notes: 'القطعة جاهزة للاستلام'
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "تم تحديث الحالة",
+        description: "القطعة جاهزة للاستلام",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/parts-requests'] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "خطأ في التحديث",
         description: error.message,
         variant: "destructive",
       });
@@ -124,6 +149,8 @@ export default function RequestsList() {
     switch (status) {
       case 'pending': return 'bg-yellow-100 text-yellow-800';
       case 'approved': return 'bg-green-100 text-green-800';
+      case 'in_preparation': return 'bg-blue-100 text-blue-800';
+      case 'awaiting_pickup': return 'bg-purple-100 text-purple-800';
       case 'rejected': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
     }
@@ -133,6 +160,8 @@ export default function RequestsList() {
     switch (status) {
       case 'pending': return 'في الانتظار';
       case 'approved': return 'موافق عليه';
+      case 'in_preparation': return 'قيد التحضير';
+      case 'awaiting_pickup': return 'بانتظار الاستلام';
       case 'rejected': return 'مرفوض';
       default: return 'غير محدد';
     }
@@ -149,8 +178,11 @@ export default function RequestsList() {
           <Badge variant="secondary">
             {requests.filter(r => r.status === 'pending').length} في الانتظار
           </Badge>
-          <Badge variant="outline">
-            {requests.filter(r => r.status === 'approved').length} موافق عليه
+          <Badge variant="outline" className="bg-blue-100 text-blue-800">
+            {requests.filter(r => r.status === 'in_preparation').length} قيد التحضير
+          </Badge>
+          <Badge variant="outline" className="bg-purple-100 text-purple-800">
+            {requests.filter(r => r.status === 'awaiting_pickup').length} بانتظار الاستلام
           </Badge>
           {hasPermission && (
             <Badge variant="default" className="bg-green-100 text-green-800">
@@ -269,6 +301,26 @@ export default function RequestsList() {
                     رفض
                   </Button>
                 )}
+              </div>
+            )}
+
+            {/* زر تحديث الحالة لقيد التحضير */}
+            {request.status === 'in_preparation' && canApprove && (
+              <div className="flex space-x-reverse space-x-2 pt-4 border-t">
+                <Button
+                  size="sm"
+                  variant="default"
+                  className="bg-purple-600 hover:bg-purple-700"
+                  onClick={() => readyForPickupMutation.mutate(request.id)}
+                  disabled={readyForPickupMutation.isPending}
+                >
+                  {readyForPickupMutation.isPending ? (
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  ) : (
+                    <Clock className="h-4 w-4 ml-1" />
+                  )}
+                  جاهز للاستلام
+                </Button>
               </div>
             )}
 

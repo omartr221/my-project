@@ -14,13 +14,17 @@ import { type PartsRequest } from "@shared/schema";
 const statusColors = {
   pending: "bg-yellow-100 text-yellow-800",
   approved: "bg-green-100 text-green-800",
+  in_preparation: "bg-blue-100 text-blue-800",
+  awaiting_pickup: "bg-purple-100 text-purple-800",
   rejected: "bg-red-100 text-red-800",
-  delivered: "bg-blue-100 text-blue-800",
+  delivered: "bg-gray-100 text-gray-800",
 };
 
 const statusLabels = {
   pending: "في الانتظار",
   approved: "موافق عليه",
+  in_preparation: "قيد التحضير",
+  awaiting_pickup: "بانتظار الاستلام",
   rejected: "مرفوض",
   delivered: "تم التسليم",
 };
