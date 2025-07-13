@@ -456,6 +456,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Car search route for parts requests
+  app.get("/api/car-search", async (req, res) => {
+    try {
+      const searchTerm = req.query.q as string;
+      if (!searchTerm) {
+        return res.status(400).json({ message: "Search term is required" });
+      }
+      
+      const carData = await storage.searchCarInfoForParts(searchTerm);
+      
+      if (!carData) {
+        return res.status(404).json({ message: "Car not found" });
+      }
+      
+      res.json(carData);
+    } catch (error) {
+      console.error("Error searching for car:", error);
+      res.status(500).json({ message: "Failed to search for car" });
+    }
+  });
+
   // Parts requests routes
   app.get("/api/parts-requests", async (req, res) => {
     try {

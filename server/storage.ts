@@ -810,8 +810,34 @@ export class DatabaseStorage implements IStorage {
   }
 
   async searchCarInfoForParts(searchTerm: string): Promise<{ carBrand: string; carModel: string; color?: string; licensePlate?: string; chassisNumber?: string; engineCode?: string } | null> {
-    // Search in customer cars by license plate, chassis number, or customer name
-    const [result] = await db
+    // Search in customer cars by license plate first (exact match)
+    const [exactMatch] = await db
+      .select({
+        carBrand: customerCars.carBrand,
+        carModel: customerCars.carModel,
+        color: customerCars.color,
+        licensePlate: customerCars.licensePlate,
+        chassisNumber: customerCars.chassisNumber,
+        engineCode: customerCars.engineCode,
+      })
+      .from(customerCars)
+      .leftJoin(customers, eq(customerCars.customerId, customers.id))
+      .where(eq(customerCars.licensePlate, searchTerm))
+      .limit(1);
+    
+    if (exactMatch) {
+      return {
+        carBrand: exactMatch.carBrand,
+        carModel: exactMatch.carModel,
+        color: exactMatch.color || undefined,
+        licensePlate: exactMatch.licensePlate || undefined,
+        chassisNumber: exactMatch.chassisNumber || undefined,
+        engineCode: exactMatch.engineCode || undefined,
+      };
+    }
+    
+    // If no exact match, search by partial match in license plate, chassis number, or customer name
+    const [partialMatch] = await db
       .select({
         carBrand: customerCars.carBrand,
         carModel: customerCars.carModel,
@@ -831,13 +857,13 @@ export class DatabaseStorage implements IStorage {
       )
       .limit(1);
     
-    return result ? {
-      carBrand: result.carBrand,
-      carModel: result.carModel,
-      color: result.color || undefined,
-      licensePlate: result.licensePlate || undefined,
-      chassisNumber: result.chassisNumber || undefined,
-      engineCode: result.engineCode || undefined,
+    return partialMatch ? {
+      carBrand: partialMatch.carBrand,
+      carModel: partialMatch.carModel,
+      color: partialMatch.color || undefined,
+      licensePlate: partialMatch.licensePlate || undefined,
+      chassisNumber: partialMatch.chassisNumber || undefined,
+      engineCode: partialMatch.engineCode || undefined,
     } : null;
   }
 }

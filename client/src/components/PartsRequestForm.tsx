@@ -85,20 +85,32 @@ export default function PartsRequestForm() {
     
     setIsSearching(true);
     try {
-      const response = await apiRequest("GET", `/api/search-car-info?term=${encodeURIComponent(searchTerm)}`);
+      const response = await apiRequest("GET", `/api/car-search?q=${encodeURIComponent(searchTerm)}`);
       const carData = await response.json();
       
-      if (carData) {
-        form.setValue("carBrand", carData.carBrand || "");
-        form.setValue("carModel", carData.carModel || "");
+      if (carData && carData.carBrand && carData.carModel) {
+        form.setValue("carBrand", carData.carBrand);
+        form.setValue("carModel", carData.carModel);
+        
+        // إذا كانت هناك معلومات إضافية، نضعها في الحقول الجديدة
+        if (carData.licensePlate) {
+          form.setValue("licensePlate", carData.licensePlate);
+        }
+        if (carData.chassisNumber) {
+          form.setValue("chassisNumber", carData.chassisNumber);
+        }
+        if (carData.engineCode) {
+          form.setValue("engineCode", carData.engineCode);
+        }
+        
         toast({
-          title: "تم العثور على معلومات السيارة",
-          description: `${carData.carBrand} ${carData.carModel}`,
+          title: "تم العثور على بيانات السيارة",
+          description: `نوع السيارة: ${carData.carBrand} - موديل: ${carData.carModel}`,
         });
       } else {
         toast({
-          title: "لم يتم العثور على معلومات السيارة",
-          description: "يرجى إدخال معلومات السيارة يدوياً",
+          title: "لم يتم العثور على بيانات",
+          description: "لم يتم العثور على معلومات السيارة في قاعدة البيانات",
           variant: "destructive",
         });
       }
