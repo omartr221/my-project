@@ -29,9 +29,10 @@ export default function RequestsList() {
   const [estimatedArrival, setEstimatedArrival] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  // التحقق من صلاحية الموافقة والرفض
+  // التحقق من صلاحية الموافقة والرفض والتسليم
   const canApprove = user?.permissions?.includes('parts:approve');
   const canReject = user?.permissions?.includes('parts:reject');
+  const canDeliver = user?.permissions?.includes('parts:create'); // بدوي يمكنه التسليم
 
   // وظيفة الموافقة على الطلب - تحويل إلى قيد التحضير
   const approveMutation = useMutation({
@@ -599,8 +600,8 @@ export default function RequestsList() {
               </div>
             )}
 
-            {/* زر تحديث الحالة للطلبات المطلوبة خارجياً */}
-            {request.status === 'ordered_externally' && (
+            {/* زر تحديث الحالة للطلبات المطلوبة خارجياً أو الجاهزة للاستلام */}
+            {(request.status === 'ordered_externally' || request.status === 'awaiting_pickup') && (
               <div className="flex space-x-reverse space-x-2 pt-4 border-t">
                 <Button
                   size="sm"
@@ -620,7 +621,7 @@ export default function RequestsList() {
             )}
 
             {/* زر التسليم النهائي للطلبات التي وصلت ويمكن استلامها */}
-            {request.status === 'parts_arrived' && (
+            {request.status === 'parts_arrived' && canDeliver && (
               <div className="flex space-x-reverse space-x-2 pt-4 border-t">
                 <Button
                   size="sm"
