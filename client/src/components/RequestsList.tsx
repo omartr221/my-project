@@ -630,8 +630,8 @@ export default function RequestsList() {
               </div>
             )}
 
-            {/* زر التسليم النهائي للطلبات التي وصلت ويمكن استلامها */}
-            {request.status === 'parts_arrived' && canDeliver && (
+            {/* زر تم استلام القطعة لبدوي */}
+            {canDeliver && (
               <div className="flex space-x-reverse space-x-2 pt-4 border-t">
                 <Button
                   size="sm"
@@ -645,7 +645,7 @@ export default function RequestsList() {
                   ) : (
                     <Check className="h-4 w-4 ml-1" />
                   )}
-                  تم الاستلام
+                  تم استلام القطعة
                 </Button>
               </div>
             )}
