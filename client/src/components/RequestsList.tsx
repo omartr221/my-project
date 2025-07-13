@@ -348,9 +348,7 @@ export default function RequestsList() {
         </div>
       </div>
 
-      {requests.map((request) => {
-        console.log('Rendering request:', request.id, 'Status:', request.status);
-        return (
+      {requests.map((request) => (
         <Card key={request.id} className="border-r-4 border-r-blue-500 hover:shadow-lg transition-shadow">
           <CardHeader className="pb-3">
             <div className="flex justify-between items-start">
@@ -622,17 +620,14 @@ export default function RequestsList() {
               </div>
             )}
 
-            {/* زر تحديث الحالة للطلبات المطلوبة خارجياً أو الجاهزة للاستلام */}
-            {(request.status === 'ordered_externally' || request.status === 'awaiting_pickup') && (
+            {/* زر تحديث الحالة للطلبات المطلوبة خارجياً فقط */}
+            {request.status === 'ordered_externally' && (
               <div className="flex space-x-reverse space-x-2 pt-4 border-t">
                 <Button
                   size="sm"
                   variant="default"
                   className="bg-emerald-600 hover:bg-emerald-700"
-                  onClick={() => {
-                    console.log('Updating request status to parts_arrived:', request.id);
-                    partsArrivedMutation.mutate(request.id);
-                  }}
+                  onClick={() => partsArrivedMutation.mutate(request.id)}
                   disabled={partsArrivedMutation.isPending}
                 >
                   {partsArrivedMutation.isPending ? (
@@ -674,8 +669,7 @@ export default function RequestsList() {
             )}
           </CardContent>
         </Card>
-        );
-      })}
+      ))}
     </div>
   );
 }
