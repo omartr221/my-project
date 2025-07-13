@@ -38,6 +38,18 @@ export default function RequestsList() {
   console.log('Current user:', user?.username);
   console.log('User permissions:', user?.permissions);
   console.log('Can deliver:', canDeliver);
+  
+  // إضافة try-catch للتعامل مع أخطاء الرندر
+  if (!requests) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-2 text-gray-600">جاري تحميل الطلبات...</p>
+        </div>
+      </div>
+    );
+  }
 
   // وظيفة الموافقة على الطلب - تحويل إلى قيد التحضير
   const approveMutation = useMutation({
@@ -225,20 +237,29 @@ export default function RequestsList() {
   // WebSocket integration لإشعار التسليم
   useEffect(() => {
     if (user?.username === 'هبة') {
-      const ws = new WebSocket(`ws://${window.location.host}/ws`);
-      
-      ws.onmessage = (event) => {
-        const { type, data } = JSON.parse(event.data);
+      try {
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const ws = new WebSocket(`${protocol}//${window.location.host}/ws`);
         
-        if (type === 'parts_request_delivered') {
-          // إرسال حدث مخصص للإشعار بالتسليم
-          window.dispatchEvent(new CustomEvent('partsRequestDelivered', { detail: data }));
-        }
-      };
-      
-      return () => {
-        ws.close();
-      };
+        ws.onmessage = (event) => {
+          const { type, data } = JSON.parse(event.data);
+          
+          if (type === 'parts_request_delivered') {
+            // إرسال حدث مخصص للإشعار بالتسليم
+            window.dispatchEvent(new CustomEvent('partsRequestDelivered', { detail: data }));
+          }
+        };
+        
+        ws.onerror = (error) => {
+          console.log('WebSocket error:', error);
+        };
+        
+        return () => {
+          ws.close();
+        };
+      } catch (error) {
+        console.log('WebSocket connection failed:', error);
+      }
     }
   }, [user]);
 
