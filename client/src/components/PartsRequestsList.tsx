@@ -16,15 +16,19 @@ const statusColors = {
   approved: "bg-green-100 text-green-800",
   in_preparation: "bg-blue-100 text-blue-800",
   awaiting_pickup: "bg-purple-100 text-purple-800",
+  ordered_externally: "bg-orange-100 text-orange-800",
+  unavailable: "bg-gray-100 text-gray-800",
   rejected: "bg-red-100 text-red-800",
   delivered: "bg-gray-100 text-gray-800",
 };
 
 const statusLabels = {
   pending: "في الانتظار",
-  approved: "موافق عليه",
+  approved: "موافق عليه", 
   in_preparation: "قيد التحضير",
   awaiting_pickup: "بانتظار الاستلام",
+  ordered_externally: "تم الطلب خارجياً",
+  unavailable: "غير متوفر",
   rejected: "مرفوض",
   delivered: "تم التسليم",
 };
@@ -142,7 +146,7 @@ export default function PartsRequestsList() {
                   <TableHead>العدد</TableHead>
                   <TableHead>سبب الطلب</TableHead>
                   <TableHead>الحالة</TableHead>
-                  <TableHead>تاريخ الطلب</TableHead>
+                  <TableHead>سجل المهام</TableHead>
                   <TableHead>الإجراءات</TableHead>
                 </TableRow>
               </TableHeader>
@@ -183,13 +187,84 @@ export default function PartsRequestsList() {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        {new Date(request.requestedAt!).toLocaleDateString('ar-SY', {
-                          year: 'numeric',
-                          month: 'short',
-                          day: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
+                        <div className="space-y-1 text-xs">
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                            <span>طلب: {new Date(request.requestedAt!).toLocaleDateString('ar-SY', {
+                              month: 'short',
+                              day: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })}</span>
+                          </div>
+                          
+                          {request.approvedAt && (
+                            <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                              <span>موافقة: {new Date(request.approvedAt).toLocaleDateString('ar-SY', {
+                                month: 'short',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              })}</span>
+                            </div>
+                          )}
+                          
+                          {request.inPreparationAt && (
+                            <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                              <span>تحضير: {new Date(request.inPreparationAt).toLocaleDateString('ar-SY', {
+                                month: 'short',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              })}</span>
+                            </div>
+                          )}
+                          
+                          {request.readyForPickupAt && (
+                            <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                              <span>جاهز: {new Date(request.readyForPickupAt).toLocaleDateString('ar-SY', {
+                                month: 'short',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              })}</span>
+                            </div>
+                          )}
+                          
+                          {request.orderedExternallyAt && (
+                            <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                              <span>خارجي: {new Date(request.orderedExternallyAt).toLocaleDateString('ar-SY', {
+                                month: 'short',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              })}</span>
+                            </div>
+                          )}
+                          
+                          {request.estimatedArrival && (
+                            <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 bg-orange-300 rounded-full"></div>
+                              <span>متوقع: {request.estimatedArrival}</span>
+                            </div>
+                          )}
+                          
+                          {request.unavailableAt && (
+                            <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 bg-gray-500 rounded-full"></div>
+                              <span>غير متوفر: {new Date(request.unavailableAt).toLocaleDateString('ar-SY', {
+                                month: 'short',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              })}</span>
+                            </div>
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-2">

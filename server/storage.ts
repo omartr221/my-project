@@ -787,13 +787,29 @@ export class DatabaseStorage implements IStorage {
     return newRequest;
   }
 
-  async updatePartsRequestStatus(id: number, status: string, notes?: string): Promise<PartsRequest> {
+  async updatePartsRequestStatus(id: number, status: string, notes?: string, estimatedArrival?: string): Promise<PartsRequest> {
     const updateData: any = { status };
+    const now = new Date();
     
+    // تسجيل الأوقات حسب الحالة
     if (status === "approved") {
-      updateData.approvedAt = new Date();
+      updateData.approvedAt = now;
+    } else if (status === "in_preparation") {
+      updateData.inPreparationAt = now;
+      updateData.approvedAt = now; // تسجيل وقت الموافقة أيضاً
+    } else if (status === "awaiting_pickup") {
+      updateData.readyForPickupAt = now;
+    } else if (status === "ordered_externally") {
+      updateData.orderedExternallyAt = now;
+      updateData.orderedExternallyBy = "هبة"; // يمكن تحسين هذا لاحقاً
+      if (estimatedArrival) {
+        updateData.estimatedArrival = estimatedArrival;
+      }
+    } else if (status === "unavailable") {
+      updateData.unavailableAt = now;
+      updateData.unavailableBy = "هبة"; // يمكن تحسين هذا لاحقاً
     } else if (status === "delivered") {
-      updateData.deliveredAt = new Date();
+      updateData.deliveredAt = now;
     }
     
     if (notes) {

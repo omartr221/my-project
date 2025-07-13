@@ -214,6 +214,13 @@ export const partsRequests = pgTable("parts_requests", {
   requestedAt: timestamp("requested_at").defaultNow(),
   approvedBy: varchar("approved_by", { length: 100 }),
   approvedAt: timestamp("approved_at"),
+  inPreparationAt: timestamp("in_preparation_at"),
+  readyForPickupAt: timestamp("ready_for_pickup_at"),
+  orderedExternallyAt: timestamp("ordered_externally_at"),
+  orderedExternallyBy: varchar("ordered_externally_by", { length: 100 }),
+  estimatedArrival: varchar("estimated_arrival", { length: 200 }),
+  unavailableAt: timestamp("unavailable_at"),
+  unavailableBy: varchar("unavailable_by", { length: 100 }),
   deliveredBy: varchar("delivered_by", { length: 100 }),
   deliveredAt: timestamp("delivered_at"),
 });

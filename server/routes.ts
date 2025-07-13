@@ -546,9 +546,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/parts-requests/:id/status", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const { status, notes } = req.body;
+      const { status, notes, estimatedArrival } = req.body;
       
-      const request = await storage.updatePartsRequestStatus(id, status, notes);
+      const request = await storage.updatePartsRequestStatus(id, status, notes, estimatedArrival);
       
       broadcastUpdate("parts_request_updated", request);
       res.json(request);

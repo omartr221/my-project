@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Package2, Calendar, User, Car, FileText, Check, X, Clock } from 'lucide-react';
+import { Package2, Calendar, User, Car, FileText, Check, X, Clock, ShoppingCart, AlertCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { ar } from 'date-fns/locale';
 import { useNotifications } from '@/hooks/useNotifications';
@@ -11,6 +11,10 @@ import TestNotification from './TestNotification';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useState } from 'react';
 
 export default function RequestsList() {
   const { data: requests, isLoading, error } = useQuery({
@@ -22,6 +26,8 @@ export default function RequestsList() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [estimatedArrival, setEstimatedArrival] = useState('');
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   // التحقق من صلاحية الموافقة والرفض
   const canApprove = user?.permissions?.includes('parts:approve');
@@ -65,6 +71,57 @@ export default function RequestsList() {
       toast({
         title: "تم تحديث الحالة",
         description: "القطعة جاهزة للاستلام",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/parts-requests'] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "خطأ في التحديث",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // وظيفة تحديث الحالة إلى "تم الطلب خارجياً"
+  const orderExternallyMutation = useMutation({
+    mutationFn: async ({requestId, estimatedArrival}: {requestId: number, estimatedArrival: string}) => {
+      const response = await apiRequest('PATCH', `/api/parts-requests/${requestId}/status`, {
+        status: 'ordered_externally',
+        notes: `تم الطلب خارجياً - التوقيت المتوقع: ${estimatedArrival}`,
+        estimatedArrival
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "تم تحديث الحالة",
+        description: "تم الطلب خارجياً",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/parts-requests'] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "خطأ في التحديث",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // وظيفة تحديث الحالة إلى "غير متوفر"
+  const markUnavailableMutation = useMutation({
+    mutationFn: async (requestId: number) => {
+      const response = await apiRequest('PATCH', `/api/parts-requests/${requestId}/status`, {
+        status: 'unavailable',
+        notes: 'القطعة غير متوفرة'
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "تم تحديث الحالة",
+        description: "تم تحديد القطعة كغير متوفرة",
       });
       queryClient.invalidateQueries({ queryKey: ['/api/parts-requests'] });
     },
@@ -151,6 +208,8 @@ export default function RequestsList() {
       case 'approved': return 'bg-green-100 text-green-800';
       case 'in_preparation': return 'bg-blue-100 text-blue-800';
       case 'awaiting_pickup': return 'bg-purple-100 text-purple-800';
+      case 'ordered_externally': return 'bg-orange-100 text-orange-800';
+      case 'unavailable': return 'bg-gray-100 text-gray-800';
       case 'rejected': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
     }
@@ -162,6 +221,8 @@ export default function RequestsList() {
       case 'approved': return 'موافق عليه';
       case 'in_preparation': return 'قيد التحضير';
       case 'awaiting_pickup': return 'بانتظار الاستلام';
+      case 'ordered_externally': return 'تم الطلب خارجياً';
+      case 'unavailable': return 'غير متوفر';
       case 'rejected': return 'مرفوض';
       default: return 'غير محدد';
     }
@@ -221,6 +282,62 @@ export default function RequestsList() {
                 <span>
                   {format(new Date(request.requestedAt), 'PPP', { locale: ar })}
                 </span>
+              </div>
+            </div>
+            
+            {/* سجل التوقيتات */}
+            <div className="bg-blue-50 rounded-lg p-4">
+              <div className="flex items-center space-x-reverse space-x-2 mb-3">
+                <Clock className="h-4 w-4 text-blue-600" />
+                <span className="font-medium text-blue-800">سجل المهام</span>
+              </div>
+              <div className="space-y-2 text-sm">
+                <div className="flex items-center space-x-reverse space-x-2">
+                  <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                  <span>تم الطلب: {format(new Date(request.requestedAt), 'PPpp', { locale: ar })}</span>
+                </div>
+                
+                {request.approvedAt && (
+                  <div className="flex items-center space-x-reverse space-x-2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <span>تم الموافقة: {format(new Date(request.approvedAt), 'PPpp', { locale: ar })}</span>
+                  </div>
+                )}
+                
+                {request.inPreparationAt && (
+                  <div className="flex items-center space-x-reverse space-x-2">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    <span>قيد التحضير: {format(new Date(request.inPreparationAt), 'PPpp', { locale: ar })}</span>
+                  </div>
+                )}
+                
+                {request.readyForPickupAt && (
+                  <div className="flex items-center space-x-reverse space-x-2">
+                    <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                    <span>جاهز للاستلام: {format(new Date(request.readyForPickupAt), 'PPpp', { locale: ar })}</span>
+                  </div>
+                )}
+                
+                {request.orderedExternallyAt && (
+                  <div className="flex items-center space-x-reverse space-x-2">
+                    <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                    <span>تم الطلب خارجياً: {format(new Date(request.orderedExternallyAt), 'PPpp', { locale: ar })}</span>
+                  </div>
+                )}
+                
+                {request.estimatedArrival && (
+                  <div className="flex items-center space-x-reverse space-x-2">
+                    <div className="w-2 h-2 bg-orange-300 rounded-full"></div>
+                    <span>التوقيت المتوقع: {request.estimatedArrival}</span>
+                  </div>
+                )}
+                
+                {request.unavailableAt && (
+                  <div className="flex items-center space-x-reverse space-x-2">
+                    <div className="w-2 h-2 bg-gray-500 rounded-full"></div>
+                    <span>غير متوفر: {format(new Date(request.unavailableAt), 'PPpp', { locale: ar })}</span>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -304,9 +421,9 @@ export default function RequestsList() {
               </div>
             )}
 
-            {/* زر تحديث الحالة لقيد التحضير */}
+            {/* أزرار تحديث الحالة لقيد التحضير */}
             {request.status === 'in_preparation' && canApprove && (
-              <div className="flex space-x-reverse space-x-2 pt-4 border-t">
+              <div className="flex space-x-reverse space-x-2 pt-4 border-t flex-wrap gap-2">
                 <Button
                   size="sm"
                   variant="default"
@@ -320,6 +437,76 @@ export default function RequestsList() {
                     <Clock className="h-4 w-4 ml-1" />
                   )}
                   جاهز للاستلام
+                </Button>
+                
+                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="bg-orange-50 border-orange-500 text-orange-700 hover:bg-orange-100"
+                    >
+                      <ShoppingCart className="h-4 w-4 ml-1" />
+                      تم الطلب خارجياً
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                      <DialogTitle>تم الطلب خارجياً</DialogTitle>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="arrival" className="text-right">
+                          التوقيت المتوقع
+                        </Label>
+                        <Input
+                          id="arrival"
+                          value={estimatedArrival}
+                          onChange={(e) => setEstimatedArrival(e.target.value)}
+                          placeholder="مثال: يوم الأحد 2:00 مساءً"
+                          className="col-span-3"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex justify-end space-x-reverse space-x-2">
+                      <Button
+                        variant="outline"
+                        onClick={() => setIsDialogOpen(false)}
+                      >
+                        إلغاء
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          if (estimatedArrival.trim()) {
+                            orderExternallyMutation.mutate({
+                              requestId: request.id,
+                              estimatedArrival: estimatedArrival.trim()
+                            });
+                            setEstimatedArrival('');
+                            setIsDialogOpen(false);
+                          }
+                        }}
+                        disabled={orderExternallyMutation.isPending || !estimatedArrival.trim()}
+                      >
+                        تأكيد
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="bg-gray-50 border-gray-500 text-gray-700 hover:bg-gray-100"
+                  onClick={() => markUnavailableMutation.mutate(request.id)}
+                  disabled={markUnavailableMutation.isPending}
+                >
+                  {markUnavailableMutation.isPending ? (
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600"></div>
+                  ) : (
+                    <AlertCircle className="h-4 w-4 ml-1" />
+                  )}
+                  غير متوفر
                 </Button>
               </div>
             )}
