@@ -33,6 +33,11 @@ export default function RequestsList() {
   const canApprove = user?.permissions?.includes('parts:approve');
   const canReject = user?.permissions?.includes('parts:reject');
   const canDeliver = user?.permissions?.includes('parts:create'); // بدوي يمكنه التسليم
+  
+  // Debug information
+  console.log('Current user:', user?.username);
+  console.log('User permissions:', user?.permissions);
+  console.log('Can deliver:', canDeliver);
 
   // وظيفة الموافقة على الطلب - تحويل إلى قيد التحضير
   const approveMutation = useMutation({
@@ -328,7 +333,9 @@ export default function RequestsList() {
         </div>
       </div>
 
-      {requests.map((request) => (
+      {requests.map((request) => {
+        console.log('Rendering request:', request.id, 'Status:', request.status);
+        return (
         <Card key={request.id} className="border-r-4 border-r-blue-500 hover:shadow-lg transition-shadow">
           <CardHeader className="pb-3">
             <div className="flex justify-between items-start">
@@ -607,7 +614,10 @@ export default function RequestsList() {
                   size="sm"
                   variant="default"
                   className="bg-emerald-600 hover:bg-emerald-700"
-                  onClick={() => partsArrivedMutation.mutate(request.id)}
+                  onClick={() => {
+                    console.log('Updating request status to parts_arrived:', request.id);
+                    partsArrivedMutation.mutate(request.id);
+                  }}
                   disabled={partsArrivedMutation.isPending}
                 >
                   {partsArrivedMutation.isPending ? (
@@ -649,7 +659,8 @@ export default function RequestsList() {
             )}
           </CardContent>
         </Card>
-      ))}
+        );
+      })}
     </div>
   );
 }
