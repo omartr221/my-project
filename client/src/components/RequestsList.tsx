@@ -33,23 +33,6 @@ export default function RequestsList() {
   const canApprove = user?.permissions?.includes('parts:approve');
   const canReject = user?.permissions?.includes('parts:reject');
   const canDeliver = user?.permissions?.includes('parts:create'); // بدوي يمكنه التسليم
-  
-  // Debug information
-  console.log('Current user:', user?.username);
-  console.log('User permissions:', user?.permissions);
-  console.log('Can deliver:', canDeliver);
-  
-  // إضافة try-catch للتعامل مع أخطاء الرندر
-  if (!requests) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-2 text-gray-600">جاري تحميل الطلبات...</p>
-        </div>
-      </div>
-    );
-  }
 
   // وظيفة الموافقة على الطلب - تحويل إلى قيد التحضير
   const approveMutation = useMutation({
@@ -287,7 +270,18 @@ export default function RequestsList() {
     );
   }
 
-  if (!requests || requests.length === 0) {
+  if (!requests) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-2 text-gray-600">جاري تحميل الطلبات...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (requests.length === 0) {
     return (
       <div className="text-center py-12">
         <Package2 className="mx-auto h-16 w-16 text-gray-400 mb-4" />
