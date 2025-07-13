@@ -805,6 +805,9 @@ export class DatabaseStorage implements IStorage {
       if (estimatedArrival) {
         updateData.estimatedArrival = estimatedArrival;
       }
+    } else if (status === "parts_arrived") {
+      updateData.partsArrivedAt = now;
+      updateData.partsArrivedBy = "بدوي"; // يمكن تحسين هذا لاحقاً
     } else if (status === "unavailable") {
       updateData.unavailableAt = now;
       updateData.unavailableBy = "هبة"; // يمكن تحسين هذا لاحقاً

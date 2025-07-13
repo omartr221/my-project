@@ -134,6 +134,31 @@ export default function RequestsList() {
     },
   });
 
+  // وظيفة تحديث الحالة إلى "وصلت القطعة بانتظار التسليم"
+  const partsArrivedMutation = useMutation({
+    mutationFn: async (requestId: number) => {
+      const response = await apiRequest('PATCH', `/api/parts-requests/${requestId}/status`, {
+        status: 'parts_arrived',
+        notes: 'وصلت القطعة وهي بانتظار التسليم'
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "تم تحديث الحالة",
+        description: "وصلت القطعة وهي بانتظار التسليم",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/parts-requests'] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "خطأ في التحديث",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   // وظيفة رفض الطلب
   const rejectMutation = useMutation({
     mutationFn: async (requestId: number) => {
@@ -209,6 +234,7 @@ export default function RequestsList() {
       case 'in_preparation': return 'bg-blue-100 text-blue-800';
       case 'awaiting_pickup': return 'bg-purple-100 text-purple-800';
       case 'ordered_externally': return 'bg-orange-100 text-orange-800';
+      case 'parts_arrived': return 'bg-emerald-100 text-emerald-800';
       case 'unavailable': return 'bg-gray-100 text-gray-800';
       case 'rejected': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
@@ -222,6 +248,7 @@ export default function RequestsList() {
       case 'in_preparation': return 'قيد التحضير';
       case 'awaiting_pickup': return 'بانتظار الاستلام';
       case 'ordered_externally': return 'تم الطلب خارجياً';
+      case 'parts_arrived': return 'وصلت القطعة بانتظار التسليم';
       case 'unavailable': return 'غير متوفر';
       case 'rejected': return 'مرفوض';
       default: return 'غير محدد';
@@ -329,6 +356,13 @@ export default function RequestsList() {
                   <div className="flex items-center space-x-reverse space-x-2">
                     <div className="w-2 h-2 bg-orange-300 rounded-full"></div>
                     <span>التوقيت المتوقع: {request.estimatedArrival}</span>
+                  </div>
+                )}
+                
+                {request.partsArrivedAt && (
+                  <div className="flex items-center space-x-reverse space-x-2">
+                    <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+                    <span>وصلت القطعة: {format(new Date(request.partsArrivedAt), 'PPpp', { locale: ar })}</span>
                   </div>
                 )}
                 
@@ -507,6 +541,26 @@ export default function RequestsList() {
                     <AlertCircle className="h-4 w-4 ml-1" />
                   )}
                   غير متوفر
+                </Button>
+              </div>
+            )}
+
+            {/* زر تحديث الحالة للطلبات المطلوبة خارجياً */}
+            {request.status === 'ordered_externally' && (
+              <div className="flex space-x-reverse space-x-2 pt-4 border-t">
+                <Button
+                  size="sm"
+                  variant="default"
+                  className="bg-emerald-600 hover:bg-emerald-700"
+                  onClick={() => partsArrivedMutation.mutate(request.id)}
+                  disabled={partsArrivedMutation.isPending}
+                >
+                  {partsArrivedMutation.isPending ? (
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  ) : (
+                    <Package2 className="h-4 w-4 ml-1" />
+                  )}
+                  وصلت القطعة بانتظار التسليم
                 </Button>
               </div>
             )}

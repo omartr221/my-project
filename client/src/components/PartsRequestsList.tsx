@@ -17,6 +17,7 @@ const statusColors = {
   in_preparation: "bg-blue-100 text-blue-800",
   awaiting_pickup: "bg-purple-100 text-purple-800",
   ordered_externally: "bg-orange-100 text-orange-800",
+  parts_arrived: "bg-emerald-100 text-emerald-800",
   unavailable: "bg-gray-100 text-gray-800",
   rejected: "bg-red-100 text-red-800",
   delivered: "bg-gray-100 text-gray-800",
@@ -28,6 +29,7 @@ const statusLabels = {
   in_preparation: "قيد التحضير",
   awaiting_pickup: "بانتظار الاستلام",
   ordered_externally: "تم الطلب خارجياً",
+  parts_arrived: "وصلت القطعة بانتظار التسليم",
   unavailable: "غير متوفر",
   rejected: "مرفوض",
   delivered: "تم التسليم",
@@ -250,6 +252,18 @@ export default function PartsRequestsList() {
                             <div className="flex items-center gap-2">
                               <div className="w-2 h-2 bg-orange-300 rounded-full"></div>
                               <span>متوقع: {request.estimatedArrival}</span>
+                            </div>
+                          )}
+                          
+                          {request.partsArrivedAt && (
+                            <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+                              <span>وصول: {new Date(request.partsArrivedAt).toLocaleDateString('ar-SY', {
+                                month: 'short',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              })}</span>
                             </div>
                           )}
                           

@@ -219,6 +219,8 @@ export const partsRequests = pgTable("parts_requests", {
   orderedExternallyAt: timestamp("ordered_externally_at"),
   orderedExternallyBy: varchar("ordered_externally_by", { length: 100 }),
   estimatedArrival: varchar("estimated_arrival", { length: 200 }),
+  partsArrivedAt: timestamp("parts_arrived_at"),
+  partsArrivedBy: varchar("parts_arrived_by", { length: 100 }),
   unavailableAt: timestamp("unavailable_at"),
   unavailableBy: varchar("unavailable_by", { length: 100 }),
   deliveredBy: varchar("delivered_by", { length: 100 }),
