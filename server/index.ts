@@ -122,9 +122,11 @@ app.use((req, res, next) => {
     log(`   - Host: ${host}`);
     if (process.env.NODE_ENV !== "production") {
       log(`   - من هذا الجهاز: http://localhost:${port}`);
+      log(`   - من هذا الجهاز أيضاً: http://127.0.0.1:${port}`);
       log(`   - من أجهزة أخرى: http://[عنوان-IP]:${port}`);
       log(`📱 لمعرفة عنوان IP: اكتب ipconfig في cmd`);
       log(`🔧 السيرفر يعمل على جميع عناوين الشبكة (0.0.0.0)`);
+      log(`💡 إذا لم يعمل localhost جرب: 127.0.0.1:${port}`);
       log(`📖 راجع ملف 'تجربة-الاتصال.md' للمساعدة`);
     }
   }).on('error', (err: any) => {
