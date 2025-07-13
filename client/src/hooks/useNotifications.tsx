@@ -114,17 +114,17 @@ export function useNotifications() {
     }
   };
 
-  // دالة بدء التنبيه المتكرر
+  // دالة بدء التنبيه - مرة واحدة فقط
   const startRepeatingAlert = async (title: string, body: string) => {
     if (user?.username !== 'هبة') return;
     
     setCurrentAlert({ title, body });
     setIsAlertActive(true);
     
-    // تشغيل التنبيه فوراً
+    // تشغيل التنبيه مرة واحدة فقط
     await playAlertSound();
     
-    // إرسال إشعار المتصفح
+    // إرسال إشعار المتصفح مرة واحدة فقط
     if (hasPermission) {
       new Notification(title, {
         body,
@@ -134,20 +134,6 @@ export function useNotifications() {
         requireInteraction: true,
       });
     }
-    
-    // بدء التكرار كل 30 ثانية
-    alertIntervalRef.current = setInterval(async () => {
-      await playAlertSound();
-      if (hasPermission) {
-        new Notification(title, {
-          body: body + ' (تذكير)',
-          icon: '/favicon.ico',
-          badge: '/favicon.ico',
-          tag: 'parts-request-reminder',
-          requireInteraction: true,
-        });
-      }
-    }, 30000); // 30 ثانية
   };
 
   // دالة إيقاف التنبيه المتكرر
@@ -210,9 +196,10 @@ export function useNotifications() {
     const handleNewPartsRequest = (event: CustomEvent) => {
       if (user?.username === 'هبة') {
         const request = event.detail;
+        // تشغيل التنبيه مرة واحدة فقط عند استلام طلب جديد
         startRepeatingAlert(
           '📦 طلب قطعة جديد',
-          `طلب جديد من ${request.engineer}: ${request.partName}`
+          `طلب جديد من ${request.engineer || request.engineerName}: ${request.partName}`
         );
         setNewRequestsCount(prev => prev + 1);
       }

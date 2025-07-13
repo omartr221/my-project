@@ -176,6 +176,7 @@ Changelog:
 - July 12, 2025. Added comprehensive notification system for user "هبة": implemented sound alerts using Web Audio API, browser push notifications with permission requests, real-time WebSocket integration for instant notifications, visual notification badge counter on requests tab, custom event handling for new parts requests, notification display shows engineer name and part details
 - July 12, 2025. Enhanced notification system with repeating alerts: implemented continuous 30-second repeating alerts for new parts requests, created persistent visual alert dialog that overlays the interface, added enhanced multi-tone audio sequences with higher volume and square wave patterns, integrated mobile vibration support, created manual stop controls for alerts, added comprehensive test functionality for verification
 - July 13, 2025. Fixed Arabic text encoding issues: resolved character display problems by adding proper UTF-8 headers to server responses and client requests, enhanced authentication logging for troubleshooting, confirmed correct user credentials: Finance "ملك" (12345), Operator "بدوي" (0000), Viewer "هبة" (123456), Supervisor "روان" (1234567)
+- July 13, 2025. Updated notification system for user "هبة": removed 30-second repeating alerts, implemented one-time notifications only when new parts requests are received, created specialized HabaNotificationDialog component with clean UI showing request details and "موافق" button, notification now triggers once per new request without repetition
 
 ## User Preferences
 
