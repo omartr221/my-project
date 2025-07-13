@@ -485,10 +485,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/parts-requests", async (req, res) => {
     try {
-      const requestData = insertPartsRequestSchema.parse(req.body);
-      const request = await storage.createPartsRequest(requestData);
+      console.log("📦 Received parts request data:", JSON.stringify(req.body, null, 2));
       
-      broadcastUpdate("parts_request_created", request);
+      const requestData = insertPartsRequestSchema.parse(req.body);
+      console.log("✅ Parsed request data:", JSON.stringify(requestData, null, 2));
+      
+      const request = await storage.createPartsRequest(requestData);
+      console.log("📋 Created request:", JSON.stringify(request, null, 2));
+      
+      // إرسال حدث مخصص للإشعارات
+      if (request.engineerName && request.partName) {
+        const eventData = {
+          id: request.id,
+          engineer: request.engineerName,
+          partName: request.partName,
+          requestNumber: request.requestNumber
+        };
+        
+        // إرسال إشعار عبر WebSocket
+        broadcastUpdate("parts_request_created", request);
+        
+        // تسجيل الحدث للتحقق
+        console.log("🔔 Broadcasting parts request notification:", JSON.stringify(eventData, null, 2));
+      }
+      
       res.status(201).json(request);
     } catch (error) {
       console.error("Error creating parts request:", error);

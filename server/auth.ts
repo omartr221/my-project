@@ -56,6 +56,7 @@ export function setupAuth(app: Express) {
           return done(null, user);
         }
       } catch (error) {
+        console.error("🚨 Authentication error:", error);
         return done(error);
       }
     }),
