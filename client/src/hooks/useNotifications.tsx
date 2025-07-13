@@ -13,41 +13,55 @@ export function useNotifications() {
 
   // إنشاء الصوت التلقائي للإشعار
   useEffect(() => {
+    let audioContext: AudioContext | null = null;
+    
     // إنشاء نغمة قوية ولافتة للانتباه باستخدام Web Audio API
-    const createNotificationSound = () => {
-      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-      
-      // إنشاء نغمة متكررة مع ترددات عالية
-      const playTone = (frequency: number, startTime: number, duration: number) => {
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
+    const createNotificationSound = async () => {
+      try {
+        // إنشاء AudioContext إذا لم يكن موجود
+        if (!audioContext) {
+          audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+        }
         
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
+        // استئناف AudioContext إذا كان معلق
+        if (audioContext.state === 'suspended') {
+          await audioContext.resume();
+        }
         
-        oscillator.frequency.setValueAtTime(frequency, startTime);
-        oscillator.type = 'square'; // نوع موجة مربعة لصوت أقوى
+        // إنشاء نغمة متكررة مع ترددات عالية
+        const playTone = (frequency: number, startTime: number, duration: number) => {
+          const oscillator = audioContext!.createOscillator();
+          const gainNode = audioContext!.createGain();
+          
+          oscillator.connect(gainNode);
+          gainNode.connect(audioContext!.destination);
+          
+          oscillator.frequency.setValueAtTime(frequency, startTime);
+          oscillator.type = 'square'; // نوع موجة مربعة لصوت أقوى
+          
+          gainNode.gain.setValueAtTime(0.8, startTime); // صوت أعلى
+          gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
+          
+          oscillator.start(startTime);
+          oscillator.stop(startTime + duration);
+        };
         
-        gainNode.gain.setValueAtTime(0.6, startTime); // صوت أعلى
-        gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
-        
-        oscillator.start(startTime);
-        oscillator.stop(startTime + duration);
-      };
-      
-      // تشغيل سلسلة من النغمات المتتالية
-      const now = audioContext.currentTime;
-      playTone(1000, now, 0.15);        // نغمة عالية
-      playTone(800, now + 0.2, 0.15);   // نغمة متوسطة
-      playTone(1200, now + 0.4, 0.15);  // نغمة أعلى
-      playTone(900, now + 0.6, 0.15);   // نغمة متوسطة
-      playTone(1400, now + 0.8, 0.2);   // نغمة نهائية قوية
+        // تشغيل سلسلة من النغمات المتتالية
+        const now = audioContext.currentTime;
+        playTone(1000, now, 0.2);        // نغمة عالية
+        playTone(800, now + 0.25, 0.2);   // نغمة متوسطة
+        playTone(1200, now + 0.5, 0.2);  // نغمة أعلى
+        playTone(900, now + 0.75, 0.2);   // نغمة متوسطة
+        playTone(1400, now + 1.0, 0.3);   // نغمة نهائية قوية
+      } catch (error) {
+        console.warn('Unable to create notification sound:', error);
+      }
     };
 
     // تشغيل الصوت
-    const playNotificationSound = () => {
+    const playNotificationSound = async () => {
       try {
-        createNotificationSound();
+        await createNotificationSound();
       } catch (error) {
         console.warn('Unable to play notification sound:', error);
       }
@@ -55,6 +69,13 @@ export function useNotifications() {
 
     // تعيين الصوت
     audioRef.current = { play: playNotificationSound } as any;
+    
+    // تنظيف عند إلغاء التحميل
+    return () => {
+      if (audioContext) {
+        audioContext.close();
+      }
+    };
   }, []);
 
   // طلب إذن الإشعارات
@@ -71,24 +92,37 @@ export function useNotifications() {
   }, [user]);
 
   // دالة تشغيل الصوت والاهتزاز
-  const playAlertSound = () => {
+  const playAlertSound = async () => {
+    console.log('🔊 محاولة تشغيل الصوت...');
+    
     if (audioRef.current) {
-      audioRef.current.play();
+      try {
+        await audioRef.current.play();
+        console.log('✅ تم تشغيل الصوت بنجاح');
+      } catch (error) {
+        console.error('❌ خطأ في تشغيل الصوت:', error);
+      }
+    } else {
+      console.warn('⚠️ لا يوجد مرجع للصوت');
     }
+    
     if ('vibrate' in navigator) {
-      navigator.vibrate([200, 100, 200, 100, 200]);
+      navigator.vibrate([300, 100, 300, 100, 300, 100, 300]);
+      console.log('📳 تم تشغيل الاهتزاز');
+    } else {
+      console.log('📳 الاهتزاز غير مدعوم');
     }
   };
 
   // دالة بدء التنبيه المتكرر
-  const startRepeatingAlert = (title: string, body: string) => {
+  const startRepeatingAlert = async (title: string, body: string) => {
     if (user?.username !== 'هبة') return;
     
     setCurrentAlert({ title, body });
     setIsAlertActive(true);
     
     // تشغيل التنبيه فوراً
-    playAlertSound();
+    await playAlertSound();
     
     // إرسال إشعار المتصفح
     if (hasPermission) {
@@ -102,8 +136,8 @@ export function useNotifications() {
     }
     
     // بدء التكرار كل 30 ثانية
-    alertIntervalRef.current = setInterval(() => {
-      playAlertSound();
+    alertIntervalRef.current = setInterval(async () => {
+      await playAlertSound();
       if (hasPermission) {
         new Notification(title, {
           body: body + ' (تذكير)',
@@ -127,12 +161,12 @@ export function useNotifications() {
   };
 
   // دالة إرسال الإشعار العادي
-  const sendNotification = (title: string, body: string, options?: NotificationOptions) => {
+  const sendNotification = async (title: string, body: string, options?: NotificationOptions) => {
     // إذا كان هناك تنبيه نشط، لا نرسل إشعار جديد
     if (isAlertActive) return;
     
     // تشغيل الصوت أولاً
-    playAlertSound();
+    await playAlertSound();
 
     // إرسال إشعار المتصفح
     if (hasPermission && user?.username === 'هبة') {

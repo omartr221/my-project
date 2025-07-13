@@ -7,8 +7,9 @@ export default function TestNotification() {
   const { startRepeatingAlert, stopRepeatingAlert, isAlertActive, currentAlert } = useNotifications();
   const { user } = useAuth();
 
-  const testRepeatingAlert = () => {
-    startRepeatingAlert(
+  const testRepeatingAlert = async () => {
+    console.log('🧪 بدء اختبار التنبيه المتكرر...');
+    await startRepeatingAlert(
       '🔔 اختبار التنبيه المتكرر',
       'هذا اختبار للتنبيه المتكرر كل 30 ثانية\nسيتوقف عند الضغط على زر إيقاف التنبيه'
     );
