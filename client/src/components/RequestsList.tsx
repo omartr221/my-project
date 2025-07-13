@@ -1,13 +1,16 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Package2, Calendar, User, Car, FileText } from 'lucide-react';
+import { Package2, Calendar, User, Car, FileText, Check, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { ar } from 'date-fns/locale';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useEffect } from 'react';
 import TestNotification from './TestNotification';
+import { useAuth } from '@/hooks/use-auth';
+import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
 
 export default function RequestsList() {
   const { data: requests, isLoading, error } = useQuery({
@@ -16,6 +19,63 @@ export default function RequestsList() {
   });
 
   const { checkForNewRequests, hasPermission } = useNotifications();
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // التحقق من صلاحية الموافقة والرفض
+  const canApprove = user?.permissions?.includes('parts:approve');
+  const canReject = user?.permissions?.includes('parts:reject');
+
+  // وظيفة الموافقة على الطلب
+  const approveMutation = useMutation({
+    mutationFn: async (requestId: number) => {
+      const response = await apiRequest('PATCH', `/api/parts-requests/${requestId}/status`, {
+        status: 'approved',
+        notes: 'تم الموافقة على الطلب'
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "تم الموافقة على الطلب",
+        description: "تم الموافقة على طلب القطعة بنجاح",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/parts-requests'] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "خطأ في الموافقة",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // وظيفة رفض الطلب
+  const rejectMutation = useMutation({
+    mutationFn: async (requestId: number) => {
+      const response = await apiRequest('PATCH', `/api/parts-requests/${requestId}/status`, {
+        status: 'rejected',
+        notes: 'تم رفض الطلب'
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "تم رفض الطلب",
+        description: "تم رفض طلب القطعة",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/parts-requests'] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "خطأ في الرفض",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
 
   // مراقبة الطلبات الجديدة
   useEffect(() => {
@@ -175,28 +235,40 @@ export default function RequestsList() {
             </div>
 
             {/* أزرار التحكم */}
-            {request.status === 'pending' && (
+            {request.status === 'pending' && (canApprove || canReject) && (
               <div className="flex space-x-reverse space-x-2 pt-4 border-t">
-                <Button
-                  size="sm"
-                  variant="default"
-                  className="bg-green-600 hover:bg-green-700"
-                >
-                  موافقة
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="text-red-600 border-red-600 hover:bg-red-50"
-                >
-                  رفض
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                >
-                  إضافة ملاحظة
-                </Button>
+                {canApprove && (
+                  <Button
+                    size="sm"
+                    variant="default"
+                    className="bg-green-600 hover:bg-green-700"
+                    onClick={() => approveMutation.mutate(request.id)}
+                    disabled={approveMutation.isPending}
+                  >
+                    {approveMutation.isPending ? (
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    ) : (
+                      <Check className="h-4 w-4 ml-1" />
+                    )}
+                    موافقة
+                  </Button>
+                )}
+                {canReject && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="text-red-600 border-red-600 hover:bg-red-50"
+                    onClick={() => rejectMutation.mutate(request.id)}
+                    disabled={rejectMutation.isPending}
+                  >
+                    {rejectMutation.isPending ? (
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600"></div>
+                    ) : (
+                      <X className="h-4 w-4 ml-1" />
+                    )}
+                    رفض
+                  </Button>
+                )}
               </div>
             )}
 

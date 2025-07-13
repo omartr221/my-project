@@ -148,7 +148,9 @@ async function initializeDefaultUsers() {
           "tasks:read",
           "tasks:write",
           "archive:read",
-          "customers:read"
+          "customers:read",
+          "parts:read",
+          "parts:create"
         ],
       });
       console.log("✓ تم إنشاء مستخدم العمليات: بدوي");
@@ -166,7 +168,10 @@ async function initializeDefaultUsers() {
           "dashboard:read",
           "timers:read",
           "tasks:read",
-          "customers:read"
+          "customers:read",
+          "parts:read",
+          "parts:approve",
+          "parts:reject"
         ],
       });
       console.log("✓ تم إنشاء مستخدم المشاهدة: هبة");

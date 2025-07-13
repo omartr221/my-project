@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Plus, Search } from "lucide-react";
 import { insertPartsRequestSchema, type InsertPartsRequest } from "@shared/schema";
+import { useAuth } from "@/hooks/use-auth";
 
 const partsRequestFormSchema = insertPartsRequestSchema.extend({
   quantity: z.coerce.number().min(1, "يجب أن يكون العدد أكبر من صفر"),
@@ -38,6 +39,21 @@ export default function PartsRequestForm() {
   const [isSearching, setIsSearching] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  
+  // التحقق من صلاحية إنشاء طلبات القطع
+  const canCreateRequest = user?.permissions?.includes('parts:create');
+  
+  // إذا لم يكن لديه صلاحية، لا نعرض النموذج
+  if (!canCreateRequest) {
+    return (
+      <Card className="w-full max-w-2xl mx-auto">
+        <CardContent className="p-6 text-center">
+          <p className="text-gray-500">ليس لديك صلاحية لإنشاء طلبات القطع</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   const form = useForm<PartsRequestFormData>({
     resolver: zodResolver(partsRequestFormSchema),
