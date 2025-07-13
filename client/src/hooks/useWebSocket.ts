@@ -93,11 +93,18 @@ export function useWebSocket() {
         // إرسال إشعار فوري للمستخدم هبة
         const user = queryClient.getQueryData(['/api/user']) as any;
         if (user?.username === 'هبة') {
-          // إرسال الإشعار عبر custom event
+          // إرسال الإشعار عبر custom event مع تفاصيل كاملة
           window.dispatchEvent(new CustomEvent('newPartsRequest', { 
             detail: message.data 
           }));
+          
+          console.log('🔔 إشعار جديد لهبة:', message.data);
         }
+        break;
+        
+      case 'parts_request_updated':
+        // Invalidate parts requests query to refresh data
+        queryClient.invalidateQueries({ queryKey: ['/api/parts-requests'] });
         break;
         
       case 'timer_tick':

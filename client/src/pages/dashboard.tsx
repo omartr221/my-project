@@ -17,6 +17,7 @@ import CustomerCard from "@/components/CustomerCard";
 import PartsRequestForm from "@/components/PartsRequestForm";
 import PartsRequestsList from "@/components/PartsRequestsList";
 import RequestsList from "@/components/RequestsList";
+import HabaNotificationDialog from "@/components/HabaNotificationDialog";
 import { useNotifications } from "@/hooks/useNotifications";
 
 type TabType = "dashboard" | "timers" | "history" | "archive" | "addworker" | "customercard" | "parts-requests" | "requests";
@@ -353,6 +354,9 @@ export default function Dashboard() {
         {/* Tab Content */}
         {renderTabContent()}
       </div>
+      
+      {/* نافذة التنبيه الخاصة بهبة */}
+      <HabaNotificationDialog />
     </div>
   );
 }
