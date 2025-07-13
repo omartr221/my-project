@@ -32,7 +32,7 @@ const statusLabels = {
   parts_arrived: "وصلت القطعة بانتظار التسليم",
   unavailable: "غير متوفر",
   rejected: "مرفوض",
-  delivered: "تم التسليم",
+  delivered: "تم الاستلام",
 };
 
 const reasonLabels = {

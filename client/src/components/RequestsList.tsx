@@ -159,6 +159,31 @@ export default function RequestsList() {
     },
   });
 
+  // وظيفة التسليم النهائي - تم الاستلام
+  const finalDeliveryMutation = useMutation({
+    mutationFn: async (requestId: number) => {
+      const response = await apiRequest('PATCH', `/api/parts-requests/${requestId}/status`, {
+        status: 'delivered',
+        notes: 'تم الاستلام بنجاح'
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "تم الاستلام بنجاح",
+        description: "تم إنهاء الطلب بنجاح",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/parts-requests'] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "خطأ في التسليم",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   // وظيفة رفض الطلب
   const rejectMutation = useMutation({
     mutationFn: async (requestId: number) => {
@@ -190,6 +215,26 @@ export default function RequestsList() {
       checkForNewRequests(requests);
     }
   }, [requests, checkForNewRequests]);
+
+  // WebSocket integration لإشعار التسليم
+  useEffect(() => {
+    if (user?.username === 'هبة') {
+      const ws = new WebSocket(`ws://${window.location.host}/ws`);
+      
+      ws.onmessage = (event) => {
+        const { type, data } = JSON.parse(event.data);
+        
+        if (type === 'parts_request_delivered') {
+          // إرسال حدث مخصص للإشعار بالتسليم
+          window.dispatchEvent(new CustomEvent('partsRequestDelivered', { detail: data }));
+        }
+      };
+      
+      return () => {
+        ws.close();
+      };
+    }
+  }, [user]);
 
   if (isLoading) {
     return (
@@ -237,6 +282,7 @@ export default function RequestsList() {
       case 'parts_arrived': return 'bg-emerald-100 text-emerald-800';
       case 'unavailable': return 'bg-gray-100 text-gray-800';
       case 'rejected': return 'bg-red-100 text-red-800';
+      case 'delivered': return 'bg-teal-100 text-teal-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -251,6 +297,7 @@ export default function RequestsList() {
       case 'parts_arrived': return 'وصلت القطعة بانتظار التسليم';
       case 'unavailable': return 'غير متوفر';
       case 'rejected': return 'مرفوض';
+      case 'delivered': return 'تم الاستلام';
       default: return 'غير محدد';
     }
   };
@@ -363,6 +410,13 @@ export default function RequestsList() {
                   <div className="flex items-center space-x-reverse space-x-2">
                     <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
                     <span>وصلت القطعة: {format(new Date(request.partsArrivedAt), 'PPpp', { locale: ar })}</span>
+                  </div>
+                )}
+                
+                {request.deliveredAt && (
+                  <div className="flex items-center space-x-reverse space-x-2">
+                    <div className="w-2 h-2 bg-teal-500 rounded-full"></div>
+                    <span>تم الاستلام: {format(new Date(request.deliveredAt), 'PPpp', { locale: ar })}</span>
                   </div>
                 )}
                 
@@ -561,6 +615,26 @@ export default function RequestsList() {
                     <Package2 className="h-4 w-4 ml-1" />
                   )}
                   وصلت القطعة بانتظار التسليم
+                </Button>
+              </div>
+            )}
+
+            {/* زر التسليم النهائي للطلبات التي وصلت ويمكن استلامها */}
+            {request.status === 'parts_arrived' && (
+              <div className="flex space-x-reverse space-x-2 pt-4 border-t">
+                <Button
+                  size="sm"
+                  variant="default"
+                  className="bg-teal-600 hover:bg-teal-700"
+                  onClick={() => finalDeliveryMutation.mutate(request.id)}
+                  disabled={finalDeliveryMutation.isPending}
+                >
+                  {finalDeliveryMutation.isPending ? (
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  ) : (
+                    <Check className="h-4 w-4 ml-1" />
+                  )}
+                  تم الاستلام
                 </Button>
               </div>
             )}

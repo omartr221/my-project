@@ -813,6 +813,7 @@ export class DatabaseStorage implements IStorage {
       updateData.unavailableBy = "هبة"; // يمكن تحسين هذا لاحقاً
     } else if (status === "delivered") {
       updateData.deliveredAt = now;
+      updateData.deliveredBy = "بدوي"; // يمكن تحسين هذا لاحقاً
     }
     
     if (notes) {

@@ -550,6 +550,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const request = await storage.updatePartsRequestStatus(id, status, notes, estimatedArrival);
       
+      // إرسال إشعار خاص عند التسليم النهائي
+      if (status === 'delivered') {
+        broadcastUpdate("parts_request_delivered", request);
+      }
+      
       broadcastUpdate("parts_request_updated", request);
       res.json(request);
     } catch (error) {

@@ -204,11 +204,25 @@ export function useNotifications() {
         setNewRequestsCount(prev => prev + 1);
       }
     };
+    
+    const handlePartsRequestDelivered = (event: CustomEvent) => {
+      if (user?.username === 'هبة') {
+        const request = event.detail;
+        // تشغيل التنبيه مرة واحدة فقط عند تسليم الطلب
+        startRepeatingAlert(
+          '✅ تم استلام القطعة',
+          `تم استلام: ${request.partName} - ${request.requestNumber}`
+        );
+        setNewRequestsCount(prev => prev + 1);
+      }
+    };
 
     window.addEventListener('newPartsRequest', handleNewPartsRequest as EventListener);
+    window.addEventListener('partsRequestDelivered', handlePartsRequestDelivered as EventListener);
     
     return () => {
       window.removeEventListener('newPartsRequest', handleNewPartsRequest as EventListener);
+      window.removeEventListener('partsRequestDelivered', handlePartsRequestDelivered as EventListener);
     };
   }, [user, startRepeatingAlert]);
 
