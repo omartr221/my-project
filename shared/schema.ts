@@ -202,6 +202,9 @@ export const partsRequests = pgTable("parts_requests", {
   carInfo: varchar("car_info", { length: 255 }).notNull(), // License plate, chassis number, or customer name
   carBrand: varchar("car_brand", { length: 50 }),
   carModel: varchar("car_model", { length: 100 }),
+  licensePlate: varchar("license_plate", { length: 50 }), // رقم السيارة
+  chassisNumber: varchar("chassis_number", { length: 100 }), // رقم الشاسيه
+  engineCode: varchar("engine_code", { length: 50 }), // رمز المحرك
   reasonType: varchar("reason_type", { length: 50 }).notNull(), // "expense" or "loan"
   partName: varchar("part_name", { length: 255 }).notNull(),
   quantity: integer("quantity").notNull(),
@@ -236,6 +239,9 @@ export const insertPartsRequestSchema = createInsertSchema(partsRequests).omit({
 }).partial({
   carBrand: true,
   carModel: true,
+  licensePlate: true,
+  chassisNumber: true,
+  engineCode: true,
   notes: true,
   requestedBy: true,
   approvedBy: true,

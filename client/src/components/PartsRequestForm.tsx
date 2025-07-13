@@ -46,6 +46,9 @@ export default function PartsRequestForm() {
       carInfo: "",
       carBrand: "",
       carModel: "",
+      licensePlate: "",
+      chassisNumber: "",
+      engineCode: "",
       reasonType: "",
       partName: "",
       quantity: 1,
@@ -205,6 +208,51 @@ export default function PartsRequestForm() {
                   <FormLabel>موديل السيارة</FormLabel>
                   <FormControl>
                     <Input placeholder="مثال: A4" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* رقم السيارة */}
+            <FormField
+              control={form.control}
+              name="licensePlate"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>رقم السيارة</FormLabel>
+                  <FormControl>
+                    <Input placeholder="مثال: 12345" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* رقم الشاسيه */}
+            <FormField
+              control={form.control}
+              name="chassisNumber"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>رقم الشاسيه</FormLabel>
+                  <FormControl>
+                    <Input placeholder="مثال: WAUEXXX" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* رمز المحرك */}
+            <FormField
+              control={form.control}
+              name="engineCode"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>رمز المحرك</FormLabel>
+                  <FormControl>
+                    <Input placeholder="مثال: BHF" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

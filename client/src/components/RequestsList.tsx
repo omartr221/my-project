@@ -120,7 +120,7 @@ export default function RequestsList() {
               <div className="flex items-center space-x-reverse space-x-2">
                 <User className="h-4 w-4 text-gray-600" />
                 <span className="font-medium">المهندس:</span>
-                <span>{request.engineer}</span>
+                <span>{request.engineerName}</span>
               </div>
               
               <div className="flex items-center space-x-reverse space-x-2">
@@ -141,32 +141,30 @@ export default function RequestsList() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm">
                 {request.licensePlate && (
                   <div>
-                    <span className="font-medium">رقم اللوحة:</span> {request.licensePlate}
+                    <span className="font-medium">رقم السيارة:</span> {request.licensePlate}
                   </div>
                 )}
                 {request.chassisNumber && (
                   <div>
-                    <span className="font-medium">رقم الهيكل:</span> {request.chassisNumber}
+                    <span className="font-medium">رقم الشاسيه:</span> {request.chassisNumber}
                   </div>
                 )}
-                {request.customerName && (
+                {request.engineCode && (
                   <div>
-                    <span className="font-medium">اسم الزبون:</span> {request.customerName}
+                    <span className="font-medium">رمز المحرك:</span> {request.engineCode}
                   </div>
                 )}
               </div>
             </div>
 
-            {/* تفاصيل الطلب */}
+            {/* سبب الطلب */}
             <div className="space-y-2">
               <div className="flex items-center space-x-reverse space-x-2">
                 <FileText className="h-4 w-4 text-gray-600" />
-                <span className="font-medium">تفاصيل الطلب:</span>
+                <span className="font-medium">سبب الطلب:</span>
+                <span>{request.reasonType === 'expense' ? 'صرف' : 'إعارة'}</span>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                <div>
-                  <span className="font-medium">سبب الطلب:</span> {request.requestReason}
-                </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                 <div>
                   <span className="font-medium">اسم القطعة:</span> {request.partName}
                 </div>

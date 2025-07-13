@@ -778,6 +778,9 @@ export class DatabaseStorage implements IStorage {
         ...request,
         requestNumber,
         requestedAt: new Date(),
+        licensePlate: request.licensePlate || null,
+        chassisNumber: request.chassisNumber || null,
+        engineCode: request.engineCode || null,
       })
       .returning();
     
@@ -806,13 +809,16 @@ export class DatabaseStorage implements IStorage {
     return updated;
   }
 
-  async searchCarInfoForParts(searchTerm: string): Promise<{ carBrand: string; carModel: string; color?: string } | null> {
+  async searchCarInfoForParts(searchTerm: string): Promise<{ carBrand: string; carModel: string; color?: string; licensePlate?: string; chassisNumber?: string; engineCode?: string } | null> {
     // Search in customer cars by license plate, chassis number, or customer name
     const [result] = await db
       .select({
         carBrand: customerCars.carBrand,
         carModel: customerCars.carModel,
         color: customerCars.color,
+        licensePlate: customerCars.licensePlate,
+        chassisNumber: customerCars.chassisNumber,
+        engineCode: customerCars.engineCode,
       })
       .from(customerCars)
       .leftJoin(customers, eq(customerCars.customerId, customers.id))
@@ -829,6 +835,9 @@ export class DatabaseStorage implements IStorage {
       carBrand: result.carBrand,
       carModel: result.carModel,
       color: result.color || undefined,
+      licensePlate: result.licensePlate || undefined,
+      chassisNumber: result.chassisNumber || undefined,
+      engineCode: result.engineCode || undefined,
     } : null;
   }
 }
