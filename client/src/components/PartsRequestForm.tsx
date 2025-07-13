@@ -81,41 +81,59 @@ export default function PartsRequestForm() {
 
   // البحث التلقائي عن معلومات السيارة
   const searchCarInfo = async (searchTerm: string) => {
-    if (!searchTerm.trim()) return;
+    if (!searchTerm.trim()) {
+      toast({
+        title: "خطأ في البحث",
+        description: "يرجى إدخال رقم السيارة أو معلومات البحث",
+        variant: "destructive",
+      });
+      return;
+    }
     
     setIsSearching(true);
     try {
       const response = await apiRequest("GET", `/api/car-search?q=${encodeURIComponent(searchTerm)}`);
-      const carData = await response.json();
       
-      if (carData && carData.carBrand && carData.carModel) {
-        form.setValue("carBrand", carData.carBrand);
-        form.setValue("carModel", carData.carModel);
+      if (response.ok) {
+        const carData = await response.json();
         
-        // إذا كانت هناك معلومات إضافية، نضعها في الحقول الجديدة
-        if (carData.licensePlate) {
-          form.setValue("licensePlate", carData.licensePlate);
+        if (carData && carData.carBrand && carData.carModel) {
+          // ملء البيانات الأساسية
+          form.setValue("carBrand", carData.carBrand);
+          form.setValue("carModel", carData.carModel);
+          
+          // ملء البيانات الإضافية
+          if (carData.licensePlate) {
+            form.setValue("licensePlate", carData.licensePlate);
+          }
+          if (carData.chassisNumber) {
+            form.setValue("chassisNumber", carData.chassisNumber);
+          }
+          if (carData.engineCode) {
+            form.setValue("engineCode", carData.engineCode);
+          }
+          
+          toast({
+            title: "✅ تم العثور على البيانات",
+            description: `${carData.carBrand} ${carData.carModel}${carData.chassisNumber ? ` - شاسيه: ${carData.chassisNumber}` : ''}`,
+          });
+        } else {
+          toast({
+            title: "لم يتم العثور على بيانات",
+            description: "لا توجد معلومات مسجلة لهذه السيارة في قاعدة البيانات",
+            variant: "destructive",
+          });
         }
-        if (carData.chassisNumber) {
-          form.setValue("chassisNumber", carData.chassisNumber);
-        }
-        if (carData.engineCode) {
-          form.setValue("engineCode", carData.engineCode);
-        }
-        
-        toast({
-          title: "تم العثور على بيانات السيارة",
-          description: `نوع السيارة: ${carData.carBrand} - موديل: ${carData.carModel}`,
-        });
       } else {
-        toast({
-          title: "لم يتم العثور على بيانات",
-          description: "لم يتم العثور على معلومات السيارة في قاعدة البيانات",
-          variant: "destructive",
-        });
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
     } catch (error) {
       console.error("خطأ في البحث:", error);
+      toast({
+        title: "خطأ في البحث",
+        description: "تعذر الاتصال بقاعدة البيانات - تأكد من الاتصال بالإنترنت",
+        variant: "destructive",
+      });
     } finally {
       setIsSearching(false);
     }
@@ -178,6 +196,12 @@ export default function PartsRequestForm() {
                         placeholder="رقم اللوحة، رقم الشاسيه، أو اسم الزبون"
                         {...field}
                         className="flex-1"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            searchCarInfo(field.value);
+                          }
+                        }}
                       />
                     </FormControl>
                     <Button
@@ -187,8 +211,12 @@ export default function PartsRequestForm() {
                       onClick={() => searchCarInfo(field.value)}
                       disabled={isSearching || !field.value.trim()}
                     >
-                      <Search className="h-4 w-4" />
-                      بحث
+                      {isSearching ? (
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                      ) : (
+                        <Search className="h-4 w-4" />
+                      )}
+                      {isSearching ? 'جاري البحث...' : 'بحث'}
                     </Button>
                   </div>
                   <FormMessage />
