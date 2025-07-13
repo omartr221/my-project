@@ -9,6 +9,7 @@ import AuthPage from "@/pages/auth-page";
 import NotFound from "@/pages/not-found";
 import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute } from "@/lib/protected-route";
+import AlertDialog from "@/components/AlertDialog";
 
 function Router() {
   return (
@@ -28,6 +29,7 @@ function App() {
       <AuthProvider>
         <TooltipProvider>
           <Toaster />
+          <AlertDialog />
           <Router />
         </TooltipProvider>
       </AuthProvider>

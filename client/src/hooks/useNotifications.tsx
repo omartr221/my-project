@@ -7,6 +7,9 @@ export function useNotifications() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const lastRequestCountRef = useRef(0);
   const [newRequestsCount, setNewRequestsCount] = useState(0);
+  const [isAlertActive, setIsAlertActive] = useState(false);
+  const alertIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [currentAlert, setCurrentAlert] = useState<{title: string, body: string} | null>(null);
 
   // إنشاء الصوت التلقائي للإشعار
   useEffect(() => {
@@ -67,17 +70,69 @@ export function useNotifications() {
     }
   }, [user]);
 
-  // دالة إرسال الإشعار
-  const sendNotification = (title: string, body: string, options?: NotificationOptions) => {
-    // تشغيل الصوت أولاً
+  // دالة تشغيل الصوت والاهتزاز
+  const playAlertSound = () => {
     if (audioRef.current) {
       audioRef.current.play();
     }
-
-    // اهتزاز الهاتف إذا كان متاحاً
     if ('vibrate' in navigator) {
-      navigator.vibrate([200, 100, 200, 100, 200]); // نمط اهتزاز لافت للانتباه
+      navigator.vibrate([200, 100, 200, 100, 200]);
     }
+  };
+
+  // دالة بدء التنبيه المتكرر
+  const startRepeatingAlert = (title: string, body: string) => {
+    if (user?.username !== 'هبة') return;
+    
+    setCurrentAlert({ title, body });
+    setIsAlertActive(true);
+    
+    // تشغيل التنبيه فوراً
+    playAlertSound();
+    
+    // إرسال إشعار المتصفح
+    if (hasPermission) {
+      new Notification(title, {
+        body,
+        icon: '/favicon.ico',
+        badge: '/favicon.ico',
+        tag: 'parts-request',
+        requireInteraction: true,
+      });
+    }
+    
+    // بدء التكرار كل 30 ثانية
+    alertIntervalRef.current = setInterval(() => {
+      playAlertSound();
+      if (hasPermission) {
+        new Notification(title, {
+          body: body + ' (تذكير)',
+          icon: '/favicon.ico',
+          badge: '/favicon.ico',
+          tag: 'parts-request-reminder',
+          requireInteraction: true,
+        });
+      }
+    }, 30000); // 30 ثانية
+  };
+
+  // دالة إيقاف التنبيه المتكرر
+  const stopRepeatingAlert = () => {
+    if (alertIntervalRef.current) {
+      clearInterval(alertIntervalRef.current);
+      alertIntervalRef.current = null;
+    }
+    setIsAlertActive(false);
+    setCurrentAlert(null);
+  };
+
+  // دالة إرسال الإشعار العادي
+  const sendNotification = (title: string, body: string, options?: NotificationOptions) => {
+    // إذا كان هناك تنبيه نشط، لا نرسل إشعار جديد
+    if (isAlertActive) return;
+    
+    // تشغيل الصوت أولاً
+    playAlertSound();
 
     // إرسال إشعار المتصفح
     if (hasPermission && user?.username === 'هبة') {
@@ -121,12 +176,9 @@ export function useNotifications() {
     const handleNewPartsRequest = (event: CustomEvent) => {
       if (user?.username === 'هبة') {
         const request = event.detail;
-        sendNotification(
+        startRepeatingAlert(
           '📦 طلب قطعة جديد',
-          `طلب جديد من ${request.engineer}: ${request.partName}`,
-          {
-            data: { requestId: request.id, type: 'parts-request' }
-          }
+          `طلب جديد من ${request.engineer}: ${request.partName}`
         );
         setNewRequestsCount(prev => prev + 1);
       }
@@ -137,12 +189,23 @@ export function useNotifications() {
     return () => {
       window.removeEventListener('newPartsRequest', handleNewPartsRequest as EventListener);
     };
-  }, [user, sendNotification]);
+  }, [user, startRepeatingAlert]);
+
+  // تنظيف التنبيهات عند تغيير المستخدم
+  useEffect(() => {
+    return () => {
+      stopRepeatingAlert();
+    };
+  }, [user]);
 
   return {
     sendNotification,
     checkForNewRequests,
     hasPermission,
-    newRequestsCount
+    newRequestsCount,
+    startRepeatingAlert,
+    stopRepeatingAlert,
+    isAlertActive,
+    currentAlert
   };
 }
