@@ -34,10 +34,12 @@ const app = express();
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 
-// إضافة headers للتعامل مع النص العربي
+// إضافة headers للتعامل مع النص العربي للـ API فقط
 app.use((req, res, next) => {
-  res.setHeader('Content-Type', 'application/json; charset=utf-8');
-  res.setHeader('Accept-Charset', 'utf-8');
+  if (req.path.startsWith('/api')) {
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    res.setHeader('Accept-Charset', 'utf-8');
+  }
   next();
 });
 
