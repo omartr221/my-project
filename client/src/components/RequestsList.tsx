@@ -659,12 +659,11 @@ export default function RequestsList() {
             )}
 
             {/* زر تم استلام القطعة لبدوي - يظهر فقط للطلبات في حالة وصلت القطعة */}
-            {request.status === 'parts_arrived' && (
-              <div className="bg-yellow-100 p-2 rounded mb-2">
-                <p className="text-sm">DEBUG: Request {request.id} - Status: {request.status} - Can deliver: {canDeliver ? 'YES' : 'NO'}</p>
-                <p className="text-sm">Condition result: {(canDeliver && request.status === 'parts_arrived') ? 'SHOW BUTTON' : 'HIDE BUTTON'}</p>
-              </div>
-            )}
+            <div className="bg-yellow-100 p-2 rounded mb-2">
+              <p className="text-sm">DEBUG: Request {request.id} - Status: "{request.status}" - Can deliver: {canDeliver ? 'YES' : 'NO'}</p>
+              <p className="text-sm">Status comparison: "{request.status}" === "parts_arrived" = {request.status === 'parts_arrived' ? 'TRUE' : 'FALSE'}</p>
+              <p className="text-sm">Condition result: {(canDeliver && request.status === 'parts_arrived') ? 'SHOW BUTTON' : 'HIDE BUTTON'}</p>
+            </div>
             
             {/* Force show button for debugging */}
             {request.status === 'parts_arrived' && (
