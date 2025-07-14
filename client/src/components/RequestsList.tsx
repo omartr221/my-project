@@ -330,6 +330,61 @@ export default function RequestsList() {
   return (
     <div className="space-y-4">
       <TestNotification />
+      
+      {/* أزرار التحديث اليدوي لبدوي */}
+      {user?.username === 'بدوي' && (
+        <div className="bg-gray-100 p-4 rounded-lg">
+          <h4 className="font-medium mb-2">تحديث يدوي للطلبات:</h4>
+          <div className="flex space-x-reverse space-x-2">
+            <Button
+              size="sm"
+              className="bg-blue-600 hover:bg-blue-700"
+              onClick={() => {
+                requests.forEach(request => {
+                  if (request.status === 'awaiting_pickup' || request.status === 'parts_arrived') {
+                    finalDeliveryMutation.mutate(request.id);
+                  }
+                });
+              }}
+            >
+              تحديث كل الطلبات الجاهزة
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                const pendingRequests = requests.filter(r => 
+                  r.status === 'awaiting_pickup' || r.status === 'parts_arrived'
+                );
+                console.log('الطلبات الجاهزة للتحديث:', pendingRequests.map(r => r.requestNumber));
+                
+                // طريقة لتحديث طلب واحد يدوياً
+                window.updateRequestStatus = async (requestId) => {
+                  try {
+                    const response = await fetch(`/api/parts-requests/${requestId}/status`, {
+                      method: 'PATCH',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ status: 'delivered', notes: 'تم الاستلام بنجاح' })
+                    });
+                    const result = await response.json();
+                    console.log('تم تحديث الطلب:', result.requestNumber);
+                    return result;
+                  } catch (error) {
+                    console.error('خطأ في التحديث:', error);
+                  }
+                };
+                
+                console.log('استخدم هذا في Console:');
+                console.log('updateRequestStatus(رقم_الطلب)');
+                console.log('مثال: updateRequestStatus(29)');
+              }}
+            >
+              عرض الطلبات الجاهزة
+            </Button>
+          </div>
+        </div>
+      )}
+      
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-semibold">
           إجمالي الطلبات: {requests.length}
