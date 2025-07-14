@@ -353,7 +353,14 @@ export default function RequestsList() {
         </div>
       </div>
 
-      {requests.map((request) => (
+      {requests.map((request) => {
+        console.log(`Processing request ${request.id}:`, {
+          id: request.id,
+          status: request.status,
+          canDeliver: canDeliver,
+          shouldShowButton: canDeliver && request.status === 'parts_arrived'
+        });
+        return (
         <Card key={request.id} className="border-r-4 border-r-blue-500 hover:shadow-lg transition-shadow">
           <CardHeader className="pb-3">
             <div className="flex justify-between items-start">
@@ -668,8 +675,7 @@ export default function RequestsList() {
               </div>
             )}
             
-            {/* Debug info for each request */}
-            {console.log(`Request ${request.id} - Status: ${request.status}, Can deliver: ${canDeliver}, Show button: ${canDeliver && request.status === 'parts_arrived'}`)}
+
 
             {/* الملاحظات */}
             {request.notes && (
@@ -680,7 +686,8 @@ export default function RequestsList() {
             )}
           </CardContent>
         </Card>
-      ))}
+        );
+      })}
     </div>
   );
 }
