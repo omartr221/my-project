@@ -331,23 +331,7 @@ export default function RequestsList() {
     <div className="space-y-4">
       <TestNotification />
       
-      {/* زر تسليم للاختبار - في الأعلى */}
-      <div className="bg-red-500 text-white p-4 rounded-lg mb-4">
-        <h2 className="text-lg font-bold">اختبار الزر</h2>
-        <p>المستخدم: {user?.username || 'غير محدد'}</p>
-        <p>عدد الطلبات: {requests.length}</p>
-        {requests.length > 0 && (
-          <Button
-            className="mt-2 bg-white text-red-500 hover:bg-gray-100"
-            onClick={() => {
-              console.log('Test delivery button clicked');
-              finalDeliveryMutation.mutate(requests[0].id);
-            }}
-          >
-            تسليم الطلب الأول
-          </Button>
-        )}
-      </div>
+
 
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-semibold">
@@ -379,23 +363,7 @@ export default function RequestsList() {
         <Card key={request.id} className="border-r-4 border-r-blue-500 hover:shadow-lg transition-shadow">
           <CardHeader className="pb-3">
             
-            {/* زر تسليم دائماً ظاهر للاختبار */}
-            <div className="mb-4 p-3 bg-green-100 border border-green-300 rounded">
-              <p className="text-sm mb-2">المستخدم الحالي: {user?.username || 'غير محدد'}</p>
-              <p className="text-sm mb-2">رقم الطلب: {request.requestNumber}</p>
-              <p className="text-sm mb-2">حالة الطلب: {request.status}</p>
-              <Button
-                size="sm"
-                className="bg-green-600 hover:bg-green-700 text-white"
-                onClick={() => {
-                  console.log('Delivery button clicked for request:', request.id);
-                  finalDeliveryMutation.mutate(request.id);
-                }}
-                disabled={finalDeliveryMutation.isPending}
-              >
-                {finalDeliveryMutation.isPending ? 'جاري التحديث...' : 'تسليم الطلب'}
-              </Button>
-            </div>
+
             <div className="flex justify-between items-start">
               <div className="flex items-center space-x-reverse space-x-2">
                 <Package2 className="h-5 w-5 text-blue-600" />

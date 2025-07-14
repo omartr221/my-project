@@ -127,28 +127,7 @@ export default function PartsRequestsList() {
 
   return (
     <div className="space-y-6">
-      {/* زر التسليم للاختبار */}
-      {user?.username === 'بدوي' && (
-        <Card className="border-2 border-teal-500">
-          <CardHeader>
-            <CardTitle className="text-teal-700">زر التسليم - اختبار</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="mb-4">المستخدم: {user.username}</p>
-            <p className="mb-4">عدد الطلبات: {partsRequests.length}</p>
-            {partsRequests.length > 0 && (
-              <Button
-                className="bg-teal-600 hover:bg-teal-700"
-                onClick={() => finalDeliveryMutation.mutate(partsRequests[0].id)}
-                disabled={finalDeliveryMutation.isPending}
-              >
-                <Check className="h-4 w-4 mr-1" />
-                تسليم الطلب الأول
-              </Button>
-            )}
-          </CardContent>
-        </Card>
-      )}
+
       
       <Card>
         <CardHeader>
