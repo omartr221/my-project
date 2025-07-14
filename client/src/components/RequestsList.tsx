@@ -360,6 +360,24 @@ export default function RequestsList() {
         return (
         <Card key={request.id} className="border-r-4 border-r-blue-500 hover:shadow-lg transition-shadow">
           <CardHeader className="pb-3">
+            {/* زر تسليم للاختبار - يظهر دائماً لبدوي */}
+            {user?.username === 'بدوي' && (
+              <div className="mb-4 p-3 bg-red-100 border border-red-300 rounded">
+                <p className="text-sm mb-2">اختبار الزر للمستخدم: {user?.username}</p>
+                <p className="text-sm mb-2">حالة الطلب: {request.status}</p>
+                <Button
+                  size="sm"
+                  className="bg-red-600 hover:bg-red-700 text-white"
+                  onClick={() => {
+                    console.log('Test button clicked for request:', request.id);
+                    finalDeliveryMutation.mutate(request.id);
+                  }}
+                  disabled={finalDeliveryMutation.isPending}
+                >
+                  اختبار تسليم
+                </Button>
+              </div>
+            )}
             <div className="flex justify-between items-start">
               <div className="flex items-center space-x-reverse space-x-2">
                 <Package2 className="h-5 w-5 text-blue-600" />
@@ -652,13 +670,20 @@ export default function RequestsList() {
             )}
 
             {/* زر تسليم لبدوي - للطلبات الجاهزة */}
-            {user?.username === 'بدوي' && (request.status === 'parts_arrived' || request.status === 'awaiting_pickup') && (
-              <div className="flex space-x-reverse space-x-2 pt-4 border-t">
+            {(() => {
+              const showButton = user?.username === 'بدوي' && (request.status === 'parts_arrived' || request.status === 'awaiting_pickup');
+              console.log(`Debug - Request ${request.id}: User=${user?.username}, Status=${request.status}, ShowButton=${showButton}`);
+              return showButton;
+            })() && (
+              <div className="flex space-x-reverse space-x-2 pt-4 border-t bg-yellow-50 p-2 rounded">
                 <Button
                   size="sm"
                   variant="default"
-                  className="bg-teal-600 hover:bg-teal-700"
-                  onClick={() => finalDeliveryMutation.mutate(request.id)}
+                  className="bg-teal-600 hover:bg-teal-700 text-white font-bold"
+                  onClick={() => {
+                    console.log('تسليم button clicked for request:', request.id);
+                    finalDeliveryMutation.mutate(request.id);
+                  }}
                   disabled={finalDeliveryMutation.isPending}
                 >
                   {finalDeliveryMutation.isPending ? (
