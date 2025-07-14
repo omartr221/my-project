@@ -680,6 +680,13 @@ export default function RequestsList() {
                 </Button>
               </div>
             )}
+            
+            {/* DEBUG - معلومات الزر */}
+            <div className="bg-yellow-100 p-2 rounded mt-2">
+              <p className="text-xs text-yellow-800">
+                User: {user?.username} | Permissions: {user?.permissions?.join(', ') || 'none'} | canDeliver: {canDeliver ? 'true' : 'false'}
+              </p>
+            </div>
           </CardContent>
         </Card>
         );
