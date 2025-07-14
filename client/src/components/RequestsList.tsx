@@ -33,6 +33,11 @@ export default function RequestsList() {
   const canApprove = user?.permissions?.includes('parts:approve');
   const canReject = user?.permissions?.includes('parts:reject');
   const canDeliver = user?.permissions?.includes('parts:create'); // بدوي يمكنه التسليم
+  
+  // Debug info
+  console.log('RequestsList - User:', user?.username);
+  console.log('RequestsList - Can deliver:', canDeliver);
+  console.log('RequestsList - User permissions:', user?.permissions);
 
   // وظيفة الموافقة على الطلب - تحويل إلى قيد التحضير
   const approveMutation = useMutation({
@@ -647,7 +652,10 @@ export default function RequestsList() {
                   size="sm"
                   variant="default"
                   className="bg-teal-600 hover:bg-teal-700"
-                  onClick={() => finalDeliveryMutation.mutate(request.id)}
+                  onClick={() => {
+                    console.log('Final delivery clicked for request:', request.id);
+                    finalDeliveryMutation.mutate(request.id);
+                  }}
                   disabled={finalDeliveryMutation.isPending}
                 >
                   {finalDeliveryMutation.isPending ? (
@@ -659,6 +667,9 @@ export default function RequestsList() {
                 </Button>
               </div>
             )}
+            
+            {/* Debug info for each request */}
+            {console.log(`Request ${request.id} - Status: ${request.status}, Can deliver: ${canDeliver}, Show button: ${canDeliver && request.status === 'parts_arrived'}`)}
 
             {/* الملاحظات */}
             {request.notes && (
