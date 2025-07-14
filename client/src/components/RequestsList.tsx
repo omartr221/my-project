@@ -34,16 +34,9 @@ export default function RequestsList() {
   const canReject = user?.permissions?.includes('parts:reject');
   const canDeliver = user?.permissions?.includes('parts:create'); // بدوي يمكنه التسليم
   
-  // Debug info
+  // Debug info - User permissions
   console.log('RequestsList - User:', user?.username);
   console.log('RequestsList - Can deliver:', canDeliver);
-  console.log('RequestsList - User permissions:', user?.permissions);
-  
-  // Alert for debugging
-  if (user?.username === 'بدوي' && requests && requests.length > 0) {
-    const partsArrivedRequests = requests.filter(r => r.status === 'parts_arrived');
-    console.log('Parts arrived requests:', partsArrivedRequests.length);
-  }
 
   // وظيفة الموافقة على الطلب - تحويل إلى قيد التحضير
   const approveMutation = useMutation({
@@ -360,12 +353,8 @@ export default function RequestsList() {
       </div>
 
       {requests.map((request) => {
-        console.log(`Processing request ${request.id}:`, {
-          id: request.id,
-          status: request.status,
-          canDeliver: canDeliver,
-          shouldShowButton: canDeliver && request.status === 'parts_arrived'
-        });
+        // Process request for delivery button
+        console.log(`Request ${request.id} - Status: ${request.status} - Can deliver: ${canDeliver}`);
         return (
         <Card key={request.id} className="border-r-4 border-r-blue-500 hover:shadow-lg transition-shadow">
           <CardHeader className="pb-3">
@@ -659,26 +648,13 @@ export default function RequestsList() {
             )}
 
             {/* زر تم استلام القطعة لبدوي - يظهر فقط للطلبات في حالة وصلت القطعة */}
-            <div className="bg-yellow-100 p-2 rounded mb-2">
-              <p className="text-sm">DEBUG: Request {request.id} - Status: "{request.status}" - Can deliver: {canDeliver ? 'YES' : 'NO'}</p>
-              <p className="text-sm">Status comparison: "{request.status}" === "parts_arrived" = {request.status === 'parts_arrived' ? 'TRUE' : 'FALSE'}</p>
-              <p className="text-sm">Condition result: {(canDeliver && request.status === 'parts_arrived') ? 'SHOW BUTTON' : 'HIDE BUTTON'}</p>
-              <p className="text-sm">Status type: {typeof request.status}</p>
-              <p className="text-sm">Status length: {request.status.length}</p>
-            </div>
-            
-            {/* Force show button for debugging */}
-            {request.status === 'parts_arrived' && (
-              <div className="flex space-x-reverse space-x-2 pt-4 border-t bg-green-100 p-2 rounded">
-                <p className="text-sm text-green-800 mb-2">DEBUG: Button section is rendering</p>
+            {canDeliver && request.status === 'parts_arrived' && (
+              <div className="flex space-x-reverse space-x-2 pt-4 border-t">
                 <Button
                   size="sm"
                   variant="default"
                   className="bg-teal-600 hover:bg-teal-700"
-                  onClick={() => {
-                    console.log('Final delivery clicked for request:', request.id);
-                    finalDeliveryMutation.mutate(request.id);
-                  }}
+                  onClick={() => finalDeliveryMutation.mutate(request.id)}
                   disabled={finalDeliveryMutation.isPending}
                 >
                   {finalDeliveryMutation.isPending ? (
