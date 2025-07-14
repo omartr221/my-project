@@ -663,6 +663,8 @@ export default function RequestsList() {
               <p className="text-sm">DEBUG: Request {request.id} - Status: "{request.status}" - Can deliver: {canDeliver ? 'YES' : 'NO'}</p>
               <p className="text-sm">Status comparison: "{request.status}" === "parts_arrived" = {request.status === 'parts_arrived' ? 'TRUE' : 'FALSE'}</p>
               <p className="text-sm">Condition result: {(canDeliver && request.status === 'parts_arrived') ? 'SHOW BUTTON' : 'HIDE BUTTON'}</p>
+              <p className="text-sm">Status type: {typeof request.status}</p>
+              <p className="text-sm">Status length: {request.status.length}</p>
             </div>
             
             {/* Force show button for debugging */}
