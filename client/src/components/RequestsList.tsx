@@ -647,19 +647,8 @@ export default function RequestsList() {
               </div>
             )}
 
-            {/* DEBUG - معلومات المستخدم والطلب */}
-            {request.id === 26 && (
-              <div className="bg-yellow-100 p-2 rounded mb-2">
-                <p className="text-sm text-yellow-800">
-                  DEBUG Request 26: canDeliver={canDeliver ? 'true' : 'false'}, status="{request.status}"
-                  <br />User permissions: {permissions.join(', ')}
-                  <br />Show button: {(canDeliver && request.status === 'parts_arrived') ? 'YES' : 'NO'}
-                </p>
-              </div>
-            )}
-            
-            {/* زر تم استلام القطعة لبدوي - يظهر فقط للطلبات في حالة وصلت القطعة */}
-            {canDeliver && request.status === 'parts_arrived' && (
+            {/* زر تم استلام القطعة لبدوي - للطلبات وصلت القطعة */}
+            {request.status === 'parts_arrived' && canDeliver && (
               <div className="flex space-x-reverse space-x-2 pt-4 border-t">
                 <Button
                   size="sm"
@@ -677,26 +666,8 @@ export default function RequestsList() {
                 </Button>
               </div>
             )}
-            
-            {/* زر إجباري للطلب-26 للاختبار */}
-            {request.id === 26 && (
-              <div className="flex space-x-reverse space-x-2 pt-4 border-t bg-red-100 p-2 rounded">
-                <Button
-                  size="sm"
-                  variant="default"
-                  className="bg-red-600 hover:bg-red-700"
-                  onClick={() => finalDeliveryMutation.mutate(request.id)}
-                  disabled={finalDeliveryMutation.isPending}
-                >
-                  {finalDeliveryMutation.isPending ? (
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  ) : (
-                    <Check className="h-4 w-4 ml-1" />
-                  )}
-                  زر إجباري - تم استلام القطعة
-                </Button>
-              </div>
-            )}
+
+
             
 
 
