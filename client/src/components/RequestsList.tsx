@@ -38,6 +38,12 @@ export default function RequestsList() {
   console.log('RequestsList - User:', user?.username);
   console.log('RequestsList - Can deliver:', canDeliver);
   console.log('RequestsList - User permissions:', user?.permissions);
+  
+  // Alert for debugging
+  if (user?.username === 'بدوي' && requests && requests.length > 0) {
+    const partsArrivedRequests = requests.filter(r => r.status === 'parts_arrived');
+    console.log('Parts arrived requests:', partsArrivedRequests.length);
+  }
 
   // وظيفة الموافقة على الطلب - تحويل إلى قيد التحضير
   const approveMutation = useMutation({
@@ -653,6 +659,12 @@ export default function RequestsList() {
             )}
 
             {/* زر تم استلام القطعة لبدوي - يظهر فقط للطلبات في حالة وصلت القطعة */}
+            {request.status === 'parts_arrived' && (
+              <div className="bg-yellow-100 p-2 rounded mb-2">
+                <p className="text-sm">DEBUG: Request {request.id} - Status: {request.status} - Can deliver: {canDeliver ? 'YES' : 'NO'}</p>
+              </div>
+            )}
+            
             {canDeliver && request.status === 'parts_arrived' && (
               <div className="flex space-x-reverse space-x-2 pt-4 border-t">
                 <Button
