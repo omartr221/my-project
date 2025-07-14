@@ -331,6 +331,23 @@ export default function RequestsList() {
     <div className="space-y-4">
       <TestNotification />
       
+      {/* زر تسليم للاختبار - في الأعلى */}
+      <div className="bg-red-500 text-white p-4 rounded-lg mb-4">
+        <h2 className="text-lg font-bold">اختبار الزر</h2>
+        <p>المستخدم: {user?.username || 'غير محدد'}</p>
+        <p>عدد الطلبات: {requests.length}</p>
+        {requests.length > 0 && (
+          <Button
+            className="mt-2 bg-white text-red-500 hover:bg-gray-100"
+            onClick={() => {
+              console.log('Test delivery button clicked');
+              finalDeliveryMutation.mutate(requests[0].id);
+            }}
+          >
+            تسليم الطلب الأول
+          </Button>
+        )}
+      </div>
 
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-semibold">
