@@ -539,25 +539,7 @@ export default function RequestsList() {
               </div>
             )}
 
-            {/* زر تسليم لبدوي - يظهر للطلبات غير المكتملة */}
-            {user?.username === 'بدوي' && request.status !== 'delivered' && request.status !== 'rejected' && request.status !== 'unavailable' && (
-              <div className="flex space-x-reverse space-x-2 pt-4 border-t">
-                <Button
-                  size="sm"
-                  variant="default"
-                  className="bg-teal-600 hover:bg-teal-700"
-                  onClick={() => finalDeliveryMutation.mutate(request.id)}
-                  disabled={finalDeliveryMutation.isPending}
-                >
-                  {finalDeliveryMutation.isPending ? (
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  ) : (
-                    <Check className="h-4 w-4 ml-1" />
-                  )}
-                  تسليم
-                </Button>
-              </div>
-            )}
+
 
             {/* أزرار تحديث الحالة لقيد التحضير */}
             {request.status === 'in_preparation' && canApprove && (
@@ -665,6 +647,26 @@ export default function RequestsList() {
                     <Package2 className="h-4 w-4 ml-1" />
                   )}
                   وصلت القطعة بانتظار التسليم
+                </Button>
+              </div>
+            )}
+
+            {/* زر تسليم لبدوي - للطلبات الجاهزة */}
+            {user?.username === 'بدوي' && (request.status === 'parts_arrived' || request.status === 'awaiting_pickup') && (
+              <div className="flex space-x-reverse space-x-2 pt-4 border-t">
+                <Button
+                  size="sm"
+                  variant="default"
+                  className="bg-teal-600 hover:bg-teal-700"
+                  onClick={() => finalDeliveryMutation.mutate(request.id)}
+                  disabled={finalDeliveryMutation.isPending}
+                >
+                  {finalDeliveryMutation.isPending ? (
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  ) : (
+                    <Check className="h-4 w-4 ml-1" />
+                  )}
+                  تسليم
                 </Button>
               </div>
             )}
