@@ -647,20 +647,9 @@ export default function RequestsList() {
               </div>
             )}
 
-            {/* DEBUG - تحقق من الشروط */}
-            {request.id === 28 && (
-              <div className="bg-red-100 p-2 rounded mb-2">
-                <p className="text-sm text-red-800">
-                  DEBUG Request 28: canDeliver={canDeliver ? 'true' : 'false'}, status="{request.status}", 
-                  showButton={(canDeliver && request.status === 'parts_arrived') ? 'YES' : 'NO'}
-                </p>
-              </div>
-            )}
-            
             {/* زر تم استلام القطعة لبدوي - يظهر فقط للطلبات في حالة وصلت القطعة */}
-            {request.id === 28 && canDeliver && (
-              <div className="flex space-x-reverse space-x-2 pt-4 border-t bg-green-100 p-2 rounded">
-                <p className="text-sm text-green-800 mb-2">FORCE SHOW BUTTON FOR TESTING</p>
+            {canDeliver && request.status === 'parts_arrived' && (
+              <div className="flex space-x-reverse space-x-2 pt-4 border-t">
                 <Button
                   size="sm"
                   variant="default"
