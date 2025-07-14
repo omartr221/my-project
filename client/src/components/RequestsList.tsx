@@ -640,8 +640,8 @@ export default function RequestsList() {
               </div>
             )}
 
-            {/* زر تم استلام القطعة لبدوي */}
-            {canDeliver && (
+            {/* زر تم استلام القطعة لبدوي - يظهر فقط للطلبات في حالة وصلت القطعة */}
+            {canDeliver && request.status === 'parts_arrived' && (
               <div className="flex space-x-reverse space-x-2 pt-4 border-t">
                 <Button
                   size="sm"
