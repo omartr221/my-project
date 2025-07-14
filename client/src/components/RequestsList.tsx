@@ -647,34 +647,7 @@ export default function RequestsList() {
               </div>
             )}
 
-            {/* DEBUG - معلومات الطلبات */}
-            {(request.id === 26 || request.id === 25 || request.id === 23) && (
-              <div className="bg-yellow-100 p-2 rounded mb-2">
-                <p className="text-sm text-yellow-800">
-                  طلب-{request.requestNumber}: status="{request.status}", canDeliver={canDeliver ? 'true' : 'false'}
-                </p>
-              </div>
-            )}
-            
-            {/* زر موافق لبدوي - للطلبات وصلت القطعة */}
-            {request.status === 'parts_arrived' && canDeliver && (
-              <div className="flex space-x-reverse space-x-2 pt-4 border-t">
-                <Button
-                  size="sm"
-                  variant="default"
-                  className="bg-teal-600 hover:bg-teal-700"
-                  onClick={() => finalDeliveryMutation.mutate(request.id)}
-                  disabled={finalDeliveryMutation.isPending}
-                >
-                  {finalDeliveryMutation.isPending ? (
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  ) : (
-                    <Check className="h-4 w-4 ml-1" />
-                  )}
-                  موافق
-                </Button>
-              </div>
-            )}
+
 
 
             
@@ -685,6 +658,26 @@ export default function RequestsList() {
               <div className="bg-blue-50 rounded-lg p-3">
                 <span className="font-medium text-blue-800">ملاحظات:</span>
                 <p className="text-blue-700 mt-1">{request.notes}</p>
+              </div>
+            )}
+            
+            {/* زر موافق منفصل لبدوي - يظهر لكل الطلبات */}
+            {canDeliver && (
+              <div className="mt-4 pt-4 border-t">
+                <Button
+                  size="sm"
+                  variant="default"
+                  className="bg-green-600 hover:bg-green-700 w-full"
+                  onClick={() => finalDeliveryMutation.mutate(request.id)}
+                  disabled={finalDeliveryMutation.isPending}
+                >
+                  {finalDeliveryMutation.isPending ? (
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  ) : (
+                    <Check className="h-4 w-4 ml-1" />
+                  )}
+                  موافق
+                </Button>
               </div>
             )}
           </CardContent>
