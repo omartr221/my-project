@@ -647,6 +647,15 @@ export default function RequestsList() {
               </div>
             )}
 
+            {/* DEBUG - معلومات الطلبات */}
+            {(request.id === 26 || request.id === 25 || request.id === 23) && (
+              <div className="bg-yellow-100 p-2 rounded mb-2">
+                <p className="text-sm text-yellow-800">
+                  طلب-{request.requestNumber}: status="{request.status}", canDeliver={canDeliver ? 'true' : 'false'}
+                </p>
+              </div>
+            )}
+            
             {/* زر موافق لبدوي - للطلبات وصلت القطعة */}
             {request.status === 'parts_arrived' && canDeliver && (
               <div className="flex space-x-reverse space-x-2 pt-4 border-t">
