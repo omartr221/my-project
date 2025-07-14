@@ -768,9 +768,20 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createPartsRequest(request: InsertPartsRequest): Promise<PartsRequest> {
-    // Generate sequential request number
+    // Generate sequential request number based on the highest existing number
     const existingRequests = await db.select().from(partsRequests);
-    const requestNumber = `طلب-${existingRequests.length + 1}`;
+    let maxNumber = 0;
+    
+    for (const req of existingRequests) {
+      if (req.requestNumber && req.requestNumber.startsWith('طلب-')) {
+        const num = parseInt(req.requestNumber.substring(4));
+        if (!isNaN(num) && num > maxNumber) {
+          maxNumber = num;
+        }
+      }
+    }
+    
+    const requestNumber = `طلب-${maxNumber + 1}`;
     
     const [newRequest] = await db
       .insert(partsRequests)
