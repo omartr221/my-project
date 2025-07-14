@@ -661,32 +661,30 @@ export default function RequestsList() {
               </div>
             )}
             
-            {/* زر موافق منفصل لبدوي - يظهر لكل الطلبات */}
-            {canDeliver && (
+            {/* زر موافق لبدوي */}
+            {user?.username === 'بدوي' && (
               <div className="mt-4 pt-4 border-t">
                 <Button
-                  size="sm"
+                  size="lg"
                   variant="default"
-                  className="bg-green-600 hover:bg-green-700 w-full"
-                  onClick={() => finalDeliveryMutation.mutate(request.id)}
+                  className="bg-green-600 hover:bg-green-700 w-full h-12 text-lg font-bold"
+                  onClick={() => {
+                    console.log('موافق button clicked for request:', request.id);
+                    finalDeliveryMutation.mutate(request.id);
+                  }}
                   disabled={finalDeliveryMutation.isPending}
                 >
                   {finalDeliveryMutation.isPending ? (
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white mx-auto"></div>
                   ) : (
-                    <Check className="h-4 w-4 ml-1" />
+                    <>
+                      <Check className="h-6 w-6 ml-2" />
+                      موافق - تم الاستلام
+                    </>
                   )}
-                  موافق
                 </Button>
               </div>
             )}
-            
-            {/* DEBUG - معلومات الزر */}
-            <div className="bg-yellow-100 p-2 rounded mt-2">
-              <p className="text-xs text-yellow-800">
-                User: {user?.username} | Permissions: {user?.permissions?.join(', ') || 'none'} | canDeliver: {canDeliver ? 'true' : 'false'}
-              </p>
-            </div>
           </CardContent>
         </Card>
         );
