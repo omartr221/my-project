@@ -149,6 +149,7 @@ async function initializeDefaultUsers() {
           "tasks:write",
           "archive:read",
           "customers:read",
+          "customers:write",
           "parts:read",
           "parts:create"
         ],
