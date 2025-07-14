@@ -647,7 +647,7 @@ export default function RequestsList() {
               </div>
             )}
 
-            {/* زر تم استلام القطعة لبدوي - للطلبات وصلت القطعة */}
+            {/* زر تم الاستلام لبدوي - للطلبات وصلت القطعة */}
             {request.status === 'parts_arrived' && canDeliver && (
               <div className="flex space-x-reverse space-x-2 pt-4 border-t">
                 <Button
@@ -662,7 +662,7 @@ export default function RequestsList() {
                   ) : (
                     <Check className="h-4 w-4 ml-1" />
                   )}
-                  تم استلام القطعة
+                  تم الاستلام
                 </Button>
               </div>
             )}
