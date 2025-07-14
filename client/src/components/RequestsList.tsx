@@ -357,27 +357,28 @@ export default function RequestsList() {
       {requests.map((request) => {
         // Process request for delivery button
         console.log(`Request ${request.id} - Status: ${request.status} - Can deliver: ${canDeliver}`);
+        console.log(`User info:`, user);
         return (
         <Card key={request.id} className="border-r-4 border-r-blue-500 hover:shadow-lg transition-shadow">
           <CardHeader className="pb-3">
-            {/* زر تسليم للاختبار - يظهر دائماً لبدوي */}
-            {user?.username === 'بدوي' && (
-              <div className="mb-4 p-3 bg-red-100 border border-red-300 rounded">
-                <p className="text-sm mb-2">اختبار الزر للمستخدم: {user?.username}</p>
-                <p className="text-sm mb-2">حالة الطلب: {request.status}</p>
-                <Button
-                  size="sm"
-                  className="bg-red-600 hover:bg-red-700 text-white"
-                  onClick={() => {
-                    console.log('Test button clicked for request:', request.id);
-                    finalDeliveryMutation.mutate(request.id);
-                  }}
-                  disabled={finalDeliveryMutation.isPending}
-                >
-                  اختبار تسليم
-                </Button>
-              </div>
-            )}
+            
+            {/* زر تسليم دائماً ظاهر للاختبار */}
+            <div className="mb-4 p-3 bg-green-100 border border-green-300 rounded">
+              <p className="text-sm mb-2">المستخدم الحالي: {user?.username || 'غير محدد'}</p>
+              <p className="text-sm mb-2">رقم الطلب: {request.requestNumber}</p>
+              <p className="text-sm mb-2">حالة الطلب: {request.status}</p>
+              <Button
+                size="sm"
+                className="bg-green-600 hover:bg-green-700 text-white"
+                onClick={() => {
+                  console.log('Delivery button clicked for request:', request.id);
+                  finalDeliveryMutation.mutate(request.id);
+                }}
+                disabled={finalDeliveryMutation.isPending}
+              >
+                {finalDeliveryMutation.isPending ? 'جاري التحديث...' : 'تسليم الطلب'}
+              </Button>
+            </div>
             <div className="flex justify-between items-start">
               <div className="flex items-center space-x-reverse space-x-2">
                 <Package2 className="h-5 w-5 text-blue-600" />
