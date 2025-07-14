@@ -668,7 +668,8 @@ export default function RequestsList() {
             
             {/* Force show button for debugging */}
             {request.status === 'parts_arrived' && (
-              <div className="flex space-x-reverse space-x-2 pt-4 border-t">
+              <div className="flex space-x-reverse space-x-2 pt-4 border-t bg-green-100 p-2 rounded">
+                <p className="text-sm text-green-800 mb-2">DEBUG: Button section is rendering</p>
                 <Button
                   size="sm"
                   variant="default"
