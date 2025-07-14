@@ -8,8 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { CheckCircle, XCircle, Clock, Package2, Search, Filter } from "lucide-react";
+import { CheckCircle, XCircle, Clock, Package2, Search, Filter, Check } from "lucide-react";
 import { type PartsRequest } from "@shared/schema";
+import { useAuth } from "@/hooks/use-auth";
 
 const statusColors = {
   pending: "bg-yellow-100 text-yellow-800",
@@ -45,6 +46,7 @@ export default function PartsRequestsList() {
   const [searchTerm, setSearchTerm] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   const { data: partsRequests = [], isLoading } = useQuery<PartsRequest[]>({
     queryKey: ["/api/parts-requests"],
@@ -67,6 +69,31 @@ export default function PartsRequestsList() {
     onError: (error: Error) => {
       toast({
         title: "فشل في تحديث حالة الطلب",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // وظيفة التسليم النهائي
+  const finalDeliveryMutation = useMutation({
+    mutationFn: async (requestId: number) => {
+      const response = await apiRequest('PATCH', `/api/parts-requests/${requestId}/status`, {
+        status: 'delivered',
+        notes: 'تم الاستلام بنجاح'
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "تم التسليم بنجاح",
+        description: "تم تسليم القطعة بنجاح",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/parts-requests'] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "خطأ في التسليم",
         description: error.message,
         variant: "destructive",
       });
@@ -100,6 +127,29 @@ export default function PartsRequestsList() {
 
   return (
     <div className="space-y-6">
+      {/* زر التسليم للاختبار */}
+      {user?.username === 'بدوي' && (
+        <Card className="border-2 border-teal-500">
+          <CardHeader>
+            <CardTitle className="text-teal-700">زر التسليم - اختبار</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="mb-4">المستخدم: {user.username}</p>
+            <p className="mb-4">عدد الطلبات: {partsRequests.length}</p>
+            {partsRequests.length > 0 && (
+              <Button
+                className="bg-teal-600 hover:bg-teal-700"
+                onClick={() => finalDeliveryMutation.mutate(partsRequests[0].id)}
+                disabled={finalDeliveryMutation.isPending}
+              >
+                <Check className="h-4 w-4 mr-1" />
+                تسليم الطلب الأول
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+      )}
+      
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -316,6 +366,20 @@ export default function PartsRequestsList() {
                             >
                               <Package2 className="h-4 w-4 mr-1" />
                               تم التسليم
+                            </Button>
+                          )}
+                          
+                          {/* زر تسليم للمستخدم بدوي */}
+                          {user?.username === 'بدوي' && request.status !== 'delivered' && request.status !== 'rejected' && (
+                            <Button
+                              size="sm"
+                              variant="default"
+                              onClick={() => finalDeliveryMutation.mutate(request.id)}
+                              disabled={finalDeliveryMutation.isPending}
+                              className="bg-teal-600 hover:bg-teal-700"
+                            >
+                              <Check className="h-4 w-4 mr-1" />
+                              {finalDeliveryMutation.isPending ? 'جاري...' : 'تسليم'}
                             </Button>
                           )}
                         </div>
