@@ -45,6 +45,17 @@ app.use((req, res, next) => {
   next();
 });
 
+// Force HTML rendering for all requests
+app.use((req, res, next) => {
+  if (!req.path.startsWith('/api/') && !req.path.startsWith('/assets/')) {
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+  }
+  next();
+});
+
 // Health check endpoint for Autoscale deployment
 app.get('/health', (_req, res) => {
   res.status(200).json({ 
@@ -108,24 +119,56 @@ app.use((req, res, next) => {
   // serve static files from public directory BEFORE vite
   app.use('/static', express.static(path.join(import.meta.dirname, 'public')));
   
-  // direct routes for HTML pages - force HTML rendering
-  app.get('/login.html', (req, res) => {
-    res.writeHead(200, {'Content-Type': 'text/html; charset=utf-8'});
-    const fs = require('fs');
-    const html = fs.readFileSync(path.join(import.meta.dirname, 'public', 'login.html'), 'utf8');
-    res.end(html);
-  });
-  
-  app.get('/dashboard.html', (req, res) => {
-    res.writeHead(200, {'Content-Type': 'text/html; charset=utf-8'});
-    const fs = require('fs');
-    const html = fs.readFileSync(path.join(import.meta.dirname, 'public', 'dashboard.html'), 'utf8');
-    res.end(html);
+  // working fallback route
+  app.get('/system', (req, res) => {
+    res.writeHead(200, {
+      'Content-Type': 'text/html; charset=utf-8',
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    });
+    res.end(`<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>V POWER TUNING - نظام إدارة المهام</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; direction: rtl; }
+        .container { background: white; padding: 40px; border-radius: 15px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); max-width: 500px; width: 100%; text-align: center; }
+        .logo { font-size: 48px; font-weight: bold; color: #667eea; margin-bottom: 30px; }
+        .btn { display: inline-block; margin: 10px; padding: 15px 30px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 8px; font-size: 18px; }
+        .btn:hover { opacity: 0.9; }
+        .info { background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: right; }
+        .status { color: #28a745; font-weight: bold; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">V POWER TUNING</div>
+        <h2>نظام إدارة المهام</h2>
+        <div class="status">السيرفر يعمل بشكل صحيح</div>
+        <a href="/work" class="btn">تسجيل الدخول</a>
+        <a href="/dashboard" class="btn">لوحة التحكم</a>
+        <div class="info">
+            <strong>بيانات تسجيل الدخول:</strong><br>
+            ملك (12345) - إدارة مالية<br>
+            بدوي (0000) - مشغل النظام<br>
+            هبة (123456) - مشاهد فقط<br>
+            روان (1234567) - مشرف
+        </div>
+    </div>
+</body>
+</html>`);
   });
   
   // working login page that bypasses all issues
   app.get('/work', (req, res) => {
-    res.writeHead(200, {'Content-Type': 'text/html; charset=utf-8'});
+    res.writeHead(200, {
+      'Content-Type': 'text/html; charset=utf-8',
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    });
     res.end(`<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -195,7 +238,12 @@ app.use((req, res, next) => {
   
   // working dashboard page
   app.get('/dashboard', (req, res) => {
-    res.writeHead(200, {'Content-Type': 'text/html; charset=utf-8'});
+    res.writeHead(200, {
+      'Content-Type': 'text/html; charset=utf-8',
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    });
     res.end(`<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
