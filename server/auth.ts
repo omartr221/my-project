@@ -35,7 +35,7 @@ export function setupAuth(app: Express) {
     saveUninitialized: false,
     store: storage.sessionStore,
     cookie: {
-      secure: false, // Set to true in production with HTTPS
+      secure: process.env.NODE_ENV === 'production' || process.env.REPLIT_EXTERNAL_URL?.includes('https'),
       httpOnly: false, // Allow client-side access for network devices
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
       sameSite: 'lax', // Allow cross-site requests
