@@ -34,10 +34,28 @@ const app = express();
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 
-// إضافة headers للتعامل مع النص العربي
+// إضافة headers للتعامل مع النص العربي والـ CORS
 app.use((req, res, next) => {
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
   res.setHeader('Accept-Charset', 'utf-8');
+  
+  // CORS headers للسماح بالوصول من الأجهزة الخارجية
+  const origin = req.headers.origin;
+  if (origin) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  }
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Cookie');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(200);
+    return;
+  }
+  
   next();
 });
 
@@ -123,10 +141,11 @@ app.use((req, res, next) => {
     if (process.env.NODE_ENV !== "production") {
       log(`   - من هذا الجهاز: http://localhost:${port}`);
       log(`   - من هذا الجهاز أيضاً: http://127.0.0.1:${port}`);
-      log(`   - من أجهزة أخرى: http://[عنوان-IP]:${port}`);
-      log(`📱 لمعرفة عنوان IP: اكتب ipconfig في cmd`);
+      log(`   - من أجهزة أخرى: http://172.31.128.85:${port}`);
+      log(`📱 النظام يعمل على العنوان: 172.31.128.85:${port}`);
       log(`🔧 السيرفر يعمل على جميع عناوين الشبكة (0.0.0.0)`);
       log(`💡 إذا لم يعمل localhost جرب: 127.0.0.1:${port}`);
+      log(`🌐 للوصول من أجهزة أخرى استخدم: http://172.31.128.85:${port}`);
       log(`📖 راجع ملف 'تجربة-الاتصال.md' للمساعدة`);
     }
   }).on('error', (err: any) => {
