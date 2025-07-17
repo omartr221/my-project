@@ -31,16 +31,25 @@ process.on('uncaughtException', (error) => {
 });
 
 const app = express();
+
+// Trust proxy for proper IP handling
+app.set('trust proxy', true);
+
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 
 // إضافة headers للتعامل مع النص العربي والوصول من الأجهزة الأخرى
 app.use((req, res, next) => {
+  // Remove any restrictive headers that might cause forbidden errors
+  res.removeHeader('X-Frame-Options');
+  res.removeHeader('X-Content-Type-Options');
+  
   // Enhanced CORS and accessibility headers for all environments
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, HEAD');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
   res.setHeader('Access-Control-Allow-Credentials', 'false');
+  res.setHeader('Access-Control-Max-Age', '86400');
   
   // Handle preflight requests
   if (req.method === 'OPTIONS') {
@@ -54,12 +63,8 @@ app.use((req, res, next) => {
     res.setHeader('Accept-Charset', 'utf-8');
   }
   
-  // Set security headers for production
-  if (process.env.NODE_ENV === 'production') {
-    res.setHeader('X-Frame-Options', 'DENY');
-    res.setHeader('X-Content-Type-Options', 'nosniff');
-    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-  }
+  // Log all requests for debugging
+  console.log(`${req.method} ${req.path} from ${req.ip || req.connection.remoteAddress}`);
   
   next();
 });
