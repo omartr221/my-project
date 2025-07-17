@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import Dashboard from "@/pages/dashboard";
 import PartsRequestsPage from "@/pages/parts-requests-page";
 import AuthPage from "@/pages/auth-page";
+import SimpleLogin from "@/pages/simple-login";
 import NotFound from "@/pages/not-found";
 import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute } from "@/lib/protected-route";
@@ -18,6 +19,7 @@ function Router() {
       <ProtectedRoute path="/dashboard" component={Dashboard} />
       <ProtectedRoute path="/parts-requests" component={PartsRequestsPage} />
       <Route path="/auth" component={AuthPage} />
+      <Route path="/simple" component={SimpleLogin} />
       <Route component={NotFound} />
     </Switch>
   );
