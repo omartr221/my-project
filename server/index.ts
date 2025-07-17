@@ -34,8 +34,13 @@ const app = express();
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 
-// إضافة headers للتعامل مع النص العربي للـ API فقط
+// إضافة headers للتعامل مع النص العربي والوصول من الأجهزة الأخرى
 app.use((req, res, next) => {
+  // Enhanced CORS and accessibility headers
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  
   if (req.path.startsWith('/api')) {
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
     res.setHeader('Accept-Charset', 'utf-8');
@@ -112,9 +117,9 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  // Autoscale deployment port configuration
+  // Enhanced deployment port configuration for better accessibility
   const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 5000;
-  const host = process.env.NODE_ENV === 'production' ? '0.0.0.0' : '0.0.0.0';
+  const host = '0.0.0.0'; // Always bind to all interfaces for better accessibility
   
   // Enhanced server startup for Autoscale compatibility
   server.listen(port, host, () => {
