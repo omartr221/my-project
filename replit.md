@@ -185,6 +185,7 @@ Changelog:
 - July 14, 2025. Added customer creation permission to user "بدوي": updated user permissions to include "customers:write" alongside existing permissions, modified auth.ts for new user creation, updated existing user in database, "بدوي" can now create customer cards through the CustomerCard component with full write access
 - July 17, 2025. Resolved external access issue: system returned to development mode for local network access without VPN requirements, enhanced server configuration with improved CORS headers and better accessibility, system works as originally intended for local network devices using IP address access, deployment mode can be switched between development (local access) and production (global access with VPN) as needed
 - July 17, 2025. Fixed recurring external access problems: restored working server configuration with trust proxy, proper Arabic text headers, and enhanced CORS settings - system now works as originally intended for local network access without VPN requirements
+- July 17, 2025. Forced production mode for better external access: system now serves static files instead of using Vite development server, rebuilt production assets, should resolve external access issues in Syria
 
 ## User Preferences
 

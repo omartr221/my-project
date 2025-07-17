@@ -124,8 +124,8 @@ app.use((req, res, next) => {
     throw err;
   });
 
-  // Setup appropriate serving mode based on environment
-  const isProduction = process.env.NODE_ENV === "production";
+  // Force production mode for better external access
+  const isProduction = true; // Always use production mode for external access
   
   if (isProduction) {
     // In production, serve static files
@@ -140,7 +140,7 @@ app.use((req, res, next) => {
   const host = '0.0.0.0';
   
   // Log deployment mode
-  console.log(`🌐 Deployment mode: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`🌐 Deployment mode: production (forced for external access)`);
   console.log(`🔧 Server binding to: ${host}:${port}`);
   
   // Enhanced server startup for Autoscale compatibility
