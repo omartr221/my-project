@@ -5,6 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
     <title>V POWER TUNING - نظام إدارة المهام</title>
     <meta name="description" content="نظام إدارة المهام والعمال - V POWER TUNING" />
+    <script>
+      // معالج أخطاء السكريبتات الخارجية
+      window.addEventListener('error', function(e) {
+        if (e.filename && e.filename.includes('replit.com')) {
+          e.preventDefault();
+          e.stopPropagation();
+          return false;
+        }
+      }, true);
+    </script>
   </head>
   <body>
     <div id="root"></div>
