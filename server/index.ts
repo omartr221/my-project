@@ -41,6 +41,12 @@ app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(200);
+    return;
+  }
+  
   if (req.path.startsWith('/api')) {
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
     res.setHeader('Accept-Charset', 'utf-8');
@@ -108,13 +114,15 @@ app.use((req, res, next) => {
     throw err;
   });
 
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
-  if (app.get("env") === "development") {
-    await setupVite(app, server);
-  } else {
+  // Setup appropriate serving mode based on environment
+  const isProduction = process.env.NODE_ENV === "production";
+  
+  if (isProduction) {
+    // In production, serve static files
     serveStatic(app);
+  } else {
+    // In development, use Vite
+    await setupVite(app, server);
   }
 
   // Enhanced deployment port configuration for better accessibility
