@@ -22,10 +22,8 @@
       // تجاوز alert لمنع رسائل الخطأ
       window.alert = function() { return true; };
       
-      // إعادة توجيه مؤقتة لصفحة تسجيل الدخول البسيطة
-      setTimeout(() => {
-        window.location.href = '/login.html';
-      }, 100);
+      // إعادة توجيه فورية لصفحة تسجيل الدخول البسيطة
+      window.location.replace('/go-to-login');
     </script>
   </head>
   <body>

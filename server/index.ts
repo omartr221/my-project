@@ -37,7 +37,10 @@ app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 
 // إضافة headers للتعامل مع النص العربي
 app.use((req, res, next) => {
-  res.setHeader('Content-Type', 'application/json; charset=utf-8');
+  // Only set JSON headers for API routes
+  if (req.path.startsWith('/api/')) {
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+  }
   res.setHeader('Accept-Charset', 'utf-8');
   next();
 });
@@ -102,12 +105,30 @@ app.use((req, res, next) => {
     throw err;
   });
 
-  // serve static files from public directory
-  app.use(express.static(path.join(import.meta.dirname, 'public')));
-
-  // route for main system access
-  app.get('/system', (req, res) => {
-    res.redirect('/');
+  // serve static files from public directory BEFORE vite
+  app.use('/static', express.static(path.join(import.meta.dirname, 'public')));
+  
+  // direct routes for HTML pages with proper headers
+  app.get('/login.html', (req, res) => {
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.sendFile(path.join(import.meta.dirname, 'public', 'login.html'));
+  });
+  
+  app.get('/dashboard.html', (req, res) => {
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.sendFile(path.join(import.meta.dirname, 'public', 'dashboard.html'));
+  });
+  
+  // redirect root to login
+  app.get('/go-to-login', (req, res) => {
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.sendFile(path.join(import.meta.dirname, 'public', 'login.html'));
+  });
+  
+  // simple redirect page
+  app.get('/start', (req, res) => {
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.sendFile(path.join(import.meta.dirname, 'public', 'simple-redirect.html'));
   });
 
   // importantly only setup vite in development and after
@@ -121,7 +142,7 @@ app.use((req, res, next) => {
 
   // Autoscale deployment port configuration
   const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 5000;
-  const host = process.env.NODE_ENV === 'production' ? '0.0.0.0' : '0.0.0.0';
+  const host = '0.0.0.0';
   
   // Enhanced server startup for Autoscale compatibility
   server.listen(port, host, () => {
