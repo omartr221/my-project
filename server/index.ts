@@ -1,4 +1,5 @@
 import express, { type Request, Response, NextFunction } from "express";
+import path from "path";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
@@ -99,6 +100,14 @@ app.use((req, res, next) => {
 
     res.status(status).json({ message });
     throw err;
+  });
+
+  // serve static files from public directory
+  app.use(express.static(path.join(import.meta.dirname, 'public')));
+
+  // route for main system access
+  app.get('/system', (req, res) => {
+    res.redirect('/');
   });
 
   // importantly only setup vite in development and after
