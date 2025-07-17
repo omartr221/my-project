@@ -31,29 +31,34 @@ process.on('uncaughtException', (error) => {
 });
 
 const app = express();
+
+// Trust proxy for proper IP handling (restored from working version)
+app.set('trust proxy', 1);
+
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 
-// إضافة headers للتعامل مع النص العربي والـ CORS
+// Headers for Arabic text and external access (restored from working version)
 app.use((req, res, next) => {
-  res.setHeader('Content-Type', 'application/json; charset=utf-8');
+  // Set proper headers for Arabic text
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
   res.setHeader('Accept-Charset', 'utf-8');
   
-  // CORS headers للسماح بالوصول من الأجهزة الخارجية
-  const origin = req.headers.origin;
-  if (origin) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-  } else {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-  }
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Cookie');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  // Enhanced CORS headers for local network access
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+  res.setHeader('Access-Control-Allow-Credentials', 'false');
   
   // Handle preflight requests
   if (req.method === 'OPTIONS') {
     res.sendStatus(200);
     return;
+  }
+  
+  // Set API response headers
+  if (req.path.startsWith('/api')) {
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
   }
   
   next();
@@ -119,18 +124,24 @@ app.use((req, res, next) => {
     throw err;
   });
 
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
-  if (app.get("env") === "development") {
-    await setupVite(app, server);
-  } else {
+  // Force production mode for better external access
+  const isProduction = true; // Always use production mode for external access
+  
+  if (isProduction) {
+    // In production, serve static files
     serveStatic(app);
+  } else {
+    // In development, use Vite
+    await setupVite(app, server);
   }
 
-  // Autoscale deployment port configuration
+  // Port configuration for local network access  
   const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 5000;
-  const host = process.env.NODE_ENV === 'production' ? '0.0.0.0' : '0.0.0.0';
+  const host = '0.0.0.0';
+  
+  // Log deployment mode
+  console.log(`🌐 Deployment mode: production (forced for external access)`);
+  console.log(`🔧 Server binding to: ${host}:${port}`);
   
   // Enhanced server startup for Autoscale compatibility
   server.listen(port, host, () => {
@@ -141,12 +152,13 @@ app.use((req, res, next) => {
     if (process.env.NODE_ENV !== "production") {
       log(`   - من هذا الجهاز: http://localhost:${port}`);
       log(`   - من هذا الجهاز أيضاً: http://127.0.0.1:${port}`);
-      log(`   - من أجهزة أخرى: https://workspace-omartrabulsi200.replit.app`);
-      log(`📱 النظام يعمل على العنوان: https://workspace-omartrabulsi200.replit.app`);
+      log(`   - من أجهزة أخرى: http://[عنوان-IP]:${port}`);
+      log(`📱 لمعرفة عنوان IP: اكتب ipconfig في cmd`);
       log(`🔧 السيرفر يعمل على جميع عناوين الشبكة (0.0.0.0)`);
       log(`💡 إذا لم يعمل localhost جرب: 127.0.0.1:${port}`);
-      log(`🌐 للوصول من أجهزة أخرى استخدم: https://workspace-omartrabulsi200.replit.app`);
-      log(`📖 راجع ملف 'network-access-guide.md' للمساعدة`);
+      log(`📖 راجع ملف 'تجربة-الاتصال.md' للمساعدة`);
+      log(`🔥 جرب من جهاز آخر: http://[IP]:${port}`);
+      log(`🚨 تأكد من إيقاف الفايروول أو السماح للبورت ${port}`);
     }
   }).on('error', (err: any) => {
     console.error(`❌ Server startup error:`, err);
