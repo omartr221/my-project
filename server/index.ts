@@ -162,6 +162,8 @@ app.use((req, res, next) => {
       log(`🔧 السيرفر يعمل على جميع عناوين الشبكة (0.0.0.0)`);
       log(`💡 إذا لم يعمل localhost جرب: 127.0.0.1:${port}`);
       log(`📖 راجع ملف 'تجربة-الاتصال.md' للمساعدة`);
+      log(`🔥 جرب من جهاز آخر: http://[IP]:${port}`);
+      log(`🚨 تأكد من إيقاف الفايروول أو السماح للبورت ${port}`);
     }
   }).on('error', (err: any) => {
     console.error(`❌ Server startup error:`, err);
