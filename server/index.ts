@@ -36,10 +36,11 @@ app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 
 // إضافة headers للتعامل مع النص العربي والوصول من الأجهزة الأخرى
 app.use((req, res, next) => {
-  // Enhanced CORS and accessibility headers
+  // Enhanced CORS and accessibility headers for all environments
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+  res.setHeader('Access-Control-Allow-Credentials', 'false');
   
   // Handle preflight requests
   if (req.method === 'OPTIONS') {
@@ -47,10 +48,19 @@ app.use((req, res, next) => {
     return;
   }
   
+  // Set proper headers for API routes
   if (req.path.startsWith('/api')) {
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
     res.setHeader('Accept-Charset', 'utf-8');
   }
+  
+  // Set security headers for production
+  if (process.env.NODE_ENV === 'production') {
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  }
+  
   next();
 });
 
@@ -128,6 +138,10 @@ app.use((req, res, next) => {
   // Enhanced deployment port configuration for better accessibility
   const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 5000;
   const host = '0.0.0.0'; // Always bind to all interfaces for better accessibility
+  
+  // Log deployment mode
+  console.log(`🌐 Deployment mode: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`🔧 Server binding to: ${host}:${port}`);
   
   // Enhanced server startup for Autoscale compatibility
   server.listen(port, host, () => {
