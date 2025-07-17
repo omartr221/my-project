@@ -1,16 +1,14 @@
-import { createRoot } from "react-dom/client";
-import App from "./App";
-import "./index.css";
-
-// معالج أخطاء السكريبتات الخارجية من Replit
+// معالج أخطاء السكريبتات الخارجية
 window.addEventListener('error', function(event) {
+  // تجاهل أخطاء السكريبتات من replit.com
   if (event.filename && event.filename.includes('replit.com')) {
     event.preventDefault();
     console.log('تم تجاهل خطأ من سكريبت Replit الخارجي');
     return false;
   }
-}, true);
+});
 
+// معالج للأخطاء غير المعالجة
 window.addEventListener('unhandledrejection', function(event) {
   if (event.reason && event.reason.message && event.reason.message.includes('replit')) {
     event.preventDefault();
@@ -18,5 +16,3 @@ window.addEventListener('unhandledrejection', function(event) {
     return false;
   }
 });
-
-createRoot(document.getElementById("root")!).render(<App />);
