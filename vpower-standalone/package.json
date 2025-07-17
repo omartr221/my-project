@@ -1,0 +1,12 @@
+{
+  "name": "vpower-standalone",
+  "version": "1.0.0",
+  "description": "V POWER TUNING Standalone Server",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
