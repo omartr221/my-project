@@ -75,7 +75,24 @@ export default function PartsRequestForm() {
 
   const createPartsRequestMutation = useMutation({
     mutationFn: async (data: PartsRequestFormData) => {
-      const response = await apiRequest("POST", "/api/parts-requests", data);
+      // تحويل البيانات لتتوافق مع schema السيرفر
+      const requestData = {
+        engineerName: data.engineerName,
+        carInfo: data.carInfo || `${data.licensePlate || ''} ${data.chassisNumber || ''} ${data.carBrand || ''} ${data.carModel || ''}`.trim() || 'غير محدد',
+        carBrand: data.carBrand,
+        carModel: data.carModel,
+        licensePlate: data.licensePlate,
+        chassisNumber: data.chassisNumber,
+        engineCode: data.engineCode,
+        reasonType: data.reasonType,
+        partName: data.partName,
+        quantity: Number(data.quantity),
+        notes: data.notes,
+        status: data.status || 'pending'
+      };
+      
+      console.log('Sending parts request data:', requestData);
+      const response = await apiRequest("POST", "/api/parts-requests", requestData);
       return response.json();
     },
     onSuccess: () => {
