@@ -20,7 +20,7 @@ const getModelsByBrand = (brand: string): string[] => {
     case "AUDI":
       return ["A1", "A3", "A4", "A5", "A6", "A7", "A8", "Q2", "Q3", "Q5", "Q7", "Q8", "TT", "R8", "e-tron", "e-tron GT"];
     case "VOLKSWAGEN":
-      return ["Golf", "Passat", "Polo", "Tiguan", "Touareg", "Arteon", "T-Cross", "T-Roc", "Sharan", "Touran", "Caddy", "Crafter", "Amarok", "ID.3", "ID.4"];
+      return ["Golf", "Jetta", "Passat", "Passat cc", "Polo", "Tiguan", "Touareg", "Arteon", "T-Cross", "T-Roc", "Sharan", "Touran", "Caddy", "Crafter", "Amarok", "ID.3", "ID.4"];
     case "SKODA":
       return ["Fabia", "Octavia", "Superb", "Kamiq", "Karoq", "Kodiaq", "Scala", "Rapid", "Yeti", "Citigo", "Enyaq"];
     case "SEAT":
