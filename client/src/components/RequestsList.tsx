@@ -17,7 +17,7 @@ import { Label } from '@/components/ui/label';
 import { useState } from 'react';
 
 export default function RequestsList() {
-  const { data: requests, isLoading, error } = useQuery({
+  const { data: requests = [], isLoading, error } = useQuery({
     queryKey: ['/api/parts-requests'],
     refetchInterval: 3000, // تحديث كل 3 ثوان
   });
