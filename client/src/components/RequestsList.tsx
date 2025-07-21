@@ -235,6 +235,11 @@ export default function RequestsList() {
             // إرسال حدث مخصص للإشعار بالتسليم
             window.dispatchEvent(new CustomEvent('partsRequestDelivered', { detail: data }));
           }
+
+          if (type === 'parts_request_returned') {
+            // إرسال حدث مخصص للإشعار بترجيع القطعة
+            window.dispatchEvent(new CustomEvent('partsRequestReturned', { detail: data }));
+          }
         };
         
         ws.onerror = (error) => {

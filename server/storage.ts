@@ -897,6 +897,35 @@ export class DatabaseStorage implements IStorage {
       engineCode: partialMatch.engineCode || undefined,
     } : null;
   }
+
+  // Return parts request
+  async returnPartsRequest(id: number, returnedBy: string, returnReason: string): Promise<PartsRequest> {
+    const [returnedRequest] = await db
+      .update(partsRequests)
+      .set({
+        status: 'returned',
+        returnedAt: new Date(),
+        returnedBy: returnedBy,
+        returnReason: returnReason,
+      })
+      .where(eq(partsRequests.id, id))
+      .returning();
+
+    return returnedRequest;
+  }
+
+  // Update parts request notes
+  async updatePartsRequestNotes(id: number, userNotes: string): Promise<PartsRequest> {
+    const [updatedRequest] = await db
+      .update(partsRequests)
+      .set({
+        userNotes: userNotes,
+      })
+      .where(eq(partsRequests.id, id))
+      .returning();
+
+    return updatedRequest;
+  }
 }
 
 export const storage = new DatabaseStorage();

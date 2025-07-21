@@ -12,6 +12,8 @@ interface NotificationData {
   carInfo?: string;
   carBrand?: string;
   carModel?: string;
+  returnReason?: string;
+  type?: 'new' | 'returned';
 }
 
 export default function HabaNotificationDialog() {
@@ -34,16 +36,32 @@ export default function HabaNotificationDialog() {
         requestNumber: data.requestNumber,
         carInfo: data.carInfo,
         carBrand: data.carBrand,
-        carModel: data.carModel
+        carModel: data.carModel,
+        type: 'new'
       });
       setIsOpen(true);
     };
 
-    // الاستماع للطلبات الجديدة
+    const handlePartsRequestReturned = (event: CustomEvent) => {
+      const data = event.detail;
+      setNotificationData({
+        id: data.id,
+        engineer: data.engineerName,
+        partName: data.partName,
+        requestNumber: data.requestNumber,
+        returnReason: data.returnReason,
+        type: 'returned'
+      });
+      setIsOpen(true);
+    };
+
+    // الاستماع للطلبات الجديدة وترجيع القطع
     window.addEventListener('newPartsRequest', handleNewPartsRequest as EventListener);
+    window.addEventListener('partsRequestReturned', handlePartsRequestReturned as EventListener);
 
     return () => {
       window.removeEventListener('newPartsRequest', handleNewPartsRequest as EventListener);
+      window.removeEventListener('partsRequestReturned', handlePartsRequestReturned as EventListener);
     };
   }, [user]);
 
@@ -60,9 +78,13 @@ export default function HabaNotificationDialog() {
     <Dialog open={isOpen} onOpenChange={() => {}}>
       <DialogContent className="sm:max-w-md bg-blue-50 border-blue-200" dir="rtl">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-blue-800 text-lg">
+          <DialogTitle className="flex items-center gap-2 text-lg">
             <Bell className="h-6 w-6" />
-            طلب قطعة جديد
+            {notificationData.type === 'returned' ? (
+              <span className="text-red-800">تم ترجيع القطعة</span>
+            ) : (
+              <span className="text-blue-800">طلب قطعة جديد</span>
+            )}
           </DialogTitle>
         </DialogHeader>
         

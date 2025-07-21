@@ -5,10 +5,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { CheckCircle, XCircle, Clock, Package2, Search, Filter, Check } from "lucide-react";
+import { CheckCircle, XCircle, Clock, Package2, Search, Filter, Check, Undo2, MessageSquare } from "lucide-react";
 import { type PartsRequest } from "@shared/schema";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -22,6 +24,7 @@ const statusColors = {
   unavailable: "bg-gray-100 text-gray-800",
   rejected: "bg-red-100 text-red-800",
   delivered: "bg-gray-100 text-gray-800",
+  returned: "bg-red-200 text-red-900",
 };
 
 const statusLabels = {
@@ -34,6 +37,7 @@ const statusLabels = {
   unavailable: "غير متوفر",
   rejected: "مرفوض",
   delivered: "تم الاستلام",
+  returned: "تم الترجيع",
 };
 
 const reasonLabels = {
@@ -44,6 +48,9 @@ const reasonLabels = {
 export default function PartsRequestsList() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [searchTerm, setSearchTerm] = useState("");
+  const [returnReason, setReturnReason] = useState("");
+  const [selectedRequestId, setSelectedRequestId] = useState<number | null>(null);
+  const [editingNotes, setEditingNotes] = useState<{[key: number]: string}>({});
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { user } = useAuth();
@@ -100,6 +107,56 @@ export default function PartsRequestsList() {
     },
   });
 
+  // وظيفة ترجيع القطعة
+  const returnPartMutation = useMutation({
+    mutationFn: async ({ id, returnReason }: { id: number; returnReason: string }) => {
+      const response = await apiRequest('PUT', `/api/parts-requests/${id}/return`, {
+        returnReason,
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "تم ترجيع القطعة",
+        description: "تم إرسال طلب الترجيع بنجاح",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/parts-requests'] });
+      setReturnReason("");
+      setSelectedRequestId(null);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "خطأ في ترجيع القطعة",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // وظيفة تحديث الملاحظات
+  const updateNotesMutation = useMutation({
+    mutationFn: async ({ id, userNotes }: { id: number; userNotes: string }) => {
+      const response = await apiRequest('PUT', `/api/parts-requests/${id}/notes`, {
+        userNotes,
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "تم تحديث الملاحظات",
+        description: "تم حفظ الملاحظات بنجاح",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/parts-requests'] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "خطأ في تحديث الملاحظات",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   const filteredRequests = partsRequests.filter((request) => {
     const matchesStatus = statusFilter === "all" || request.status === statusFilter;
     const matchesSearch = searchTerm === "" || 
@@ -112,6 +169,23 @@ export default function PartsRequestsList() {
 
   const handleStatusUpdate = (id: number, newStatus: string) => {
     updateStatusMutation.mutate({ id, status: newStatus });
+  };
+
+  const handleReturnPart = (id: number) => {
+    returnPartMutation.mutate({ id, returnReason });
+  };
+
+  const handleUpdateNotes = (id: number, notes: string) => {
+    updateNotesMutation.mutate({ id, userNotes: notes });
+  };
+
+  const handleNotesChange = (id: number, value: string) => {
+    setEditingNotes(prev => ({ ...prev, [id]: value }));
+  };
+
+  const saveNotes = (id: number) => {
+    const notes = editingNotes[id] || "";
+    handleUpdateNotes(id, notes);
   };
 
   if (isLoading) {
@@ -177,6 +251,7 @@ export default function PartsRequestsList() {
                   <TableHead>العدد</TableHead>
                   <TableHead>سبب الطلب</TableHead>
                   <TableHead>الحالة</TableHead>
+                  <TableHead>الملاحظات</TableHead>
                   <TableHead>سجل المهام</TableHead>
                   <TableHead>الإجراءات</TableHead>
                 </TableRow>
@@ -184,7 +259,7 @@ export default function PartsRequestsList() {
               <TableBody>
                 {filteredRequests.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
                       لا توجد طلبات قطع
                     </TableCell>
                   </TableRow>
@@ -216,6 +291,34 @@ export default function PartsRequestsList() {
                         <Badge className={statusColors[request.status as keyof typeof statusColors]}>
                           {statusLabels[request.status as keyof typeof statusLabels]}
                         </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="space-y-2 max-w-xs">
+                          {user?.username === "بدوي" ? (
+                            <div className="space-y-2">
+                              <Textarea
+                                placeholder="اكتب ملاحظاتك هنا..."
+                                value={editingNotes[request.id] ?? request.userNotes ?? ""}
+                                onChange={(e) => handleNotesChange(request.id, e.target.value)}
+                                className="min-h-[60px] text-sm"
+                              />
+                              {(editingNotes[request.id] !== undefined && editingNotes[request.id] !== (request.userNotes ?? "")) && (
+                                <Button
+                                  size="sm"
+                                  onClick={() => saveNotes(request.id)}
+                                  disabled={updateNotesMutation.isPending}
+                                  className="w-full"
+                                >
+                                  {updateNotesMutation.isPending ? "حفظ..." : "حفظ الملاحظات"}
+                                </Button>
+                              )}
+                            </div>
+                          ) : (
+                            <div className="text-sm text-muted-foreground">
+                              {request.userNotes || "لا توجد ملاحظات"}
+                            </div>
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell>
                         <div className="space-y-1 text-xs">
@@ -349,7 +452,7 @@ export default function PartsRequestsList() {
                           )}
                           
                           {/* زر تسليم للمستخدم بدوي */}
-                          {user?.username === 'بدوي' && request.status !== 'delivered' && request.status !== 'rejected' && (
+                          {user?.username === 'بدوي' && request.status !== 'delivered' && request.status !== 'rejected' && request.status !== 'returned' && (
                             <Button
                               size="sm"
                               variant="default"
@@ -360,6 +463,47 @@ export default function PartsRequestsList() {
                               <Check className="h-4 w-4 mr-1" />
                               {finalDeliveryMutation.isPending ? 'جاري...' : 'تسليم'}
                             </Button>
+                          )}
+
+                          {/* زر ترجيع القطعة للمستخدم بدوي */}
+                          {user?.username === 'بدوي' && request.status === 'delivered' && (
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="text-red-600 hover:text-red-700"
+                                >
+                                  <Undo2 className="h-4 w-4 mr-1" />
+                                  ترجيع القطعة
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent className="sm:max-w-[425px]">
+                                <DialogHeader>
+                                  <DialogTitle>ترجيع القطعة</DialogTitle>
+                                </DialogHeader>
+                                <div className="space-y-4">
+                                  <div>
+                                    <label className="text-sm font-medium">سبب الترجيع</label>
+                                    <Textarea
+                                      placeholder="اكتب سبب ترجيع القطعة..."
+                                      value={returnReason}
+                                      onChange={(e) => setReturnReason(e.target.value)}
+                                      className="mt-1"
+                                    />
+                                  </div>
+                                  <div className="flex gap-2">
+                                    <Button
+                                      onClick={() => handleReturnPart(request.id)}
+                                      disabled={returnPartMutation.isPending || !returnReason.trim()}
+                                      className="flex-1"
+                                    >
+                                      {returnPartMutation.isPending ? "جاري الترجيع..." : "تأكيد الترجيع"}
+                                    </Button>
+                                  </div>
+                                </div>
+                              </DialogContent>
+                            </Dialog>
                           )}
                         </div>
                       </TableCell>

@@ -225,6 +225,10 @@ export const partsRequests = pgTable("parts_requests", {
   unavailableBy: varchar("unavailable_by", { length: 100 }),
   deliveredBy: varchar("delivered_by", { length: 100 }),
   deliveredAt: timestamp("delivered_at"),
+  returnedAt: timestamp("returned_at"),
+  returnedBy: varchar("returned_by", { length: 100 }),
+  returnReason: text("return_reason"),
+  userNotes: text("user_notes"),
 });
 
 export const insertUserSchema = createInsertSchema(users).omit({
@@ -255,6 +259,10 @@ export const insertPartsRequestSchema = createInsertSchema(partsRequests).omit({
   requestedBy: true,
   approvedBy: true,
   deliveredBy: true,
+  returnedAt: true,
+  returnedBy: true,
+  returnReason: true,
+  userNotes: true,
 });
 
 // Types

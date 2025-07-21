@@ -578,6 +578,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Return parts request (ترجيع القطعة)
+  app.put("/api/parts-requests/:id/return", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { returnReason } = req.body;
+      
+      const request = await storage.returnPartsRequest(id, (req.user as any)?.username || "Unknown", returnReason);
+      
+      // إرسال إشعار خاص لهبة عن ترجيع القطعة
+      broadcastUpdate("parts_request_returned", {
+        id: request.id,
+        requestNumber: request.requestNumber,
+        engineerName: request.engineerName,
+        partName: request.partName,
+        returnReason: returnReason,
+        returnedBy: (req.user as any)?.username
+      });
+      
+      res.json(request);
+    } catch (error) {
+      console.error("Error returning parts request:", error);
+      res.status(500).json({ message: "Failed to return parts request" });
+    }
+  });
+
+  // Update parts request notes (تحديث الملاحظات)
+  app.put("/api/parts-requests/:id/notes", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { userNotes } = req.body;
+      
+      const request = await storage.updatePartsRequestNotes(id, userNotes);
+      
+      // إرسال تحديث للملاحظات
+      broadcastUpdate("parts_request_notes_updated", {
+        id: request.id,
+        userNotes: userNotes,
+        updatedBy: (req.user as any)?.username
+      });
+      
+      res.json(request);
+    } catch (error) {
+      console.error("Error updating parts request notes:", error);
+      res.status(500).json({ message: "Failed to update parts request notes" });
+    }
+  });
+
   const httpServer = createServer(app);
 
   // WebSocket server setup
