@@ -185,6 +185,7 @@ Changelog:
 - July 14, 2025. Added customer creation permission to user "بدوي": updated user permissions to include "customers:write" alongside existing permissions, modified auth.ts for new user creation, updated existing user in database, "بدوي" can now create customer cards through the CustomerCard component with full write access
 - July 17, 2025. Resolved persistent HTML loading errors and Vite script conflicts: created standalone HTML pages for login and dashboard to bypass Vite/React issues, added static file serving to Express server, implemented fallback system with /login.html and /dashboard.html pages, created comprehensive error handling for external Replit scripts, system now fully accessible through simple HTML interface without JavaScript framework dependencies
 - July 21, 2025. Restored original parts request data after database schema updates: recovered authentic parts requests including "رانية الشلبي" customer data, implemented return part functionality with notifications, added notes system for parts requests with role-based editing permissions
+- July 21, 2025. Implemented comprehensive automatic backup system: created backup.ts with automatic hourly backups of customers, customer cars, and parts requests data, added backup/restore API endpoints with admin permissions, created BackupManager component for manual backup creation and restoration, integrated automatic backup initialization on server startup, added JSON backup file format with timestamp and version tracking
 
 ## User Preferences
 

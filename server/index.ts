@@ -2,6 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import path from "path";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import "./backup"; // تفعيل النسخ الاحتياطي التلقائي
 
 // Graceful shutdown handling
 process.on('SIGTERM', () => {

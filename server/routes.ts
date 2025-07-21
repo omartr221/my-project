@@ -5,6 +5,7 @@ import { storage } from "./storage";
 import { insertWorkerSchema, insertTaskSchema, insertCustomerSchema, insertCustomerCarSchema, insertPartsRequestSchema } from "@shared/schema";
 import { z } from "zod";
 import { setupAuth } from "./auth";
+import { createBackup, restoreFromBackup } from "./backup";
 
 interface WebSocketClient extends WebSocket {
   isAlive?: boolean;
@@ -25,6 +26,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       uptime: process.uptime(),
       environment: process.env.NODE_ENV || 'development'
     });
+  });
+
+  // Backup endpoints
+  app.post("/api/backup/create", async (req, res) => {
+    if (!req.isAuthenticated() || !req.user?.permissions?.includes('admin')) {
+      return res.status(401).json({ message: "غير مصرح لك بإنشاء نسخ احتياطية" });
+    }
+    
+    const result = await createBackup();
+    if (result.success) {
+      res.json({ message: "تم إنشاء النسخة الاحتياطية بنجاح", timestamp: result.timestamp });
+    } else {
+      res.status(500).json({ message: "فشل في إنشاء النسخة الاحتياطية", error: result.error });
+    }
+  });
+
+  app.post("/api/backup/restore", async (req, res) => {
+    if (!req.isAuthenticated() || !req.user?.permissions?.includes('admin')) {
+      return res.status(401).json({ message: "غير مصرح لك بالاستعادة" });
+    }
+    
+    const result = await restoreFromBackup(req.body);
+    if (result.success) {
+      res.json({ message: "تم استعادة البيانات بنجاح" });
+    } else {
+      res.status(500).json({ message: "فشل في استعادة البيانات", error: result.error });
+    }
   });
 
   // Note: Root path "/" is handled by Vite in development and static files in production
