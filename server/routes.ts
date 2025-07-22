@@ -505,6 +505,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Parts requests by car endpoints
+  app.get("/api/parts-requests/by-car/:licensePlate", async (req, res) => {
+    const { licensePlate } = req.params;
+    const requests = await storage.getPartsRequestsByLicensePlate(licensePlate);
+    res.json(requests);
+  });
+
+  app.get("/api/tasks/by-car/:licensePlate", async (req, res) => {
+    const { licensePlate } = req.params;
+    const tasks = await storage.getTasksByLicensePlate(licensePlate);
+    res.json(tasks);
+  });
+
   // Parts requests routes
   app.get("/api/parts-requests", async (req, res) => {
     try {

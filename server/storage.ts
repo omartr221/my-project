@@ -67,6 +67,8 @@ export interface IStorage {
   createPartsRequest(request: InsertPartsRequest): Promise<PartsRequest>;
   updatePartsRequestStatus(id: number, status: string, notes?: string): Promise<PartsRequest>;
   searchCarInfoForParts(searchTerm: string): Promise<{ carBrand: string; carModel: string; color?: string } | null>;
+  getPartsRequestsByLicensePlate(licensePlate: string): Promise<PartsRequest[]>;
+  getTasksByLicensePlate(licensePlate: string): Promise<Task[]>;
   
   // Session store
   sessionStore: any;
@@ -925,6 +927,24 @@ export class DatabaseStorage implements IStorage {
       .returning();
 
     return updatedRequest;
+  }
+
+  async getPartsRequestsByLicensePlate(licensePlate: string): Promise<PartsRequest[]> {
+    const requests = await db.select()
+      .from(partsRequests)
+      .where(eq(partsRequests.licensePlate, licensePlate))
+      .orderBy(desc(partsRequests.requestedAt));
+    
+    return requests;
+  }
+
+  async getTasksByLicensePlate(licensePlate: string): Promise<Task[]> {
+    const taskList = await db.select()
+      .from(tasks)
+      .where(eq(tasks.licensePlate, licensePlate))
+      .orderBy(desc(tasks.createdAt));
+    
+    return taskList;
   }
 }
 

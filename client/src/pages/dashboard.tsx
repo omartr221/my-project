@@ -17,10 +17,11 @@ import CustomerCard from "@/components/CustomerCard";
 import PartsRequestForm from "@/components/PartsRequestForm";
 import PartsRequestsList from "@/components/PartsRequestsList";
 import RequestsList from "@/components/RequestsList";
+import PrepareDelivery from "@/components/PrepareDelivery";
 import HabaNotificationDialog from "@/components/HabaNotificationDialog";
 import { useNotifications } from "@/hooks/useNotifications";
 
-type TabType = "dashboard" | "timers" | "history" | "archive" | "addworker" | "customercard" | "parts-requests" | "requests";
+type TabType = "dashboard" | "timers" | "history" | "archive" | "addworker" | "customercard" | "parts-requests" | "requests" | "prepare-delivery";
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<TabType>("dashboard");
@@ -186,6 +187,9 @@ export default function Dashboard() {
             </div>
           </div>
         );
+
+      case "prepare-delivery":
+        return <PrepareDelivery />;
       
       default:
         return null;
@@ -329,6 +333,17 @@ export default function Dashboard() {
               >
                 <Package2 className="ml-2 h-4 w-4" />
                 طلبات القطع
+              </Button>
+            )}
+
+            {(isOperator || canWrite("parts")) && (
+              <Button
+                variant={activeTab === "prepare-delivery" ? "default" : "ghost"}
+                onClick={() => setActiveTab("prepare-delivery")}
+                className="font-medium"
+              >
+                <Package2 className="ml-2 h-4 w-4" />
+                تجهيز للتسليم
               </Button>
             )}
 
