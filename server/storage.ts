@@ -982,9 +982,13 @@ export class DatabaseStorage implements IStorage {
 
   // Car receipts methods
   async createCarReceipt(receiptData: InsertCarReceipt): Promise<CarReceipt> {
-    // Generate receipt number
-    const receiptCount = await db.select({ count: sql<number>`count(*)` }).from(carReceipts);
-    const receiptNumber = `استلام-${(receiptCount[0]?.count || 0) + 1}`;
+    // Generate receipt number - use simple sequential numbering
+    const result = await db.execute(sql`
+      SELECT COALESCE(MAX(CAST(SUBSTRING(receipt_number FROM 'استلام-(.+)') AS INTEGER)), 0) + 1 as next_number 
+      FROM car_receipts
+    `);
+    const nextNumber = result.rows[0]?.next_number || 1;
+    const receiptNumber = `استلام-${nextNumber}`;
 
     const [receipt] = await db.insert(carReceipts).values({
       ...receiptData,
