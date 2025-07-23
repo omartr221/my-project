@@ -237,6 +237,23 @@ async function initializeDefaultUsers() {
       });
       console.log("✓ تم إنشاء مستخدم الإدارة: فارس");
     }
+
+    // Check if the reception user exists
+    const existingReceptionUser = await storage.getUserByUsername("الاستقبال");
+    if (!existingReceptionUser) {
+      // Create the reception user
+      await storage.createUser({
+        username: "الاستقبال",
+        password: await hashPassword("1111"),
+        role: "reception",
+        permissions: [
+          "timers:read",
+          "tasks:read",
+          "parts:read"
+        ],
+      });
+      console.log("✓ تم إنشاء مستخدم الاستقبال: الاستقبال");
+    }
   } catch (error) {
     console.error("خطأ في إنشاء المستخدمين الافتراضيين:", error);
   }
