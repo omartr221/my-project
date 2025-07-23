@@ -261,106 +261,25 @@ export default function CarStatusManagement() {
                   </Button>
                 )}
 
-                {/* Buttons for بدوي user */}
-                {user?.username === "بدوي" && (
-                  <>
-                    {/* Show postpone and enter buttons for received cars */}
-                    {receipt.status === "received" && (
+                {/* Buttons for بدوي user - only show enter button for postponed cars */}
+                {user?.username === "بدوي" && receipt.status === "postponed" && (
+                  <Button 
+                    onClick={() => enterWorkshopMutation.mutate(receipt.id)}
+                    disabled={enterWorkshopMutation.isPending}
+                    className="bg-green-600 hover:bg-green-700 text-white"
+                  >
+                    {enterWorkshopMutation.isPending ? (
                       <>
-                        <Button 
-                          onClick={() => postponeCarMutation.mutate(receipt.id)}
-                          disabled={postponeCarMutation.isPending}
-                          variant="outline"
-                          className="border-yellow-600 text-yellow-600 hover:bg-yellow-50"
-                        >
-                          {postponeCarMutation.isPending ? (
-                            <>
-                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-yellow-600 mr-2"></div>
-                              جاري التأجيل...
-                            </>
-                          ) : (
-                            "تأجيل"
-                          )}
-                        </Button>
-                        <Button 
-                          onClick={() => enterWorkshopMutation.mutate(receipt.id)}
-                          disabled={enterWorkshopMutation.isPending}
-                          className="bg-green-600 hover:bg-green-700 text-white"
-                        >
-                          {enterWorkshopMutation.isPending ? (
-                            <>
-                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                              جاري الإدخال...
-                            </>
-                          ) : (
-                            <>
-                              <Check className="h-4 w-4 mr-2" />
-                              إدخال للورشة
-                            </>
-                          )}
-                        </Button>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        جاري الإدخال...
+                      </>
+                    ) : (
+                      <>
+                        <Check className="h-4 w-4 mr-2" />
+                        إدخال
                       </>
                     )}
-                    
-                    {/* Show postpone and enter buttons for workshop_pending cars */}
-                    {receipt.status === "workshop_pending" && (
-                      <>
-                        <Button 
-                          onClick={() => postponeCarMutation.mutate(receipt.id)}
-                          disabled={postponeCarMutation.isPending}
-                          variant="outline"
-                          className="border-yellow-600 text-yellow-600 hover:bg-yellow-50"
-                        >
-                          {postponeCarMutation.isPending ? (
-                            <>
-                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-yellow-600 mr-2"></div>
-                              جاري التأجيل...
-                            </>
-                          ) : (
-                            "تأجيل"
-                          )}
-                        </Button>
-                        <Button 
-                          onClick={() => enterWorkshopMutation.mutate(receipt.id)}
-                          disabled={enterWorkshopMutation.isPending}
-                          className="bg-green-600 hover:bg-green-700 text-white"
-                        >
-                          {enterWorkshopMutation.isPending ? (
-                            <>
-                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                              جاري الإدخال...
-                            </>
-                          ) : (
-                            <>
-                              <Check className="h-4 w-4 mr-2" />
-                              إدخال للورشة
-                            </>
-                          )}
-                        </Button>
-                      </>
-                    )}
-
-                    {/* Show only enter button for postponed cars */}
-                    {receipt.status === "postponed" && (
-                      <Button 
-                        onClick={() => enterWorkshopMutation.mutate(receipt.id)}
-                        disabled={enterWorkshopMutation.isPending}
-                        className="bg-green-600 hover:bg-green-700 text-white"
-                      >
-                        {enterWorkshopMutation.isPending ? (
-                          <>
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                            جاري الإدخال...
-                          </>
-                        ) : (
-                          <>
-                            <Check className="h-4 w-4 mr-2" />
-                            إدخال
-                          </>
-                        )}
-                      </Button>
-                    )}
-                  </>
+                  </Button>
                 )}
 
                 {/* Status messages */}
