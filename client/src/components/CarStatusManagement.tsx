@@ -4,12 +4,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
-import { Car, Calendar, User, ArrowRight, Bell, Check } from "lucide-react";
+import { Car, Calendar, User, ArrowRight, Bell, Check, Package, Wrench } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { useWebSocket } from "@/hooks/useWebSocket";
-import type { CarReceipt } from "@shared/schema";
+import type { CarReceipt, PartsRequest } from "@shared/schema";
 
 export default function CarStatusManagement() {
   const { toast } = useToast();
@@ -21,6 +21,11 @@ export default function CarStatusManagement() {
 
   const { data: carReceipts = [], isLoading } = useQuery<CarReceipt[]>({
     queryKey: ["/api/car-receipts"],
+  });
+
+  // Get parts requests for all cars to show workshop activity
+  const { data: partsRequests = [] } = useQuery<PartsRequest[]>({
+    queryKey: ["/api/parts-requests"],
   });
 
   // Show all car receipts - completed cars will show as "مستلمة" without buttons
@@ -152,6 +157,47 @@ export default function CarStatusManagement() {
     );
   }
 
+  // Helper functions for parts request status
+  const getPartsRequestStatusColor = (status: string) => {
+    switch (status) {
+      case "pending":
+        return "bg-yellow-100 text-yellow-800 border-yellow-300";
+      case "approved":
+      case "in_preparation":
+        return "bg-blue-100 text-blue-800 border-blue-300";
+      case "awaiting_pickup":
+      case "parts_arrived":
+        return "bg-green-100 text-green-800 border-green-300";
+      case "delivered":
+        return "bg-gray-100 text-gray-800 border-gray-300";
+      case "rejected":
+        return "bg-red-100 text-red-800 border-red-300";
+      default:
+        return "bg-gray-100 text-gray-800 border-gray-300";
+    }
+  };
+
+  const getPartsRequestStatusText = (status: string) => {
+    switch (status) {
+      case "pending":
+        return "بانتظار الموافقة";
+      case "approved":
+        return "موافق عليه";
+      case "in_preparation":
+        return "قيد التحضير";
+      case "awaiting_pickup":
+        return "بانتظار الاستلام";
+      case "parts_arrived":
+        return "وصلت القطعة";
+      case "delivered":
+        return "تم التسليم";
+      case "rejected":
+        return "مرفوض";
+      default:
+        return status;
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between mb-6">
@@ -237,6 +283,53 @@ export default function CarStatusManagement() {
                   </div>
                 </div>
               )}
+
+              {/* نشاط الورشة - طلبات القطع */}
+              {(() => {
+                const carPartsRequests = partsRequests.filter(request => 
+                  request.licensePlate === receipt.licensePlate
+                );
+                
+                if (carPartsRequests.length > 0) {
+                  return (
+                    <div className="text-sm">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Wrench className="h-4 w-4 text-green-600" />
+                        <span className="text-gray-500 font-medium">نشاط الورشة:</span>
+                      </div>
+                      <div className="space-y-2">
+                        {carPartsRequests.map((request) => (
+                          <div key={request.id} className="p-2 bg-green-50 rounded border-r-2 border-green-300">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <Package className="h-3 w-3 text-green-600" />
+                                  <span className="font-medium text-green-800">{request.partName}</span>
+                                  <Badge variant="outline" className="text-xs">
+                                    كمية: {request.quantity}
+                                  </Badge>
+                                </div>
+                                <div className="text-xs text-green-600 mt-1">
+                                  المهندس: {request.engineerName} | {request.reasonType === "expense" ? "مصروف" : "عارية"}
+                                </div>
+                              </div>
+                              <Badge className={getPartsRequestStatusColor(request.status)}>
+                                {getPartsRequestStatusText(request.status)}
+                              </Badge>
+                            </div>
+                            {request.notes && (
+                              <div className="text-xs text-gray-600 mt-1 bg-white p-1 rounded">
+                                {request.notes}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                }
+                return null;
+              })()}
 
               {/* أزرار الإجراءات */}
               <div className="flex items-center justify-end gap-2 pt-2 border-t">
