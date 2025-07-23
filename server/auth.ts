@@ -232,7 +232,12 @@ async function initializeDefaultUsers() {
           "workers:write",
           "workers:create",
           "workers:edit",
-          "workers:delete"
+          "workers:delete",
+          "receipts:read",
+          "receipts:write",
+          "receipts:create",
+          "receipts:edit",
+          "receipts:delete"
         ],
       });
       console.log("✓ تم إنشاء مستخدم الإدارة: فارس");
@@ -249,7 +254,10 @@ async function initializeDefaultUsers() {
         permissions: [
           "timers:read",
           "tasks:read",
-          "parts:read"
+          "parts:read",
+          "receipts:read",
+          "receipts:write",
+          "receipts:create"
         ],
       });
       console.log("✓ تم إنشاء مستخدم الاستقبال: الاستقبال");

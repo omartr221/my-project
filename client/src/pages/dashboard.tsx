@@ -19,9 +19,11 @@ import PartsRequestsList from "@/components/PartsRequestsList";
 import RequestsList from "@/components/RequestsList";
 import PrepareDelivery from "@/components/PrepareDelivery";
 import HabaNotificationDialog from "@/components/HabaNotificationDialog";
+import CarReceiptForm from "@/components/CarReceiptForm";
+import CarReceiptsList from "@/components/CarReceiptsList";
 import { useNotifications } from "@/hooks/useNotifications";
 
-type TabType = "dashboard" | "timers" | "history" | "archive" | "addworker" | "customercard" | "parts-requests" | "requests" | "prepare-delivery";
+type TabType = "dashboard" | "timers" | "history" | "archive" | "addworker" | "customercard" | "parts-requests" | "requests" | "prepare-delivery" | "car-receipts";
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<TabType>("dashboard");
@@ -190,6 +192,13 @@ export default function Dashboard() {
 
       case "prepare-delivery":
         return <PrepareDelivery />;
+      case "car-receipts":
+        return (
+          <div className="space-y-6">
+            <CarReceiptForm />
+            <CarReceiptsList />
+          </div>
+        );
       
       default:
         return null;
@@ -361,6 +370,18 @@ export default function Dashboard() {
                     {newRequestsCount}
                   </span>
                 )}
+              </Button>
+            )}
+
+            {/* استلام السيارة - خاص بالاستقبال وفارس */}
+            {(user?.username === "الاستقبال" || user?.username === "فارس") && (
+              <Button
+                variant={activeTab === "car-receipts" ? "default" : "ghost"}
+                onClick={() => setActiveTab("car-receipts")}
+                className="font-medium"
+              >
+                <Car className="ml-2 h-4 w-4" />
+                استلام السيارة
               </Button>
             )}
           </nav>

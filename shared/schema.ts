@@ -137,6 +137,27 @@ export const users = pgTable("users", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
+export const carReceipts = pgTable("car_receipts", {
+  id: serial("id").primaryKey(),
+  receiptNumber: varchar("receipt_number", { length: 20 }).unique().notNull(),
+  licensePlate: varchar("license_plate", { length: 20 }).notNull(),
+  customerName: varchar("customer_name", { length: 100 }).notNull(),
+  customerPhone: varchar("customer_phone", { length: 20 }),
+  carBrand: varchar("car_brand", { length: 50 }).notNull(),
+  carModel: varchar("car_model", { length: 100 }).notNull(),
+  carColor: varchar("car_color", { length: 50 }),
+  chassisNumber: varchar("chassis_number", { length: 100 }),
+  engineCode: varchar("engine_code", { length: 100 }),
+  entryMileage: integer("entry_mileage").notNull(), // عداد الدخول
+  fuelLevel: varchar("fuel_level", { length: 20 }).notNull(), // نسبة البنزين
+  entryNotes: text("entry_notes"), // ملاحظات عند الدخول
+  repairType: varchar("repair_type", { length: 20 }).notNull(), // ميكانيك، كهربا
+  receivedBy: varchar("received_by", { length: 100 }).notNull(),
+  receivedAt: timestamp("received_at").defaultNow(),
+  status: varchar("status", { length: 20 }).notNull().default("received"), // received, in_progress, completed
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 
 
 
@@ -280,6 +301,30 @@ export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type PartsRequest = typeof partsRequests.$inferSelect;
 export type InsertPartsRequest = z.infer<typeof insertPartsRequestSchema>;
+
+export const insertCarReceiptSchema = createInsertSchema(carReceipts).omit({
+  id: true,
+  receiptNumber: true,
+  receivedAt: true,
+  createdAt: true,
+}).extend({
+  licensePlate: z.string().min(1, "يجب إدخال رقم السيارة"),
+  customerName: z.string().min(1, "يجب إدخال اسم الزبون"),
+  carBrand: z.string().min(1, "يجب اختيار نوع السيارة"),
+  carModel: z.string().min(1, "يجب إدخال موديل السيارة"),
+  entryMileage: z.number().min(0, "يجب إدخال رقم العداد"),
+  fuelLevel: z.string().min(1, "يجب إدخال نسبة البنزين"),
+  repairType: z.string().min(1, "يجب اختيار نوع الإصلاح"),
+}).partial({
+  customerPhone: true,
+  carColor: true,
+  chassisNumber: true,
+  engineCode: true,
+  entryNotes: true,
+});
+
+export type CarReceipt = typeof carReceipts.$inferSelect;
+export type InsertCarReceipt = z.infer<typeof insertCarReceiptSchema>;
 
 // Extended types for API responses
 export type WorkerWithTasks = Worker & {

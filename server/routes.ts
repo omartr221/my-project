@@ -720,6 +720,96 @@ export async function registerRoutes(app: Express): Promise<Server> {
     broadcastUpdate("timer_tick", { timestamp: Date.now() });
   }, 100);
 
+  // Car receipts routes
+  app.get("/api/car-receipts", async (req, res, next) => {
+    try {
+      const receipts = await storage.getCarReceipts();
+      res.json(receipts);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.post("/api/car-receipts", async (req, res, next) => {
+    try {
+      const receipt = await storage.createCarReceipt({
+        ...req.body,
+        receivedBy: req.user?.username || "الاستقبال",
+      });
+      
+      // Broadcast the new receipt to all connected clients
+      wss.clients.forEach(client => {
+        if (client.readyState === WebSocket.OPEN) {
+          client.send(JSON.stringify({
+            type: 'CAR_RECEIPT_CREATED',
+            data: receipt
+          }));
+        }
+      });
+      
+      res.status(201).json(receipt);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.get("/api/car-receipts/:id", async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const receipt = await storage.getCarReceiptById(parseInt(id));
+      
+      if (!receipt) {
+        return res.status(404).json({ error: "إيصال الاستلام غير موجود" });
+      }
+      
+      res.json(receipt);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.put("/api/car-receipts/:id", async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const receipt = await storage.updateCarReceipt(parseInt(id), req.body);
+      
+      // Broadcast the updated receipt to all connected clients
+      wss.clients.forEach(client => {
+        if (client.readyState === WebSocket.OPEN) {
+          client.send(JSON.stringify({
+            type: 'CAR_RECEIPT_UPDATED',
+            data: receipt
+          }));
+        }
+      });
+      
+      res.json(receipt);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.delete("/api/car-receipts/:id", async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteCarReceipt(parseInt(id));
+      
+      // Broadcast the deletion to all connected clients
+      wss.clients.forEach(client => {
+        if (client.readyState === WebSocket.OPEN) {
+          client.send(JSON.stringify({
+            type: 'CAR_RECEIPT_DELETED',
+            data: { id: parseInt(id) }
+          }));
+        }
+      });
+      
+      res.status(204).send();
+    } catch (error) {
+      next(error);
+    }
+  });
+
   return httpServer;
 }
 

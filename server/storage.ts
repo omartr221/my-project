@@ -1,4 +1,4 @@
-import { workers, tasks, timeEntries, customers, customerCars, users, partsRequests, type Worker, type InsertWorker, type Task, type InsertTask, type TimeEntry, type InsertTimeEntry, type WorkerWithTasks, type TaskWithWorker, type TaskHistory, type Customer, type InsertCustomer, type CustomerCar, type InsertCustomerCar, type CustomerWithCars, type User, type InsertUser, type PartsRequest, type InsertPartsRequest } from "@shared/schema";
+import { workers, tasks, timeEntries, customers, customerCars, users, partsRequests, carReceipts, type Worker, type InsertWorker, type Task, type InsertTask, type TimeEntry, type InsertTimeEntry, type WorkerWithTasks, type TaskWithWorker, type TaskHistory, type Customer, type InsertCustomer, type CustomerCar, type InsertCustomerCar, type CustomerWithCars, type User, type InsertUser, type PartsRequest, type InsertPartsRequest, type CarReceipt, type InsertCarReceipt } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, isNull, or, like, isNotNull, asc } from "drizzle-orm";
 import session from "express-session";
@@ -69,6 +69,13 @@ export interface IStorage {
   searchCarInfoForParts(searchTerm: string): Promise<{ carBrand: string; carModel: string; color?: string; licensePlate?: string; chassisNumber?: string; engineCode?: string; customerName?: string } | null>;
   getPartsRequestsByLicensePlate(licensePlate: string): Promise<PartsRequest[]>;
   getTasksByLicensePlate(licensePlate: string): Promise<Task[]>;
+  
+  // Car receipts management
+  createCarReceipt(receiptData: InsertCarReceipt): Promise<CarReceipt>;
+  getCarReceipts(): Promise<CarReceipt[]>;
+  getCarReceiptById(id: number): Promise<CarReceipt | undefined>;
+  updateCarReceipt(id: number, updates: Partial<InsertCarReceipt>): Promise<CarReceipt>;
+  deleteCarReceipt(id: number): Promise<void>;
   
   // Session store
   sessionStore: any;
@@ -959,6 +966,43 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(tasks.createdAt));
     
     return taskList;
+  }
+
+  // Car receipts methods
+  async createCarReceipt(receiptData: InsertCarReceipt): Promise<CarReceipt> {
+    // Generate receipt number
+    const receiptCount = await db.select({ count: count() }).from(carReceipts);
+    const receiptNumber = `استلام-${(receiptCount[0]?.count || 0) + 1}`;
+
+    const [receipt] = await db.insert(carReceipts).values({
+      ...receiptData,
+      receiptNumber,
+      receivedBy: receiptData.receivedBy || "الاستقبال",
+    }).returning();
+
+    return receipt;
+  }
+
+  async getCarReceipts(): Promise<CarReceipt[]> {
+    return await db.select().from(carReceipts).orderBy(desc(carReceipts.receivedAt));
+  }
+
+  async getCarReceiptById(id: number): Promise<CarReceipt | undefined> {
+    const [receipt] = await db.select().from(carReceipts).where(eq(carReceipts.id, id));
+    return receipt;
+  }
+
+  async updateCarReceipt(id: number, updates: Partial<InsertCarReceipt>): Promise<CarReceipt> {
+    const [receipt] = await db.update(carReceipts)
+      .set(updates)
+      .where(eq(carReceipts.id, id))
+      .returning();
+    
+    return receipt;
+  }
+
+  async deleteCarReceipt(id: number): Promise<void> {
+    await db.delete(carReceipts).where(eq(carReceipts.id, id));
   }
 }
 
