@@ -59,6 +59,7 @@ export interface IStorage {
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, updates: Partial<InsertUser>): Promise<User>;
+  updateUserPermissions(username: string, permissions: string[]): Promise<User>;
   deleteUser(id: number): Promise<void>;
   
   // Parts requests management
@@ -760,6 +761,15 @@ export class DatabaseStorage implements IStorage {
       .update(users)
       .set(updates)
       .where(eq(users.id, id))
+      .returning();
+    return updatedUser;
+  }
+
+  async updateUserPermissions(username: string, permissions: string[]): Promise<User> {
+    const [updatedUser] = await db
+      .update(users)
+      .set({ permissions })
+      .where(eq(users.username, username))
       .returning();
     return updatedUser;
   }

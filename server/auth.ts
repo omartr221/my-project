@@ -257,10 +257,28 @@ async function initializeDefaultUsers() {
           "parts:read",
           "receipts:read",
           "receipts:write",
-          "receipts:create"
+          "receipts:create",
+          "customers:read",
+          "customers:write",
+          "customers:create"
         ],
       });
       console.log("✓ تم إنشاء مستخدم الاستقبال: الاستقبال");
+    } else {
+      // Update existing reception user with new permissions
+      const updatedPermissions = [
+        "timers:read",
+        "tasks:read",
+        "parts:read",
+        "receipts:read",
+        "receipts:write",
+        "receipts:create",
+        "customers:read",
+        "customers:write",
+        "customers:create"
+      ];
+      await storage.updateUserPermissions("الاستقبال", updatedPermissions);
+      console.log("✓ تم تحديث صلاحيات مستخدم الاستقبال");
     }
   } catch (error) {
     console.error("خطأ في إنشاء المستخدمين الافتراضيين:", error);
