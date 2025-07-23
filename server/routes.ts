@@ -737,7 +737,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         receivedBy: req.user?.username || "الاستقبال",
       });
       
-      // Broadcast the new receipt to all connected clients
+      // Send notification to "بدوي" user immediately when receipt is created
+      wss.clients.forEach(client => {
+        if (client.readyState === WebSocket.OPEN) {
+          client.send(JSON.stringify({
+            type: 'WORKSHOP_NOTIFICATION',
+            data: {
+              type: "car-receipt-created",
+              receipt: receipt,
+              message: `تم استلام سيارة جديدة: ${receipt.licensePlate} - ${receipt.carBrand} ${receipt.carModel}`
+            }
+          }));
+        }
+      });
+      
+      // Also broadcast general receipt creation for UI updates
       wss.clients.forEach(client => {
         if (client.readyState === WebSocket.OPEN) {
           client.send(JSON.stringify({
@@ -758,19 +772,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const receiptId = parseInt(req.params.id);
       const receipt = await storage.sendCarReceiptToWorkshop(receiptId, req.user?.username || "مجهول");
       
-      // Send notification to "بدوي" user
-      wss.clients.forEach(client => {
-        if (client.readyState === WebSocket.OPEN) {
-          client.send(JSON.stringify({
-            type: 'WORKSHOP_NOTIFICATION',
-            data: {
-              type: "car-ready-for-workshop",
-              receipt: receipt,
-              message: `سيارة جديدة جاهزة للدخول للورشة: ${receipt.licensePlate} - ${receipt.carBrand} ${receipt.carModel}`
-            }
-          }));
-        }
-      });
+      // No longer send notification here - notification is sent when receipt is created
       
       res.json(receipt);
     } catch (error) {

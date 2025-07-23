@@ -59,7 +59,7 @@ export default function WorkshopNotificationDialog() {
       try {
         const data = JSON.parse(event.data);
         
-        if (data.type === 'WORKSHOP_NOTIFICATION' && data.data?.type === 'car-ready-for-workshop') {
+        if (data.type === 'WORKSHOP_NOTIFICATION' && (data.data?.type === 'car-ready-for-workshop' || data.data?.type === 'car-receipt-created')) {
           const notification: WorkshopNotification = data.data;
           setNotifications(prev => [...prev, notification]);
           setShowDialog(true);
