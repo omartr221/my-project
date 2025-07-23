@@ -59,16 +59,23 @@ export default function WorkshopNotificationDialog() {
       try {
         const data = JSON.parse(event.data);
         
-        if (data.type === 'WORKSHOP_NOTIFICATION' && (data.data?.type === 'car-ready-for-workshop' || data.data?.type === 'car-receipt-created')) {
-          const notification: WorkshopNotification = data.data;
-          setNotifications(prev => [...prev, notification]);
-          setShowDialog(true);
-          
-          // Play notification sound
-          const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmAaXr6');
-          audio.play().catch(() => {
-            // Ignore audio errors if autoplay is blocked
-          });
+        if (data.type === 'WORKSHOP_NOTIFICATION' || data.type === 'CAR_RECEIPT_CREATED') {
+          // Handle car receipt creation notifications  
+          if (data.data?.type === 'car-receipt-created' || data.type === 'CAR_RECEIPT_CREATED') {
+            const notification: WorkshopNotification = {
+              type: 'car-receipt-created',
+              receipt: data.data?.receipt || data.data,
+              message: data.data?.message || `تم استلام سيارة جديدة`
+            };
+            setNotifications(prev => [...prev, notification]);
+            setShowDialog(true);
+            
+            // Play notification sound
+            const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmAaXr6');
+            audio.play().catch(() => {
+              // Ignore audio errors if autoplay is blocked
+            });
+          }
         }
       } catch (error) {
         console.error('Error parsing WebSocket message:', error);
