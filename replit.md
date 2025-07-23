@@ -192,6 +192,7 @@ Changelog:
 - July 23, 2025. Fixed car receipt creation issues: resolved count function import error in storage.ts, fixed TypeScript null value handling in CarReceiptForm fields, added proper sql import for receipt numbering system, successfully enabled car receipt saving functionality
 - July 23, 2025. Added car status management access for "بدوي" user: extended dashboard navigation to include "حالة السيارات" tab for "بدوي" account, enabling workshop notification reception and car entry confirmation workflow, user can now see cars sent to workshop and confirm their entry
 - July 23, 2025. Modified notification workflow for car receipts: changed notification trigger from "send to workshop" action to immediate receipt creation, "بدوي" user now receives instant notifications when "الاستقبال" saves a car receipt, notifications include complete car information and direct workshop entry button
+- July 23, 2025. Fixed car entry workflow and interface permissions: updated "إدخال للورشة" button functionality to mark cars as completed instead of in_workshop status, restricted "إرسال للورشة" button visibility to reception account only, simplified "الاستقبال" user interface to display only "استلام السيارة" and "حالة السيارات" tabs, completed cars now show green "تم إدخال السيارة للورشة" status with hidden send-to-workshop buttons
 
 ## User Preferences
 

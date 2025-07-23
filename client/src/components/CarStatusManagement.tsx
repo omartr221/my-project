@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
-import { Car, Calendar, User, ArrowRight, Bell } from "lucide-react";
+import { Car, Calendar, User, ArrowRight, Bell, Check } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import type { CarReceipt } from "@shared/schema";
@@ -74,7 +74,7 @@ export default function CarStatusManagement() {
     );
   }
 
-  // Filter cars that are received and not yet sent to workshop
+  // Filter cars that are received and not completed
   const carsInReception = carReceipts.filter(receipt => 
     receipt.status === "received" || receipt.status === "workshop_pending"
   );
@@ -179,7 +179,8 @@ export default function CarStatusManagement() {
 
               {/* أزرار الإجراءات */}
               <div className="flex items-center justify-end gap-2 pt-2 border-t">
-                {receipt.status === "received" && (
+                {/* Show Send to Workshop button only for reception users on received cars */}
+                {receipt.status === "received" && user?.username === "الاستقبال" && (
                   <Button 
                     onClick={() => sendToWorkshopMutation.mutate(receipt.id)}
                     disabled={sendToWorkshopMutation.isPending}
@@ -202,6 +203,12 @@ export default function CarStatusManagement() {
                   <div className="text-sm text-orange-600 font-medium">
                     <Bell className="h-4 w-4 inline mr-1" />
                     تم إرسال الإشعار - بانتظار دخول الورشة
+                  </div>
+                )}
+                {receipt.status === "completed" && (
+                  <div className="text-sm text-green-600 font-medium">
+                    <Check className="h-4 w-4 inline mr-1" />
+                    تم إدخال السيارة للورشة
                   </div>
                 )}
               </div>

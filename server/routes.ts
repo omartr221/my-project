@@ -783,7 +783,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/car-receipts/:id/enter-workshop", async (req, res, next) => {
     try {
       const receiptId = parseInt(req.params.id);
-      const receipt = await storage.enterCarToWorkshop(receiptId, req.user?.username || "مجهول");
+      // Mark as completed instead of just in workshop
+      const receipt = await storage.updateCarReceipt(receiptId, { 
+        status: "completed",
+        sentToWorkshopAt: new Date(),
+        sentToWorkshopBy: req.user?.username || "مجهول"
+      });
       
       wss.clients.forEach(client => {
         if (client.readyState === WebSocket.OPEN) {

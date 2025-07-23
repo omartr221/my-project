@@ -72,6 +72,11 @@ export default function Dashboard() {
   const renderTabContent = () => {
     switch (activeTab) {
       case "dashboard":
+        // Redirect الاستقبال user to car-receipts tab
+        if (user?.username === "الاستقبال") {
+          setActiveTab("car-receipts");
+          return null;
+        }
         return (
           <div className="space-y-6">
             {/* Overview Cards */}
@@ -273,109 +278,133 @@ export default function Dashboard() {
         {/* Navigation */}
         <div className="mb-6">
           <nav className="flex space-x-reverse space-x-4 bg-white rounded-lg shadow p-2">
-            {canRead("dashboard") && (
-              <Button
-                variant={activeTab === "dashboard" ? "default" : "ghost"}
-                onClick={() => setActiveTab("dashboard")}
-                className="font-medium"
-              >
-                <Users className="ml-2 h-4 w-4" />
-                لوحة المتابعة
-              </Button>
-            )}
-            
-            {(canRead("timers") || canWrite("timers")) && (
-              <Button
-                variant={activeTab === "timers" ? "default" : "ghost"}
-                onClick={() => setActiveTab("timers")}
-                className="font-medium"
-              >
-                <Clock className="ml-2 h-4 w-4" />
-                المؤقتات
-              </Button>
-            )}
-
-            {canRead("tasks") && (
-              <Button
-                variant={activeTab === "history" ? "default" : "ghost"}
-                onClick={() => setActiveTab("history")}
-                className="font-medium"
-              >
-                <Clock className="ml-2 h-4 w-4" />
-                سجل المهام
-              </Button>
-            )}
-            
-            {canRead("archive") && !isViewer && (
-              <Button
-                variant={activeTab === "archive" ? "default" : "ghost"}
-                onClick={() => setActiveTab("archive")}
-                className="font-medium"
-              >
-                <Archive className="ml-2 h-4 w-4" />
-                استلام نهائي
-              </Button>
-            )}
-
-            {!isFinance && !isOperator && !isViewer && !isSupervisor && (
-              <Button
-                variant={activeTab === "addworker" ? "default" : "ghost"}
-                onClick={() => setActiveTab("addworker")}
-                className="font-medium"
-              >
-                <UserCheck className="ml-2 h-4 w-4" />
-                إضافة موظف
-              </Button>
-            )}
-            
-            {canRead("customers") && (
-              <Button
-                variant={activeTab === "customercard" ? "default" : "ghost"}
-                onClick={() => setActiveTab("customercard")}
-                className="font-medium"
-              >
-                <Users className="ml-2 h-4 w-4" />
-                بطاقة زبون
-              </Button>
-            )}
-
-            {canRead("parts") && (
-              <Button
-                variant={activeTab === "parts-requests" ? "default" : "ghost"}
-                onClick={() => setActiveTab("parts-requests")}
-                className="font-medium"
-              >
-                <Package2 className="ml-2 h-4 w-4" />
-                طلبات القطع
-              </Button>
-            )}
-
-            {(isOperator || canWrite("parts")) && (
-              <Button
-                variant={activeTab === "prepare-delivery" ? "default" : "ghost"}
-                onClick={() => setActiveTab("prepare-delivery")}
-                className="font-medium"
-              >
-                <Package2 className="ml-2 h-4 w-4" />
-                تجهيز للتسليم
-              </Button>
-            )}
-
-            {/* الطلبات - خاص بحساب هبة */}
-            {(user?.username === "هبة" || user?.role === "viewer") && (
-              <Button
-                variant={activeTab === "requests" ? "default" : "ghost"}
-                onClick={() => setActiveTab("requests")}
-                className="font-medium relative"
-              >
-                <ListTodo className="ml-2 h-4 w-4" />
-                الطلبات
-                {newRequestsCount > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-pulse">
-                    {newRequestsCount}
-                  </span>
+            {/* Show limited tabs for الاستقبال user */}
+            {user?.username === "الاستقبال" ? (
+              <>
+                <Button
+                  variant={activeTab === "car-receipts" ? "default" : "ghost"}
+                  onClick={() => setActiveTab("car-receipts")}
+                  className="font-medium"
+                >
+                  <Car className="ml-2 h-4 w-4" />
+                  استلام السيارة
+                </Button>
+                <Button
+                  variant={activeTab === "car-status" ? "default" : "ghost"}
+                  onClick={() => setActiveTab("car-status")}
+                  className="font-medium"
+                >
+                  <Car className="ml-2 h-4 w-4" />
+                  حالة السيارات
+                </Button>
+              </>
+            ) : (
+              <>
+                {canRead("dashboard") && (
+                  <Button
+                    variant={activeTab === "dashboard" ? "default" : "ghost"}
+                    onClick={() => setActiveTab("dashboard")}
+                    className="font-medium"
+                  >
+                    <Users className="ml-2 h-4 w-4" />
+                    لوحة المتابعة
+                  </Button>
                 )}
-              </Button>
+                
+                {(canRead("timers") || canWrite("timers")) && (
+                  <Button
+                    variant={activeTab === "timers" ? "default" : "ghost"}
+                    onClick={() => setActiveTab("timers")}
+                    className="font-medium"
+                  >
+                    <Clock className="ml-2 h-4 w-4" />
+                    المؤقتات
+                  </Button>
+                )}
+
+                {canRead("tasks") && (
+                  <Button
+                    variant={activeTab === "history" ? "default" : "ghost"}
+                    onClick={() => setActiveTab("history")}
+                    className="font-medium"
+                  >
+                    <Clock className="ml-2 h-4 w-4" />
+                    سجل المهام
+                  </Button>
+                )}
+                
+                {canRead("archive") && !isViewer && (
+                  <Button
+                    variant={activeTab === "archive" ? "default" : "ghost"}
+                    onClick={() => setActiveTab("archive")}
+                    className="font-medium"
+                  >
+                    <Archive className="ml-2 h-4 w-4" />
+                    استلام نهائي
+                  </Button>
+                )}
+
+                {!isFinance && !isOperator && !isViewer && !isSupervisor && (
+                  <Button
+                    variant={activeTab === "addworker" ? "default" : "ghost"}
+                    onClick={() => setActiveTab("addworker")}
+                    className="font-medium"
+                  >
+                    <UserCheck className="ml-2 h-4 w-4" />
+                    إضافة موظف
+                  </Button>
+                )}
+                
+                {canRead("customers") && (
+                  <Button
+                    variant={activeTab === "customercard" ? "default" : "ghost"}
+                    onClick={() => setActiveTab("customercard")}
+                    className="font-medium"
+                  >
+                    <Users className="ml-2 h-4 w-4" />
+                    بطاقة زبون
+                  </Button>
+                )}
+
+                {canRead("parts") && (
+                  <Button
+                    variant={activeTab === "parts-requests" ? "default" : "ghost"}
+                    onClick={() => setActiveTab("parts-requests")}
+                    className="font-medium"
+                  >
+                    <Package2 className="ml-2 h-4 w-4" />
+                    طلبات القطع
+                  </Button>
+                )}
+
+                {(isOperator || canWrite("parts")) && (
+                  <Button
+                    variant={activeTab === "prepare-delivery" ? "default" : "ghost"}
+                    onClick={() => setActiveTab("prepare-delivery")}
+                    className="font-medium"
+                  >
+                    <Package2 className="ml-2 h-4 w-4" />
+                    تجهيز للتسليم
+                  </Button>
+                )}
+
+                {/* الطلبات - خاص بحساب هبة */}
+                {(user?.username === "هبة" || user?.role === "viewer") && (
+                  <Button
+                    variant={activeTab === "requests" ? "default" : "ghost"}
+                    onClick={() => setActiveTab("requests")}
+                    className="font-medium relative"
+                  >
+                    <ListTodo className="ml-2 h-4 w-4" />
+                    الطلبات
+                    {newRequestsCount > 0 && (
+                      <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-pulse">
+                        {newRequestsCount}
+                      </span>
+                    )}
+                  </Button>
+                )}
+              </>
             )}
 
             {/* استلام السيارة - خاص بالاستقبال وفارس */}
