@@ -7,11 +7,13 @@ import { ar } from "date-fns/locale";
 import { Car, Calendar, User, ArrowRight, Bell, Check } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 import type { CarReceipt } from "@shared/schema";
 
 export default function CarStatusManagement() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   const { data: carReceipts = [], isLoading } = useQuery<CarReceipt[]>({
     queryKey: ["/api/car-receipts"],
@@ -179,8 +181,8 @@ export default function CarStatusManagement() {
 
               {/* أزرار الإجراءات */}
               <div className="flex items-center justify-end gap-2 pt-2 border-t">
-                {/* Show Send to Workshop button only for reception users on received cars */}
-                {receipt.status === "received" && user?.username === "الاستقبال" && (
+                {/* Show Send to Workshop button only for فارس users on received cars */}
+                {receipt.status === "received" && user?.username === "فارس" && (
                   <Button 
                     onClick={() => sendToWorkshopMutation.mutate(receipt.id)}
                     disabled={sendToWorkshopMutation.isPending}
