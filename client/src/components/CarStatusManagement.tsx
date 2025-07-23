@@ -97,7 +97,7 @@ export default function CarStatusManagement() {
     const statusTexts = {
       "received": "مستلمة",
       "workshop_pending": "بانتظار دخول الورشة",
-      "postponed": "بانتظار الإدخال",
+      "postponed": "بانتظار التسليم للورشة",
       "in_workshop": "في الورشة", 
       "completed": "مكتملة",
     };
@@ -320,7 +320,7 @@ export default function CarStatusManagement() {
                 {receipt.status === "postponed" && (
                   <div className="text-sm text-yellow-600 font-medium">
                     <Bell className="h-4 w-4 inline mr-1" />
-                    تم تأجيل الإدخال - بانتظار الإدخال
+                    تم تأجيل الإدخال - بانتظار التسليم للورشة
                   </div>
                 )}
                 {receipt.status === "completed" && (
