@@ -154,7 +154,10 @@ export const carReceipts = pgTable("car_receipts", {
   repairType: text("repair_type").notNull(), // طلبات الإصلاح المتعددة
   receivedBy: varchar("received_by", { length: 100 }).notNull(),
   receivedAt: timestamp("received_at").defaultNow(),
-  status: varchar("status", { length: 20 }).notNull().default("received"), // received, in_progress, completed
+  status: varchar("status", { length: 20 }).notNull().default("received"), // received, workshop_pending, in_workshop, completed
+  workshopNotificationSent: boolean("workshop_notification_sent").default(false),
+  sentToWorkshopAt: timestamp("sent_to_workshop_at"),
+  sentToWorkshopBy: varchar("sent_to_workshop_by", { length: 100 }),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

@@ -753,6 +753,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/car-receipts/:id/send-to-workshop", async (req, res, next) => {
+    try {
+      const receiptId = parseInt(req.params.id);
+      const receipt = await storage.sendCarReceiptToWorkshop(receiptId, req.user?.username || "مجهول");
+      
+      // Send notification to "بدوي" user
+      wss.clients.forEach(client => {
+        if (client.readyState === WebSocket.OPEN) {
+          client.send(JSON.stringify({
+            type: 'WORKSHOP_NOTIFICATION',
+            data: {
+              type: "car-ready-for-workshop",
+              receipt: receipt,
+              message: `سيارة جديدة جاهزة للدخول للورشة: ${receipt.licensePlate} - ${receipt.carBrand} ${receipt.carModel}`
+            }
+          }));
+        }
+      });
+      
+      res.json(receipt);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.post("/api/car-receipts/:id/enter-workshop", async (req, res, next) => {
+    try {
+      const receiptId = parseInt(req.params.id);
+      const receipt = await storage.enterCarToWorkshop(receiptId, req.user?.username || "مجهول");
+      
+      wss.clients.forEach(client => {
+        if (client.readyState === WebSocket.OPEN) {
+          client.send(JSON.stringify({
+            type: 'CAR_ENTERED_WORKSHOP',
+            data: receipt
+          }));
+        }
+      });
+      
+      res.json(receipt);
+    } catch (error) {
+      next(error);
+    }
+  });
+
   app.get("/api/car-receipts/:id", async (req, res, next) => {
     try {
       const { id } = req.params;

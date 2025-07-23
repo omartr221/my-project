@@ -76,6 +76,8 @@ export interface IStorage {
   getCarReceiptById(id: number): Promise<CarReceipt | undefined>;
   updateCarReceipt(id: number, updates: Partial<InsertCarReceipt>): Promise<CarReceipt>;
   deleteCarReceipt(id: number): Promise<void>;
+  sendCarReceiptToWorkshop(id: number, sentBy: string): Promise<CarReceipt>;
+  enterCarToWorkshop(id: number, enteredBy: string): Promise<CarReceipt>;
   
   // Session store
   sessionStore: any;
@@ -1003,6 +1005,31 @@ export class DatabaseStorage implements IStorage {
 
   async deleteCarReceipt(id: number): Promise<void> {
     await db.delete(carReceipts).where(eq(carReceipts.id, id));
+  }
+
+  async sendCarReceiptToWorkshop(id: number, sentBy: string): Promise<CarReceipt> {
+    const [receipt] = await db.update(carReceipts)
+      .set({
+        status: "workshop_pending",
+        workshopNotificationSent: true,
+        sentToWorkshopAt: new Date(),
+        sentToWorkshopBy: sentBy,
+      })
+      .where(eq(carReceipts.id, id))
+      .returning();
+    
+    return receipt;
+  }
+
+  async enterCarToWorkshop(id: number, enteredBy: string): Promise<CarReceipt> {
+    const [receipt] = await db.update(carReceipts)
+      .set({
+        status: "in_workshop",
+      })
+      .where(eq(carReceipts.id, id))
+      .returning();
+    
+    return receipt;
   }
 }
 

@@ -19,11 +19,13 @@ import PartsRequestsList from "@/components/PartsRequestsList";
 import RequestsList from "@/components/RequestsList";
 import PrepareDelivery from "@/components/PrepareDelivery";
 import HabaNotificationDialog from "@/components/HabaNotificationDialog";
+import WorkshopNotificationDialog from "@/components/WorkshopNotificationDialog";
 import CarReceiptForm from "@/components/CarReceiptForm";
 import CarReceiptsList from "@/components/CarReceiptsList";
+import CarStatusManagement from "@/components/CarStatusManagement";
 import { useNotifications } from "@/hooks/useNotifications";
 
-type TabType = "dashboard" | "timers" | "history" | "archive" | "addworker" | "customercard" | "parts-requests" | "requests" | "prepare-delivery" | "car-receipts";
+type TabType = "dashboard" | "timers" | "history" | "archive" | "addworker" | "customercard" | "parts-requests" | "requests" | "prepare-delivery" | "car-receipts" | "car-status";
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<TabType>("dashboard");
@@ -199,6 +201,9 @@ export default function Dashboard() {
             <CarReceiptsList />
           </div>
         );
+        
+      case "car-status":
+        return <CarStatusManagement />;
       
       default:
         return null;
@@ -375,14 +380,24 @@ export default function Dashboard() {
 
             {/* استلام السيارة - خاص بالاستقبال وفارس */}
             {(user?.username === "الاستقبال" || user?.username === "فارس") && (
-              <Button
-                variant={activeTab === "car-receipts" ? "default" : "ghost"}
-                onClick={() => setActiveTab("car-receipts")}
-                className="font-medium"
-              >
-                <Car className="ml-2 h-4 w-4" />
-                استلام السيارة
-              </Button>
+              <>
+                <Button
+                  variant={activeTab === "car-receipts" ? "default" : "ghost"}
+                  onClick={() => setActiveTab("car-receipts")}
+                  className="font-medium"
+                >
+                  <Car className="ml-2 h-4 w-4" />
+                  استلام السيارة
+                </Button>
+                <Button
+                  variant={activeTab === "car-status" ? "default" : "ghost"}
+                  onClick={() => setActiveTab("car-status")}
+                  className="font-medium"
+                >
+                  <Car className="ml-2 h-4 w-4" />
+                  حالة السيارات
+                </Button>
+              </>
             )}
           </nav>
         </div>
@@ -393,6 +408,9 @@ export default function Dashboard() {
       
       {/* نافذة التنبيه الخاصة بهبة */}
       <HabaNotificationDialog />
+      
+      {/* نافذة التنبيه الخاصة ببدوي */}
+      <WorkshopNotificationDialog />
     </div>
   );
 }
