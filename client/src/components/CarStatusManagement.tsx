@@ -23,8 +23,7 @@ export default function CarStatusManagement() {
     queryKey: ["/api/car-receipts"],
   });
 
-  // Filter out completed cars - only show active car receipts
-  const activeCarReceipts = carReceipts.filter(receipt => receipt.status !== "completed");
+  // Show all car receipts - completed cars will show as "مستلمة" without buttons
 
   const sendToWorkshopMutation = useMutation({
     mutationFn: async (receiptId: number) => {
@@ -109,7 +108,7 @@ export default function CarStatusManagement() {
       "workshop_pending": "بانتظار دخول الورشة",
       "postponed": "بانتظار التسليم للورشة",
       "in_workshop": "في الورشة", 
-      "completed": "مكتملة",
+      "completed": "مستلمة - تم إدخالها للورشة",
     };
     return statusTexts[status as keyof typeof statusTexts] || "غير محدد";
   };
@@ -130,14 +129,14 @@ export default function CarStatusManagement() {
     );
   }
 
-  // Filter cars based on user permissions
+  // Filter cars based on user permissions - include completed cars
   const carsInReception = carReceipts.filter(receipt => {
     if (user?.username === "بدوي") {
-      // بدوي can see all statuses including postponed cars
-      return receipt.status === "received" || receipt.status === "workshop_pending" || receipt.status === "postponed";
+      // بدوي can see all statuses including postponed and completed cars
+      return receipt.status === "received" || receipt.status === "workshop_pending" || receipt.status === "postponed" || receipt.status === "completed";
     } else {
-      // Other users (فارس, الاستقبال) cannot see postponed cars
-      return receipt.status === "received" || receipt.status === "workshop_pending";
+      // Other users (فارس, الاستقبال) cannot see postponed cars but can see completed
+      return receipt.status === "received" || receipt.status === "workshop_pending" || receipt.status === "completed";
     }
   });
 
@@ -380,7 +379,7 @@ export default function CarStatusManagement() {
                 {receipt.status === "completed" && (
                   <div className="text-sm text-green-600 font-medium">
                     <Check className="h-4 w-4 inline mr-1" />
-                    تم إدخال السيارة للورشة
+                    تم إدخال السيارة للورشة - مستلمة
                   </div>
                 )}
               </div>
