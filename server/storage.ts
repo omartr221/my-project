@@ -75,7 +75,7 @@ export interface IStorage {
   createCarReceipt(receiptData: InsertCarReceipt): Promise<CarReceipt>;
   getCarReceipts(): Promise<CarReceipt[]>;
   getCarReceiptById(id: number): Promise<CarReceipt | undefined>;
-  updateCarReceipt(id: number, updates: Partial<InsertCarReceipt>): Promise<CarReceipt>;
+  updateCarReceipt(id: number, updates: Partial<CarReceipt>): Promise<CarReceipt>;
   deleteCarReceipt(id: number): Promise<void>;
   sendCarReceiptToWorkshop(id: number, sentBy: string): Promise<CarReceipt>;
   enterCarToWorkshop(id: number, enteredBy: string): Promise<CarReceipt>;
@@ -1004,7 +1004,7 @@ export class DatabaseStorage implements IStorage {
     return receipt;
   }
 
-  async updateCarReceipt(id: number, updates: Partial<InsertCarReceipt>): Promise<CarReceipt> {
+  async updateCarReceipt(id: number, updates: Partial<CarReceipt>): Promise<CarReceipt> {
     const [receipt] = await db.update(carReceipts)
       .set(updates)
       .where(eq(carReceipts.id, id))

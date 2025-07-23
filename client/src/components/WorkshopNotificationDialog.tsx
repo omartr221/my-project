@@ -59,7 +59,7 @@ export default function WorkshopNotificationDialog() {
       try {
         const data = JSON.parse(event.data);
         
-        if (data.type === 'WORKSHOP_NOTIFICATION' || data.type === 'CAR_RECEIPT_CREATED') {
+        if (data.type === 'WORKSHOP_NOTIFICATION' || data.type === 'CAR_RECEIPT_CREATED' || data.type === 'CAR_POSTPONED' || data.type === 'CAR_ENTERED_WORKSHOP') {
           // Handle car receipt creation notifications  
           if (data.data?.type === 'car-receipt-created' || data.type === 'CAR_RECEIPT_CREATED') {
             const notification: WorkshopNotification = {
