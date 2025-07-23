@@ -197,6 +197,46 @@ async function initializeDefaultUsers() {
       });
       console.log("✓ تم إنشاء مستخدم المشرف: روان");
     }
+
+    // Check if the admin user "فارس" exists
+    const existingAdminUser = await storage.getUserByUsername("فارس");
+    if (!existingAdminUser) {
+      // Create the admin user
+      await storage.createUser({
+        username: "فارس",
+        password: await hashPassword("faris441111"),
+        role: "admin",
+        permissions: [
+          "dashboard:read",
+          "dashboard:write",
+          "timers:read",
+          "timers:write",
+          "tasks:read",
+          "tasks:write",
+          "tasks:create",
+          "tasks:edit",
+          "tasks:delete",
+          "archive:read",
+          "archive:write",
+          "customers:read",
+          "customers:write",
+          "customers:create",
+          "customers:edit",
+          "customers:delete",
+          "parts:read",
+          "parts:write",
+          "parts:create",
+          "parts:approve",
+          "parts:reject",
+          "workers:read",
+          "workers:write",
+          "workers:create",
+          "workers:edit",
+          "workers:delete"
+        ],
+      });
+      console.log("✓ تم إنشاء مستخدم الإدارة: فارس");
+    }
   } catch (error) {
     console.error("خطأ في إنشاء المستخدمين الافتراضيين:", error);
   }
