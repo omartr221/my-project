@@ -281,6 +281,14 @@ export default function Dashboard() {
             {user?.username === "الاستقبال" ? (
               <>
                 <Button
+                  variant={activeTab === "customercard" ? "default" : "ghost"}
+                  onClick={() => setActiveTab("customercard")}
+                  className="font-medium"
+                >
+                  <Users className="ml-2 h-4 w-4" />
+                  بطاقة زبون
+                </Button>
+                <Button
                   variant={activeTab === "car-receipts" ? "default" : "ghost"}
                   onClick={() => setActiveTab("car-receipts")}
                   className="font-medium"

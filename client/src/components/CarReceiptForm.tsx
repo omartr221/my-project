@@ -151,7 +151,12 @@ export default function CarReceiptForm() {
                     <FormItem>
                       <FormLabel>رقم السيارة *</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="مثال: 123-456" />
+                        <Input 
+                          {...field} 
+                          placeholder="يتم ملؤه من البحث" 
+                          readOnly 
+                          className="bg-gray-100" 
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -165,7 +170,12 @@ export default function CarReceiptForm() {
                     <FormItem>
                       <FormLabel>اسم الزبون *</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="اسم الزبون" />
+                        <Input 
+                          {...field} 
+                          placeholder="يتم ملؤه من البحث" 
+                          readOnly 
+                          className="bg-gray-100" 
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -180,20 +190,14 @@ export default function CarReceiptForm() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>نوع السيارة *</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="اختر نوع السيارة" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="AUDI">AUDI</SelectItem>
-                          <SelectItem value="SEAT">SEAT</SelectItem>
-                          <SelectItem value="SKODA">SKODA</SelectItem>
-                          <SelectItem value="VOLKSWAGEN">VOLKSWAGEN</SelectItem>
-                          <SelectItem value="أخرى">أخرى</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <FormControl>
+                        <Input 
+                          {...field} 
+                          placeholder="يتم ملؤه من بطاقة الزبون" 
+                          readOnly 
+                          className="bg-gray-100" 
+                        />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -206,7 +210,12 @@ export default function CarReceiptForm() {
                     <FormItem>
                       <FormLabel>موديل السيارة *</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="مثال: A4" />
+                        <Input 
+                          {...field} 
+                          placeholder="يتم ملؤه من بطاقة الزبون" 
+                          readOnly 
+                          className="bg-gray-100" 
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -220,7 +229,13 @@ export default function CarReceiptForm() {
                     <FormItem>
                       <FormLabel>لون السيارة</FormLabel>
                       <FormControl>
-                        <Input {...field} value={field.value || ""} placeholder="لون السيارة" />
+                        <Input 
+                          {...field} 
+                          value={field.value || ""} 
+                          placeholder="يتم ملؤه من بطاقة الزبون" 
+                          readOnly 
+                          className="bg-gray-100" 
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -234,7 +249,13 @@ export default function CarReceiptForm() {
                     <FormItem>
                       <FormLabel>رقم الشاسيه</FormLabel>
                       <FormControl>
-                        <Input {...field} value={field.value || ""} placeholder="رقم الشاسيه" />
+                        <Input 
+                          {...field} 
+                          value={field.value || ""} 
+                          placeholder="يتم ملؤه من بطاقة الزبون" 
+                          readOnly 
+                          className="bg-gray-100" 
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -248,7 +269,13 @@ export default function CarReceiptForm() {
                     <FormItem>
                       <FormLabel>رمز المحرك</FormLabel>
                       <FormControl>
-                        <Input {...field} value={field.value || ""} placeholder="رمز المحرك" />
+                        <Input 
+                          {...field} 
+                          value={field.value || ""} 
+                          placeholder="يتم ملؤه من بطاقة الزبون" 
+                          readOnly 
+                          className="bg-gray-100" 
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -280,20 +307,12 @@ export default function CarReceiptForm() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>نسبة البنزين *</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="اختر نسبة البنزين" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="فارغ">فارغ</SelectItem>
-                          <SelectItem value="ربع">ربع</SelectItem>
-                          <SelectItem value="نصف">نصف</SelectItem>
-                          <SelectItem value="ثلاثة أرباع">ثلاثة أرباع</SelectItem>
-                          <SelectItem value="ممتلئ">ممتلئ</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <FormControl>
+                        <Input 
+                          {...field} 
+                          placeholder="ادخل نسبة البنزين يدوياً (مثال: ربع، نصف، ممتلئ)" 
+                        />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
