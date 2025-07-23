@@ -310,20 +310,24 @@ export const insertCarReceiptSchema = createInsertSchema(carReceipts).omit({
   receiptNumber: true,
   receivedAt: true,
   createdAt: true,
+  status: true,
+  workshopNotificationSent: true,
+  sentToWorkshopAt: true,
+  sentToWorkshopBy: true,
 }).extend({
   licensePlate: z.string().min(1, "يجب إدخال رقم السيارة"),
   customerName: z.string().min(1, "يجب إدخال اسم الزبون"),
-  carBrand: z.string().min(1, "يجب اختيار نوع السيارة"),
+  carBrand: z.string().min(1, "يجب إدخال ماركة السيارة"),
   carModel: z.string().min(1, "يجب إدخال موديل السيارة"),
   entryMileage: z.string().min(1, "يجب إدخال قراءة العداد"),
-  fuelLevel: z.string().min(1, "يجب إدخال نسبة البنزين"),
+  fuelLevel: z.string().min(1, "يجب اختيار نسبة البنزين"),
   repairType: z.string().min(1, "يجب إدخال طلبات الإصلاح"),
 }).partial({
-
   carColor: true,
   chassisNumber: true,
   engineCode: true,
   entryNotes: true,
+  receivedBy: true,
 });
 
 export type CarReceipt = typeof carReceipts.$inferSelect;

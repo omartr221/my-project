@@ -220,7 +220,7 @@ export default function CarReceiptForm() {
                     <FormItem>
                       <FormLabel>لون السيارة</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="لون السيارة" />
+                        <Input {...field} value={field.value || ""} placeholder="لون السيارة" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -234,7 +234,7 @@ export default function CarReceiptForm() {
                     <FormItem>
                       <FormLabel>رقم الشاسيه</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="رقم الشاسيه" />
+                        <Input {...field} value={field.value || ""} placeholder="رقم الشاسيه" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -248,7 +248,7 @@ export default function CarReceiptForm() {
                     <FormItem>
                       <FormLabel>رمز المحرك</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="رمز المحرك" />
+                        <Input {...field} value={field.value || ""} placeholder="رمز المحرك" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -327,6 +327,7 @@ export default function CarReceiptForm() {
                     <FormControl>
                       <Textarea 
                         {...field} 
+                        value={field.value || ""}
                         placeholder="اكتب شكوى الزبون وما يريد إصلاحه"
                         rows={3}
                       />
