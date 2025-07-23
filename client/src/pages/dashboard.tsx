@@ -399,6 +399,18 @@ export default function Dashboard() {
                 </Button>
               </>
             )}
+
+            {/* حالة السيارات - خاص ببدوي لرؤية السيارات المرسلة للورشة */}
+            {user?.username === "بدوي" && (
+              <Button
+                variant={activeTab === "car-status" ? "default" : "ghost"}
+                onClick={() => setActiveTab("car-status")}
+                className="font-medium"
+              >
+                <Car className="ml-2 h-4 w-4" />
+                حالة السيارات
+              </Button>
+            )}
           </nav>
         </div>
 
