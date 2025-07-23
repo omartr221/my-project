@@ -74,8 +74,7 @@ export default function Dashboard() {
       case "dashboard":
         // Redirect الاستقبال user to car-receipts tab
         if (user?.username === "الاستقبال") {
-          setActiveTab("car-receipts");
-          return null;
+          return <div className="text-center text-gray-500">يرجى استخدام تبويب "استلام السيارة" أو "حالة السيارات"</div>;
         }
         return (
           <div className="space-y-6">
@@ -407,30 +406,20 @@ export default function Dashboard() {
               </>
             )}
 
-            {/* استلام السيارة - خاص بالاستقبال وفارس */}
-            {(user?.username === "الاستقبال" || user?.username === "فارس") && (
-              <>
-                <Button
-                  variant={activeTab === "car-receipts" ? "default" : "ghost"}
-                  onClick={() => setActiveTab("car-receipts")}
-                  className="font-medium"
-                >
-                  <Car className="ml-2 h-4 w-4" />
-                  استلام السيارة
-                </Button>
-                <Button
-                  variant={activeTab === "car-status" ? "default" : "ghost"}
-                  onClick={() => setActiveTab("car-status")}
-                  className="font-medium"
-                >
-                  <Car className="ml-2 h-4 w-4" />
-                  حالة السيارات
-                </Button>
-              </>
+            {/* استلام السيارة - خاص بفارس فقط (الاستقبال له تبويبات منفصلة) */}
+            {user?.username === "فارس" && (
+              <Button
+                variant={activeTab === "car-receipts" ? "default" : "ghost"}
+                onClick={() => setActiveTab("car-receipts")}
+                className="font-medium"
+              >
+                <Car className="ml-2 h-4 w-4" />
+                استلام السيارة
+              </Button>
             )}
 
-            {/* حالة السيارات - خاص ببدوي لرؤية السيارات المرسلة للورشة */}
-            {user?.username === "بدوي" && (
+            {/* حالة السيارات - خاص بفارس وبدوي فقط (الاستقبال له تبويبات منفصلة) */}
+            {(user?.username === "فارس" || user?.username === "بدوي") && (
               <Button
                 variant={activeTab === "car-status" ? "default" : "ghost"}
                 onClick={() => setActiveTab("car-status")}
