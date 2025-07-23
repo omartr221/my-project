@@ -68,12 +68,15 @@ export default function PrepareDelivery() {
       const carResponse = await apiRequest('GET', `/api/car-search?q=${licensePlate}`);
       const carData = await carResponse.json();
 
+      // إذا وجدنا بيانات السيارة، نستخدم رقم السيارة الكامل من البيانات
+      const searchLicensePlate = carData?.licensePlate || licensePlate;
+
       // البحث عن طلبات القطع
-      const partsResponse = await apiRequest('GET', `/api/parts-requests/by-car/${licensePlate}`);
+      const partsResponse = await apiRequest('GET', `/api/parts-requests/by-car/${encodeURIComponent(searchLicensePlate)}`);
       const partsData = await partsResponse.json();
 
       // البحث عن المهام والشكاوي
-      const tasksResponse = await apiRequest('GET', `/api/tasks/by-car/${licensePlate}`);
+      const tasksResponse = await apiRequest('GET', `/api/tasks/by-car/${encodeURIComponent(searchLicensePlate)}`);
       const tasksData = await tasksResponse.json();
 
       setSearchResults({

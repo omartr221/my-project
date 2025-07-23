@@ -936,7 +936,12 @@ export class DatabaseStorage implements IStorage {
   async getPartsRequestsByLicensePlate(licensePlate: string): Promise<PartsRequest[]> {
     const requests = await db.select()
       .from(partsRequests)
-      .where(eq(partsRequests.licensePlate, licensePlate))
+      .where(
+        or(
+          eq(partsRequests.licensePlate, licensePlate),
+          like(partsRequests.licensePlate, `%${licensePlate}%`)
+        )
+      )
       .orderBy(desc(partsRequests.requestedAt));
     
     return requests;
@@ -945,7 +950,12 @@ export class DatabaseStorage implements IStorage {
   async getTasksByLicensePlate(licensePlate: string): Promise<Task[]> {
     const taskList = await db.select()
       .from(tasks)
-      .where(eq(tasks.licensePlate, licensePlate))
+      .where(
+        or(
+          eq(tasks.licensePlate, licensePlate),
+          like(tasks.licensePlate, `%${licensePlate}%`)
+        )
+      )
       .orderBy(desc(tasks.createdAt));
     
     return taskList;
