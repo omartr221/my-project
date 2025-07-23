@@ -87,7 +87,7 @@ export default function CarReceiptsList() {
                     </CardTitle>
                     <div className="flex items-center gap-2 text-sm text-gray-600">
                       <Calendar className="h-4 w-4" />
-                      {format(new Date(receipt.receivedAt), "dd MMMM yyyy - HH:mm", { locale: ar })}
+                      {format(new Date(receipt.receivedAt || Date.now()), "dd MMMM yyyy - HH:mm", { locale: ar })}
                     </div>
                   </div>
                 </div>
