@@ -737,26 +737,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         receivedBy: req.user?.username || "الاستقبال",
       });
       
-      // Send notification to "بدوي" user immediately when receipt is created
+      // Send single notification for car receipt creation
       wss.clients.forEach(client => {
         if (client.readyState === WebSocket.OPEN) {
           client.send(JSON.stringify({
-            type: 'WORKSHOP_NOTIFICATION',
+            type: 'CAR_RECEIPT_CREATED',
             data: {
               type: "car-receipt-created",
               receipt: receipt,
               message: `تم استلام سيارة جديدة: ${receipt.licensePlate} - ${receipt.carBrand} ${receipt.carModel}`
             }
-          }));
-        }
-      });
-      
-      // Also broadcast general receipt creation for UI updates
-      wss.clients.forEach(client => {
-        if (client.readyState === WebSocket.OPEN) {
-          client.send(JSON.stringify({
-            type: 'CAR_RECEIPT_CREATED',
-            data: receipt
           }));
         }
       });
