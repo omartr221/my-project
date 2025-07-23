@@ -1,6 +1,6 @@
 import { workers, tasks, timeEntries, customers, customerCars, users, partsRequests, carReceipts, type Worker, type InsertWorker, type Task, type InsertTask, type TimeEntry, type InsertTimeEntry, type WorkerWithTasks, type TaskWithWorker, type TaskHistory, type Customer, type InsertCustomer, type CustomerCar, type InsertCustomerCar, type CustomerWithCars, type User, type InsertUser, type PartsRequest, type InsertPartsRequest, type CarReceipt, type InsertCarReceipt } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, isNull, or, like, isNotNull, asc } from "drizzle-orm";
+import { eq, desc, and, isNull, or, like, isNotNull, asc, sql } from "drizzle-orm";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
 import { pool } from "./db";
@@ -973,7 +973,7 @@ export class DatabaseStorage implements IStorage {
   // Car receipts methods
   async createCarReceipt(receiptData: InsertCarReceipt): Promise<CarReceipt> {
     // Generate receipt number
-    const receiptCount = await db.select({ count: count() }).from(carReceipts);
+    const receiptCount = await db.select({ count: sql<number>`count(*)` }).from(carReceipts);
     const receiptNumber = `استلام-${(receiptCount[0]?.count || 0) + 1}`;
 
     const [receipt] = await db.insert(carReceipts).values({
