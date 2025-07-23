@@ -154,10 +154,12 @@ export const carReceipts = pgTable("car_receipts", {
   repairType: text("repair_type").notNull(), // طلبات الإصلاح المتعددة
   receivedBy: varchar("received_by", { length: 100 }).notNull(),
   receivedAt: timestamp("received_at").defaultNow(),
-  status: varchar("status", { length: 20 }).notNull().default("received"), // received, workshop_pending, in_workshop, completed
+  status: varchar("status", { length: 20 }).notNull().default("received"), // received, workshop_pending, postponed, in_workshop, completed
   workshopNotificationSent: boolean("workshop_notification_sent").default(false),
   sentToWorkshopAt: timestamp("sent_to_workshop_at"),
   sentToWorkshopBy: varchar("sent_to_workshop_by", { length: 100 }),
+  postponedAt: timestamp("postponed_at"),
+  postponedBy: varchar("postponed_by", { length: 100 }),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -314,6 +316,8 @@ export const insertCarReceiptSchema = createInsertSchema(carReceipts).omit({
   workshopNotificationSent: true,
   sentToWorkshopAt: true,
   sentToWorkshopBy: true,
+  postponedAt: true,
+  postponedBy: true,
 }).extend({
   licensePlate: z.string().min(1, "يجب إدخال رقم السيارة"),
   customerName: z.string().min(1, "يجب إدخال اسم الزبون"),

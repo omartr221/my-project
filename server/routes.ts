@@ -780,6 +780,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/car-receipts/:id/postpone", async (req, res, next) => {
+    try {
+      const receiptId = parseInt(req.params.id);
+      const receipt = await storage.updateCarReceipt(receiptId, { 
+        status: "postponed",
+        postponedAt: new Date(),
+        postponedBy: req.user?.username || "بدوي"
+      });
+      
+      wss.clients.forEach(client => {
+        if (client.readyState === WebSocket.OPEN) {
+          client.send(JSON.stringify({
+            type: 'CAR_POSTPONED',
+            data: receipt
+          }));
+        }
+      });
+      
+      res.json(receipt);
+    } catch (error) {
+      next(error);
+    }
+  });
+
   app.post("/api/car-receipts/:id/enter-workshop", async (req, res, next) => {
     try {
       const receiptId = parseInt(req.params.id);

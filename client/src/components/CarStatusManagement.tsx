@@ -40,10 +40,53 @@ export default function CarStatusManagement() {
     },
   });
 
+  const postponeCarMutation = useMutation({
+    mutationFn: async (receiptId: number) => {
+      const res = await apiRequest("POST", `/api/car-receipts/${receiptId}/postpone`);
+      return await res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/car-receipts"] });
+      toast({
+        title: "تم التأجيل",
+        description: "تم تأجيل إدخال السيارة للورشة",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "خطأ",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const enterWorkshopMutation = useMutation({
+    mutationFn: async (receiptId: number) => {
+      const res = await apiRequest("POST", `/api/car-receipts/${receiptId}/enter-workshop`);
+      return await res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/car-receipts"] });
+      toast({
+        title: "تم الإدخال",
+        description: "تم إدخال السيارة للورشة بنجاح",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "خطأ",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   const getStatusColor = (status: string) => {
     const colors = {
       "received": "bg-blue-100 text-blue-800",
       "workshop_pending": "bg-orange-100 text-orange-800", 
+      "postponed": "bg-yellow-100 text-yellow-800",
       "in_workshop": "bg-green-100 text-green-800",
       "completed": "bg-gray-100 text-gray-800",
     };
@@ -54,6 +97,7 @@ export default function CarStatusManagement() {
     const statusTexts = {
       "received": "مستلمة",
       "workshop_pending": "بانتظار دخول الورشة",
+      "postponed": "بانتظار الإدخال",
       "in_workshop": "في الورشة", 
       "completed": "مكتملة",
     };
@@ -78,7 +122,7 @@ export default function CarStatusManagement() {
 
   // Filter cars that are received and not completed
   const carsInReception = carReceipts.filter(receipt => 
-    receipt.status === "received" || receipt.status === "workshop_pending"
+    receipt.status === "received" || receipt.status === "workshop_pending" || receipt.status === "postponed"
   );
 
   if (carsInReception.length === 0) {
@@ -201,10 +245,63 @@ export default function CarStatusManagement() {
                     )}
                   </Button>
                 )}
-                {receipt.status === "workshop_pending" && (
+
+                {/* Buttons for بدوي user */}
+                {user?.username === "بدوي" && (
+                  <>
+                    {/* Show postpone button for workshop_pending cars */}
+                    {receipt.status === "workshop_pending" && (
+                      <Button 
+                        onClick={() => postponeCarMutation.mutate(receipt.id)}
+                        disabled={postponeCarMutation.isPending}
+                        variant="outline"
+                        className="border-yellow-600 text-yellow-600 hover:bg-yellow-50"
+                      >
+                        {postponeCarMutation.isPending ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-yellow-600 mr-2"></div>
+                            جاري التأجيل...
+                          </>
+                        ) : (
+                          "تأجيل"
+                        )}
+                      </Button>
+                    )}
+
+                    {/* Show enter workshop button for workshop_pending and postponed cars */}
+                    {(receipt.status === "workshop_pending" || receipt.status === "postponed") && (
+                      <Button 
+                        onClick={() => enterWorkshopMutation.mutate(receipt.id)}
+                        disabled={enterWorkshopMutation.isPending}
+                        className="bg-green-600 hover:bg-green-700 text-white"
+                      >
+                        {enterWorkshopMutation.isPending ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                            جاري الإدخال...
+                          </>
+                        ) : (
+                          <>
+                            <Check className="h-4 w-4 mr-2" />
+                            إدخال للورشة
+                          </>
+                        )}
+                      </Button>
+                    )}
+                  </>
+                )}
+
+                {/* Status messages */}
+                {receipt.status === "workshop_pending" && user?.username !== "بدوي" && (
                   <div className="text-sm text-orange-600 font-medium">
                     <Bell className="h-4 w-4 inline mr-1" />
                     تم إرسال الإشعار - بانتظار دخول الورشة
+                  </div>
+                )}
+                {receipt.status === "postponed" && (
+                  <div className="text-sm text-yellow-600 font-medium">
+                    <Bell className="h-4 w-4 inline mr-1" />
+                    تم تأجيل الإدخال - بانتظار الإدخال
                   </div>
                 )}
                 {receipt.status === "completed" && (
