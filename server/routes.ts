@@ -507,15 +507,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Parts requests by car endpoints
   app.get("/api/parts-requests/by-car/:licensePlate", async (req, res) => {
-    const { licensePlate } = req.params;
-    const requests = await storage.getPartsRequestsByLicensePlate(licensePlate);
-    res.json(requests);
+    try {
+      const { licensePlate } = req.params;
+      const requests = await storage.getPartsRequestsByLicensePlate(licensePlate);
+      res.json(requests);
+    } catch (error) {
+      console.error("Error fetching parts requests by car:", error);
+      res.status(500).json({ message: "Failed to fetch parts requests" });
+    }
   });
 
   app.get("/api/tasks/by-car/:licensePlate", async (req, res) => {
-    const { licensePlate } = req.params;
-    const tasks = await storage.getTasksByLicensePlate(licensePlate);
-    res.json(tasks);
+    try {
+      const { licensePlate } = req.params;
+      const tasks = await storage.getTasksByLicensePlate(licensePlate);
+      res.json(tasks);
+    } catch (error) {
+      console.error("Error fetching tasks by car:", error);
+      res.status(500).json({ message: "Failed to fetch tasks" });
+    }
   });
 
   // Parts requests routes

@@ -66,7 +66,7 @@ export interface IStorage {
   getPartsRequest(id: number): Promise<PartsRequest | undefined>;
   createPartsRequest(request: InsertPartsRequest): Promise<PartsRequest>;
   updatePartsRequestStatus(id: number, status: string, notes?: string): Promise<PartsRequest>;
-  searchCarInfoForParts(searchTerm: string): Promise<{ carBrand: string; carModel: string; color?: string } | null>;
+  searchCarInfoForParts(searchTerm: string): Promise<{ carBrand: string; carModel: string; color?: string; licensePlate?: string; chassisNumber?: string; engineCode?: string; customerName?: string } | null>;
   getPartsRequestsByLicensePlate(licensePlate: string): Promise<PartsRequest[]>;
   getTasksByLicensePlate(licensePlate: string): Promise<Task[]>;
   
@@ -842,7 +842,7 @@ export class DatabaseStorage implements IStorage {
     return updated;
   }
 
-  async searchCarInfoForParts(searchTerm: string): Promise<{ carBrand: string; carModel: string; color?: string; licensePlate?: string; chassisNumber?: string; engineCode?: string } | null> {
+  async searchCarInfoForParts(searchTerm: string): Promise<{ carBrand: string; carModel: string; color?: string; licensePlate?: string; chassisNumber?: string; engineCode?: string; customerName?: string } | null> {
     // Search in customer cars by license plate first (exact match)
     const [exactMatch] = await db
       .select({
@@ -852,6 +852,7 @@ export class DatabaseStorage implements IStorage {
         licensePlate: customerCars.licensePlate,
         chassisNumber: customerCars.chassisNumber,
         engineCode: customerCars.engineCode,
+        customerName: customers.name,
       })
       .from(customerCars)
       .leftJoin(customers, eq(customerCars.customerId, customers.id))
@@ -866,6 +867,7 @@ export class DatabaseStorage implements IStorage {
         licensePlate: exactMatch.licensePlate || undefined,
         chassisNumber: exactMatch.chassisNumber || undefined,
         engineCode: exactMatch.engineCode || undefined,
+        customerName: exactMatch.customerName || undefined,
       };
     }
     
@@ -878,6 +880,7 @@ export class DatabaseStorage implements IStorage {
         licensePlate: customerCars.licensePlate,
         chassisNumber: customerCars.chassisNumber,
         engineCode: customerCars.engineCode,
+        customerName: customers.name,
       })
       .from(customerCars)
       .leftJoin(customers, eq(customerCars.customerId, customers.id))
@@ -897,6 +900,7 @@ export class DatabaseStorage implements IStorage {
       licensePlate: partialMatch.licensePlate || undefined,
       chassisNumber: partialMatch.chassisNumber || undefined,
       engineCode: partialMatch.engineCode || undefined,
+      customerName: partialMatch.customerName || undefined,
     } : null;
   }
 

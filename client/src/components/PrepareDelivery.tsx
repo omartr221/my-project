@@ -33,12 +33,13 @@ interface Task {
 }
 
 interface CustomerCar {
-  id: number;
-  licensePlate: string;
   carBrand: string;
   carModel: string;
-  color: string;
-  customerName: string;
+  color?: string;
+  licensePlate?: string;
+  chassisNumber?: string;
+  engineCode?: string;
+  customerName?: string;
 }
 
 export default function PrepareDelivery() {
@@ -64,7 +65,7 @@ export default function PrepareDelivery() {
     setIsSearching(true);
     try {
       // البحث عن بيانات السيارة
-      const carResponse = await apiRequest('GET', `/api/car-search?licensePlate=${licensePlate}`);
+      const carResponse = await apiRequest('GET', `/api/car-search?q=${licensePlate}`);
       const carData = await carResponse.json();
 
       // البحث عن طلبات القطع
@@ -178,7 +179,7 @@ export default function PrepareDelivery() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div>
                 <p className="text-sm font-medium text-gray-600">رقم السيارة</p>
-                <p className="text-lg font-bold text-gray-900">{searchResults.car.licensePlate}</p>
+                <p className="text-lg font-bold text-gray-900">{searchResults.car.licensePlate || licensePlate}</p>
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-600">الماركة</p>
@@ -190,7 +191,7 @@ export default function PrepareDelivery() {
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-600">اسم الزبون</p>
-                <p className="text-lg font-bold text-gray-900">{searchResults.car.customerName}</p>
+                <p className="text-lg font-bold text-gray-900">{searchResults.car.customerName || 'غير متوفر'}</p>
               </div>
             </div>
           </CardContent>
