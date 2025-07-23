@@ -49,11 +49,14 @@ export default function CarStatusManagement() {
       const res = await apiRequest("POST", `/api/car-receipts/${receiptId}/postpone`);
       return await res.json();
     },
-    onSuccess: () => {
+    onSuccess: (updatedReceipt) => {
+      // Force immediate cache invalidation and refetch
       queryClient.invalidateQueries({ queryKey: ["/api/car-receipts"] });
+      queryClient.refetchQueries({ queryKey: ["/api/car-receipts"] });
+      
       toast({
         title: "تم التأجيل",
-        description: "تم تأجيل إدخال السيارة للورشة",
+        description: "السيارة الآن بانتظار التسليم للورشة",
       });
     },
     onError: (error: Error) => {
