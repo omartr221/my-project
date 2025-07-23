@@ -25,13 +25,13 @@ export default function CarReceiptForm() {
     defaultValues: {
       licensePlate: "",
       customerName: "",
-      customerPhone: "",
+
       carBrand: "",
       carModel: "",
       carColor: "",
       chassisNumber: "",
       engineCode: "",
-      entryMileage: 0,
+      entryMileage: "",
       fuelLevel: "",
       entryNotes: "",
       repairType: "",
@@ -72,7 +72,7 @@ export default function CarReceiptForm() {
         // Fill form with customer and car data
         form.setValue("licensePlate", carData.licensePlate);
         form.setValue("customerName", carData.customerName || "");
-        form.setValue("customerPhone", carData.customerPhone || "");
+
         form.setValue("carBrand", carData.carBrand || "");
         form.setValue("carModel", carData.carModel || "");
         form.setValue("carColor", carData.color || "");
@@ -172,19 +172,7 @@ export default function CarReceiptForm() {
                   )}
                 />
 
-                <FormField
-                  control={form.control}
-                  name="customerPhone"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>رقم الهاتف</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="رقم الهاتف" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+
 
                 <FormField
                   control={form.control}
@@ -275,10 +263,10 @@ export default function CarReceiptForm() {
                       <FormLabel>عداد الدخول *</FormLabel>
                       <FormControl>
                         <Input
-                          type="number"
+                          type="text"
                           {...field}
-                          onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                          placeholder="عدد الكيلومترات"
+                          onChange={(e) => field.onChange(e.target.value)}
+                          placeholder="ادخل قراءة العداد يدوياً"
                         />
                       </FormControl>
                       <FormMessage />
@@ -316,18 +304,14 @@ export default function CarReceiptForm() {
                   name="repairType"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>طلب الإصلاح *</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="اختر نوع الإصلاح" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="ميكانيك">ميكانيك</SelectItem>
-                          <SelectItem value="كهربا">كهربا</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <FormLabel>طلبات الإصلاح *</FormLabel>
+                      <FormControl>
+                        <Textarea 
+                          {...field} 
+                          placeholder="اكتب جميع طلبات الإصلاح (مثال: ميكانيك - تغيير زيت، كهربا - فحص البطارية)"
+                          rows={3}
+                        />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -339,11 +323,11 @@ export default function CarReceiptForm() {
                 name="entryNotes"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>ملاحظات عند الدخول</FormLabel>
+                    <FormLabel>الشكوى</FormLabel>
                     <FormControl>
                       <Textarea 
                         {...field} 
-                        placeholder="أي ملاحظات خاصة بحالة السيارة عند الدخول"
+                        placeholder="اكتب شكوى الزبون وما يريد إصلاحه"
                         rows={3}
                       />
                     </FormControl>

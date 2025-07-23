@@ -142,16 +142,16 @@ export const carReceipts = pgTable("car_receipts", {
   receiptNumber: varchar("receipt_number", { length: 20 }).unique().notNull(),
   licensePlate: varchar("license_plate", { length: 20 }).notNull(),
   customerName: varchar("customer_name", { length: 100 }).notNull(),
-  customerPhone: varchar("customer_phone", { length: 20 }),
+
   carBrand: varchar("car_brand", { length: 50 }).notNull(),
   carModel: varchar("car_model", { length: 100 }).notNull(),
   carColor: varchar("car_color", { length: 50 }),
   chassisNumber: varchar("chassis_number", { length: 100 }),
   engineCode: varchar("engine_code", { length: 100 }),
-  entryMileage: integer("entry_mileage").notNull(), // عداد الدخول
+  entryMileage: text("entry_mileage").notNull(), // عداد الدخول
   fuelLevel: varchar("fuel_level", { length: 20 }).notNull(), // نسبة البنزين
   entryNotes: text("entry_notes"), // ملاحظات عند الدخول
-  repairType: varchar("repair_type", { length: 20 }).notNull(), // ميكانيك، كهربا
+  repairType: text("repair_type").notNull(), // طلبات الإصلاح المتعددة
   receivedBy: varchar("received_by", { length: 100 }).notNull(),
   receivedAt: timestamp("received_at").defaultNow(),
   status: varchar("status", { length: 20 }).notNull().default("received"), // received, in_progress, completed
@@ -312,11 +312,11 @@ export const insertCarReceiptSchema = createInsertSchema(carReceipts).omit({
   customerName: z.string().min(1, "يجب إدخال اسم الزبون"),
   carBrand: z.string().min(1, "يجب اختيار نوع السيارة"),
   carModel: z.string().min(1, "يجب إدخال موديل السيارة"),
-  entryMileage: z.number().min(0, "يجب إدخال رقم العداد"),
+  entryMileage: z.string().min(1, "يجب إدخال قراءة العداد"),
   fuelLevel: z.string().min(1, "يجب إدخال نسبة البنزين"),
-  repairType: z.string().min(1, "يجب اختيار نوع الإصلاح"),
+  repairType: z.string().min(1, "يجب إدخال طلبات الإصلاح"),
 }).partial({
-  customerPhone: true,
+
   carColor: true,
   chassisNumber: true,
   engineCode: true,

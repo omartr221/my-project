@@ -91,9 +91,12 @@ export default function CarReceiptsList() {
                     </div>
                   </div>
                 </div>
-                <Badge className={getRepairTypeBadge(receipt.repairType)}>
-                  {receipt.repairType}
-                </Badge>
+                <div className="text-sm">
+                  <span className="text-gray-500">طلبات الإصلاح:</span>
+                  <div className="mt-1 p-2 bg-blue-50 rounded border-r-2 border-blue-300">
+                    <p className="text-blue-800 whitespace-pre-line">{receipt.repairType}</p>
+                  </div>
+                </div>
               </div>
             </CardHeader>
             
@@ -116,12 +119,7 @@ export default function CarReceiptsList() {
                   <div className="flex items-center gap-2">
                     <User className="h-4 w-4 text-gray-500" />
                     <span>{receipt.customerName}</span>
-                    {receipt.customerPhone && (
-                      <>
-                        <Phone className="h-4 w-4 text-gray-500" />
-                        <span className="text-sm text-gray-600">{receipt.customerPhone}</span>
-                      </>
-                    )}
+
                   </div>
                 </div>
 
@@ -129,7 +127,7 @@ export default function CarReceiptsList() {
                   <div className="flex items-center gap-2">
                     <Gauge className="h-4 w-4 text-gray-500" />
                     <span className="text-sm">عداد الدخول:</span>
-                    <span className="font-medium">{receipt.entryMileage.toLocaleString()} كم</span>
+                    <span className="font-medium">{receipt.entryMileage}</span>
                   </div>
                   
                   <div className="flex items-center gap-2">
@@ -166,7 +164,7 @@ export default function CarReceiptsList() {
                   <div className="flex items-start gap-2">
                     <FileText className="h-4 w-4 text-gray-500 mt-0.5" />
                     <div>
-                      <span className="text-sm text-gray-500">ملاحظات الدخول:</span>
+                      <span className="text-sm text-gray-500">الشكوى:</span>
                       <p className="text-sm mt-1 bg-gray-50 p-2 rounded">{receipt.entryNotes}</p>
                     </div>
                   </div>
