@@ -107,6 +107,13 @@ export function useWebSocket() {
         queryClient.invalidateQueries({ queryKey: ['/api/parts-requests'] });
         break;
         
+      case 'CAR_RECEIPT_CREATED':
+      case 'CAR_POSTPONED':
+      case 'CAR_ENTERED_WORKSHOP':
+        // Invalidate car receipts query to refresh data
+        queryClient.invalidateQueries({ queryKey: ['/api/car-receipts'] });
+        break;
+        
       case 'timer_tick':
         // Update timer displays - handled by components
         break;

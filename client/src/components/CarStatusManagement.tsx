@@ -8,36 +8,16 @@ import { Car, Calendar, User, ArrowRight, Bell, Check } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
-import { useEffect } from "react";
+import { useWebSocket } from "@/hooks/useWebSocket";
 import type { CarReceipt } from "@shared/schema";
 
 export default function CarStatusManagement() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { user } = useAuth();
-
-  // WebSocket listener for real-time updates
-  useEffect(() => {
-    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const wsUrl = `${protocol}//${window.location.host}/ws`;
-    const ws = new WebSocket(wsUrl);
-
-    ws.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        if (data.type === 'CAR_POSTPONED' || data.type === 'CAR_ENTERED_WORKSHOP' || data.type === 'CAR_RECEIPT_CREATED') {
-          // Refresh car receipts data
-          queryClient.invalidateQueries({ queryKey: ["/api/car-receipts"] });
-        }
-      } catch (error) {
-        console.log('WebSocket message parsing error:', error);
-      }
-    };
-
-    return () => {
-      ws.close();
-    };
-  }, [queryClient]);
+  
+  // Use global WebSocket hook for real-time updates
+  useWebSocket();
 
   const { data: carReceipts = [], isLoading } = useQuery<CarReceipt[]>({
     queryKey: ["/api/car-receipts"],
