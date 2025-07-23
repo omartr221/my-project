@@ -18,7 +18,7 @@ import { type Customer, type CustomerCar, type InsertCustomer, type InsertCustom
 const getModelsByBrand = (brand: string): string[] => {
   switch (brand) {
     case "AUDI":
-      return ["A1", "A3", "A4", "A5", "A6", "A7", "A8", "Q2", "Q3", "Q5", "Q7", "Q8", "TT", "R8", "e-tron", "e-tron GT"];
+      return ["A1", "A3", "A4", "A5", "A6", "A7", "A8", "Q2", "Q3", "Q5", "Q7", "Q8", "TT", "R8", "e-tron", "e-tron GT", "RS3", "RS4", "RS5", "RS6", "RS7", "RS Q3", "RS Q8"];
     case "VOLKSWAGEN":
       return ["Golf", "Jetta", "Passat", "Passat cc", "Polo", "Tiguan", "Touareg", "Arteon", "T-Cross", "T-Roc", "Sharan", "Touran", "Caddy", "Crafter", "Amarok", "ID.3", "ID.4"];
     case "SKODA":
