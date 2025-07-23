@@ -23,6 +23,9 @@ export default function CarStatusManagement() {
     queryKey: ["/api/car-receipts"],
   });
 
+  // Filter out completed cars - only show active car receipts
+  const activeCarReceipts = carReceipts.filter(receipt => receipt.status !== "completed");
+
   const sendToWorkshopMutation = useMutation({
     mutationFn: async (receiptId: number) => {
       const res = await apiRequest("POST", `/api/car-receipts/${receiptId}/send-to-workshop`);
