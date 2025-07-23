@@ -28,6 +28,11 @@ export default function CarStatusManagement() {
     queryKey: ["/api/parts-requests"],
   });
 
+  // Get active tasks to show current workshop activities for each car
+  const { data: activeTasks = [] } = useQuery({
+    queryKey: ["/api/tasks/active"],
+  });
+
   // Show all car receipts - completed cars will show as "مستلمة" without buttons
 
   const sendToWorkshopMutation = useMutation({
@@ -284,13 +289,19 @@ export default function CarStatusManagement() {
                 </div>
               )}
 
-              {/* نشاط الورشة - طلبات القطع */}
+              {/* نشاط الورشة */}
               {(() => {
                 const carPartsRequests = partsRequests.filter(request => 
                   request.licensePlate === receipt.licensePlate
                 );
                 
-                if (carPartsRequests.length > 0) {
+                const carActiveTasks = activeTasks.filter((task: any) => 
+                  task.licensePlate === receipt.licensePlate
+                );
+                
+                const hasWorkshopActivity = carPartsRequests.length > 0 || carActiveTasks.length > 0;
+                
+                if (hasWorkshopActivity) {
                   return (
                     <div className="text-sm">
                       <div className="flex items-center gap-2 mb-2">
@@ -298,6 +309,39 @@ export default function CarStatusManagement() {
                         <span className="text-gray-500 font-medium">نشاط الورشة:</span>
                       </div>
                       <div className="space-y-2">
+                        {/* المهام الجارية */}
+                        {carActiveTasks.map((task: any) => (
+                          <div key={task.id} className="p-2 bg-blue-50 rounded border-r-2 border-blue-300">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <Wrench className="h-3 w-3 text-blue-600" />
+                                  <span className="font-medium text-blue-800">جاري العمل</span>
+                                  <Badge variant="outline" className="text-xs bg-blue-100">
+                                    {task.status === "active" ? "نشط" : "متوقف"}
+                                  </Badge>
+                                </div>
+                                <div className="text-xs text-blue-600 mt-1">
+                                  {task.engineerName && `المهندس: ${task.engineerName}`}
+                                  {task.technicianName && ` | الفني: ${task.technicianName}`}
+                                  {task.taskType && ` | نوع المهمة: ${task.taskType}`}
+                                </div>
+                                {task.description && (
+                                  <div className="text-xs text-gray-700 mt-1 font-medium">
+                                    التفاصيل: {task.description}
+                                  </div>
+                                )}
+                                {task.repairOperation && (
+                                  <div className="text-xs text-gray-700 mt-1">
+                                    عملية الإصلاح: {task.repairOperation}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+
+                        {/* طلبات القطع */}
                         {carPartsRequests.map((request) => (
                           <div key={request.id} className="p-2 bg-green-50 rounded border-r-2 border-green-300">
                             <div className="flex items-center justify-between">
