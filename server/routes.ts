@@ -30,7 +30,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Backup endpoints
   app.post("/api/backup/create", async (req, res) => {
-    if (!req.isAuthenticated() || !req.user?.permissions?.includes('admin')) {
+    if (!req.isAuthenticated() || !(req.user as any)?.permissions?.includes('admin')) {
       return res.status(401).json({ message: "غير مصرح لك بإنشاء نسخ احتياطية" });
     }
     
@@ -43,7 +43,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.post("/api/backup/restore", async (req, res) => {
-    if (!req.isAuthenticated() || !req.user?.permissions?.includes('admin')) {
+    if (!req.isAuthenticated() || !(req.user as any)?.permissions?.includes('admin')) {
       return res.status(401).json({ message: "غير مصرح لك بالاستعادة" });
     }
     
@@ -734,7 +734,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const receipt = await storage.createCarReceipt({
         ...req.body,
-        receivedBy: req.user?.username || "الاستقبال",
+        receivedBy: (req.user as any)?.username || "الاستقبال",
       });
       
       // Send single notification for car receipt creation
@@ -760,7 +760,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/car-receipts/:id/send-to-workshop", async (req, res, next) => {
     try {
       const receiptId = parseInt(req.params.id);
-      const receipt = await storage.sendCarReceiptToWorkshop(receiptId, req.user?.username || "مجهول");
+      const receipt = await storage.sendCarReceiptToWorkshop(receiptId, (req.user as any)?.username || "مجهول");
       
       // No longer send notification here - notification is sent when receipt is created
       
@@ -776,7 +776,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const receipt = await storage.updateCarReceipt(receiptId, { 
         status: "postponed",
         postponedAt: new Date(),
-        postponedBy: req.user?.username || "بدوي"
+        postponedBy: (req.user as any)?.username || "بدوي"
       });
       
       wss.clients.forEach(client => {
@@ -801,7 +801,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const receipt = await storage.updateCarReceipt(receiptId, { 
         status: "completed",
         sentToWorkshopAt: new Date(),
-        sentToWorkshopBy: req.user?.username || "مجهول"
+        sentToWorkshopBy: (req.user as any)?.username || "مجهول"
       });
       
       wss.clients.forEach(client => {
