@@ -15,11 +15,11 @@ export async function apiRequest(
   const headers: Record<string, string> = {
     "Accept-Charset": "utf-8",
   };
-  
+
   if (data) {
     headers["Content-Type"] = "application/json; charset=utf-8";
   }
-  
+
   const res = await fetch(url, {
     method,
     headers,
