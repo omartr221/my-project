@@ -9,7 +9,12 @@ import { User } from "@shared/schema";
 
 declare global {
   namespace Express {
-    interface User extends User {}
+    interface User {
+      id: number;
+      username: string;
+      role: string;
+      permissions: string[];
+    }
   }
 }
 
@@ -249,7 +254,7 @@ async function initializeDefaultUsers() {
       // Create the reception user
       await storage.createUser({
         username: "الاستقبال",
-        password: await hashPassword("1111"),
+        password: await hashPassword("11"),
         role: "reception",
         permissions: [
           "timers:read",
