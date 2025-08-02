@@ -271,14 +271,7 @@ export default function PartsRequestsList() {
                       </TableCell>
                       <TableCell>{request.engineerName}</TableCell>
                       <TableCell>
-                        <div className="space-y-1">
-                          <div className="text-sm">{request.carInfo}</div>
-                          {request.carBrand && (
-                            <div className="text-xs text-muted-foreground">
-                              {request.carBrand} {request.carModel}
-                            </div>
-                          )}
-                        </div>
+                        <div className="text-sm">{request.carInfo || request.licensePlate}</div>
                       </TableCell>
                       <TableCell>{request.partName}</TableCell>
                       <TableCell>{request.quantity}</TableCell>

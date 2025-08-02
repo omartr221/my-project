@@ -59,12 +59,7 @@ export default function PartsRequestForm() {
     resolver: zodResolver(partsRequestFormSchema),
     defaultValues: {
       engineerName: "",
-      carInfo: "",
-      carBrand: "",
-      carModel: "",
       licensePlate: "",
-      chassisNumber: "",
-      engineCode: "",
       reasonType: "",
       partName: "",
       quantity: 1,
@@ -78,12 +73,8 @@ export default function PartsRequestForm() {
       // تحويل البيانات لتتوافق مع schema السيرفر
       const requestData = {
         engineerName: data.engineerName,
-        carInfo: data.carInfo || `${data.licensePlate || ''} ${data.chassisNumber || ''} ${data.carBrand || ''} ${data.carModel || ''}`.trim() || 'غير محدد',
-        carBrand: data.carBrand,
-        carModel: data.carModel,
+        carInfo: data.licensePlate || 'غير محدد',
         licensePlate: data.licensePlate,
-        chassisNumber: data.chassisNumber,
-        engineCode: data.engineCode,
         reasonType: data.reasonType,
         partName: data.partName,
         quantity: Number(data.quantity),
@@ -112,65 +103,7 @@ export default function PartsRequestForm() {
     },
   });
 
-  // البحث التلقائي عن معلومات السيارة
-  const searchCarInfo = async (searchTerm: string) => {
-    if (!searchTerm.trim()) {
-      toast({
-        title: "خطأ في البحث",
-        description: "يرجى إدخال رقم السيارة أو معلومات البحث",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    setIsSearching(true);
-    try {
-      const response = await apiRequest("GET", `/api/car-search?q=${encodeURIComponent(searchTerm)}`);
-      
-      if (response.ok) {
-        const carData = await response.json();
-        
-        if (carData && carData.carBrand && carData.carModel) {
-          // ملء البيانات الأساسية
-          form.setValue("carBrand", carData.carBrand);
-          form.setValue("carModel", carData.carModel);
-          
-          // ملء البيانات الإضافية
-          if (carData.licensePlate) {
-            form.setValue("licensePlate", carData.licensePlate);
-          }
-          if (carData.chassisNumber) {
-            form.setValue("chassisNumber", carData.chassisNumber);
-          }
-          if (carData.engineCode) {
-            form.setValue("engineCode", carData.engineCode);
-          }
-          
-          toast({
-            title: "✅ تم العثور على البيانات",
-            description: `${carData.carBrand} ${carData.carModel}${carData.chassisNumber ? ` - شاسيه: ${carData.chassisNumber}` : ''}`,
-          });
-        } else {
-          toast({
-            title: "لم يتم العثور على بيانات",
-            description: "لا توجد معلومات مسجلة لهذه السيارة في قاعدة البيانات",
-            variant: "destructive",
-          });
-        }
-      } else {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-    } catch (error) {
-      console.error("خطأ في البحث:", error);
-      toast({
-        title: "خطأ في البحث",
-        description: "تعذر الاتصال بقاعدة البيانات - تأكد من الاتصال بالإنترنت",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSearching(false);
-    }
-  };
+  // البحث عن معلومات السيارة غير ضروري الآن - نحتاج فقط رقم السيارة
 
   const onSubmit = (data: PartsRequestFormData) => {
     createPartsRequestMutation.mutate(data);
@@ -216,78 +149,7 @@ export default function PartsRequestForm() {
               )}
             />
 
-            {/* معلومات السيارة */}
-            <FormField
-              control={form.control}
-              name="carInfo"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>معلومات السيارة</FormLabel>
-                  <div className="flex gap-2">
-                    <FormControl>
-                      <Input
-                        placeholder="رقم اللوحة، رقم الشاسيه، أو اسم الزبون"
-                        {...field}
-                        className="flex-1"
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault();
-                            searchCarInfo(field.value);
-                          }
-                        }}
-                      />
-                    </FormControl>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => searchCarInfo(field.value)}
-                      disabled={isSearching || !field.value.trim()}
-                    >
-                      {isSearching ? (
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-                      ) : (
-                        <Search className="h-4 w-4" />
-                      )}
-                      {isSearching ? 'جاري البحث...' : 'بحث'}
-                    </Button>
-                  </div>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* نوع السيارة */}
-            <FormField
-              control={form.control}
-              name="carBrand"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>نوع السيارة</FormLabel>
-                  <FormControl>
-                    <Input placeholder="مثال: AUDI" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* موديل السيارة */}
-            <FormField
-              control={form.control}
-              name="carModel"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>موديل السيارة</FormLabel>
-                  <FormControl>
-                    <Input placeholder="مثال: A4" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* رقم السيارة */}
+            {/* رقم السيارة فقط */}
             <FormField
               control={form.control}
               name="licensePlate"
@@ -296,36 +158,6 @@ export default function PartsRequestForm() {
                   <FormLabel>رقم السيارة</FormLabel>
                   <FormControl>
                     <Input placeholder="مثال: 12345" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* رقم الشاسيه */}
-            <FormField
-              control={form.control}
-              name="chassisNumber"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>رقم الشاسيه</FormLabel>
-                  <FormControl>
-                    <Input placeholder="مثال: WAUEXXX" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* رمز المحرك */}
-            <FormField
-              control={form.control}
-              name="engineCode"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>رمز المحرك</FormLabel>
-                  <FormControl>
-                    <Input placeholder="مثال: BHF" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
