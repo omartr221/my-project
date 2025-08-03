@@ -1,4 +1,4 @@
-// Main entry point for Render deployment
+// Production entry point for Render deployment
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import App from '../client/src/App';
