@@ -15,7 +15,6 @@
       content="نظام إدارة المهام والعمال - V POWER TUNING"
     />
     <script>
-      // معالج شامل لأخطاء السكريبتات الخارجية
       window.addEventListener(
         "error",
         function (e) {
@@ -42,7 +41,6 @@
         true,
       );
 
-      // تجاوز alert لمنع رسائل الخطأ
       window.alert = function () {
         return true;
       };
@@ -50,6 +48,6 @@
   </head>
   <body>
     <div id="root"></div>
-    <script type="module" src="./src/main.tsx"></script>
+    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
