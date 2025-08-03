@@ -379,11 +379,6 @@ app.use((req, res, next) => {
 </html>`);
   });
 
-  // root route redirect to auth
-  app.get('/', (req, res) => {
-    res.redirect('/auth');
-  });
-
   // importantly only setup vite in development and after
   // setting up all the other routes so the catch-all route
   // doesn't interfere with the other routes

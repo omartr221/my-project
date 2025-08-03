@@ -1,8 +1,8 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
-import { storage } from "./storage";
-import { insertWorkerSchema, insertTaskSchema, insertCustomerSchema, insertCustomerCarSchema, insertPartsRequestSchema } from "@shared/schema";
+import { storage } from "./storage-simple";
+import { insertWorkerSchema, insertTaskSchema, insertCustomerSchema, insertCustomerCarSchema, insertPartsRequestSchema } from "@shared/schema-sqlite";
 import { z } from "zod";
 import { setupAuth } from "./auth";
 import { createBackup, restoreFromBackup } from "./backup";

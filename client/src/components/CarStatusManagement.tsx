@@ -9,7 +9,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { useWebSocket } from "@/hooks/useWebSocket";
-import type { CarReceipt, PartsRequest } from "@shared/schema";
+import type { CarReceipt, PartsRequest } from "@shared/schema-sqlite";
 
 export default function CarStatusManagement() {
   const { toast } = useToast();

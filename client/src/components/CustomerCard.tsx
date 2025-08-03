@@ -12,7 +12,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { getCarBrandInArabic } from "@/lib/utils";
 import { usePermissions } from "@/hooks/use-auth";
-import { type Customer, type CustomerCar, type InsertCustomer, type InsertCustomerCar, type CustomerWithCars } from "@shared/schema";
+import { type Customer, type CustomerCar, type InsertCustomer, type InsertCustomerCar, type CustomerWithCars } from "@shared/schema-sqlite";
 
 // Car models by brand
 const getModelsByBrand = (brand: string): string[] => {

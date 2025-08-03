@@ -9,7 +9,7 @@ import { PlusCircle, Play } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { insertTaskSchema, type InsertTask } from "@shared/schema";
+import { insertTaskSchema, type InsertTask } from "@shared/schema-sqlite";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { usePermissions } from "@/hooks/use-auth";

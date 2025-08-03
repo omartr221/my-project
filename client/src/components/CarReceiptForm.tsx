@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { apiRequest } from "@/lib/queryClient";
-import { insertCarReceiptSchema, type InsertCarReceipt } from "@shared/schema";
+import { insertCarReceiptSchema, type InsertCarReceipt } from "@shared/schema-sqlite";
 import { useToast } from "@/hooks/use-toast";
 import { Search } from "lucide-react";
 

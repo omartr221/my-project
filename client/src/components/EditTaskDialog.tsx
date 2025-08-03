@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { TaskWithWorker } from "@shared/schema";
+import { TaskWithWorker } from "@shared/schema-sqlite";
 import { Edit } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { getCarBrandInArabic } from "@/lib/utils";

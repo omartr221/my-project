@@ -11,7 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { CheckCircle, XCircle, Clock, Package2, Search, Filter, Check, Undo2, MessageSquare } from "lucide-react";
-import { type PartsRequest } from "@shared/schema";
+import { type PartsRequest } from "@shared/schema-sqlite";
 import { useAuth } from "@/hooks/use-auth";
 
 const statusColors = {

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 import { Car, Calendar, User, Phone, Gauge, Fuel, FileText, Edit, Trash2 } from "lucide-react";
-import type { CarReceipt } from "@shared/schema";
+import type { CarReceipt } from "@shared/schema-sqlite";
 
 export default function CarReceiptsList() {
   const { data: receipts = [], isLoading } = useQuery<CarReceipt[]>({

@@ -13,7 +13,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Plus, Search } from "lucide-react";
-import { insertPartsRequestSchema, type InsertPartsRequest } from "@shared/schema";
+import { insertPartsRequestSchema, type InsertPartsRequest } from "@shared/schema-sqlite";
 import { useAuth } from "@/hooks/use-auth";
 
 const partsRequestFormSchema = insertPartsRequestSchema.extend({

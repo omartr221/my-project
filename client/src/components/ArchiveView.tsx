@@ -16,7 +16,7 @@ import { z } from "zod";
 import { formatDuration, formatTime, formatDate, getCarBrandInArabic, getTaskStatusInArabic, getTaskStatusColor, cn } from "@/lib/utils";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { type TaskHistory } from "@shared/schema";
+import { type TaskHistory } from "@shared/schema-sqlite";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 
