@@ -1,44 +1,47 @@
 import express from "express";
 import { createServer } from "http";
 import { WebSocketServer } from "ws";
-import { setupViteDevMiddleware } from "./vite";
+import { setupVite, serveStatic } from "./vite";
 import { setupAuth } from "./auth-sqlite";
 import { storage } from "./storage-sqlite";
-import { setupRoutes } from "./routes-sqlite";
-import { setupWebSocket } from "./websocket";
+import { setupRoutes } from "./routes-sqlite.js";
+import { setupWebSocket } from "./websocket.js";
 import fs from "fs";
 import path from "path";
 
 const app = express();
-const port = process.env.PORT || 5000;
+const port = parseInt(process.env.PORT || "5000");
 const host = process.env.HOST || "0.0.0.0";
 
-// Create backups directory if it doesn't exist
-const backupsDir = path.join(process.cwd(), 'backups');
-if (!fs.existsSync(backupsDir)) {
-  fs.mkdirSync(backupsDir, { recursive: true });
-}
+async function startServer() {
+  // Create backups directory if it doesn't exist
+  const backupsDir = path.join(process.cwd(), 'backups');
+  if (!fs.existsSync(backupsDir)) {
+    fs.mkdirSync(backupsDir, { recursive: true });
+  }
 
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+  app.use(express.json({ limit: '50mb' }));
+  app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// Setup authentication
-setupAuth(app);
+  // Setup authentication
+  setupAuth(app);
 
-// Setup routes
-setupRoutes(app);
+  // Setup routes
+  setupRoutes(app);
 
-// Setup development middleware
-if (process.env.NODE_ENV === "development") {
-  setupViteDevMiddleware(app);
-}
+  // Create HTTP server
+  const server = createServer(app);
 
-// Create HTTP server
-const server = createServer(app);
+  // Setup development middleware
+  if (process.env.NODE_ENV === "development") {
+    await setupVite(app, server);
+  } else {
+    serveStatic(app);
+  }
 
-// Setup WebSocket
-const wss = new WebSocketServer({ server });
-setupWebSocket(wss);
+  // Setup WebSocket
+  const wss = new WebSocketServer({ server });
+  setupWebSocket(wss);
 
 // Backup functionality
 const createBackup = async () => {
@@ -74,20 +77,23 @@ app.use((err: any, req: any, res: any, next: any) => {
   res.status(500).json({ error: 'خطأ داخلي في الخادم' });
 });
 
-server.listen(port, host, () => {
-  console.log(`🚀 V POWER TUNING Server جاهز!`);
-  console.log(`   - Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`   - Port: ${port}`);
-  console.log(`   - Host: ${host}`);
-  console.log(`   - من هذا الجهاز: http://localhost:${port}`);
-  console.log(`   - من هذا الجهاز أيضاً: http://127.0.0.1:${port}`);
-  console.log(`   - من أجهزة أخرى: http://[عنوان-IP]:${port}`);
-  console.log(`📱 لمعرفة عنوان IP: اكتب ipconfig في cmd`);
-  console.log(`🔧 السيرفر يعمل على جميع عناوين الشبكة (${host})`);
-  console.log(`💡 إذا لم يعمل localhost جرب: 127.0.0.1:${port}`);
-  console.log(`📖 راجع ملف 'تجربة-الاتصال.md' للمساعدة`);
-  
-  // Create initial backup
-  console.log("🚀 إنشاء نسخة احتياطية أولية...");
-  createBackup().catch(console.error);
-});
+  server.listen(port, host, () => {
+    console.log(`🚀 V POWER TUNING Server جاهز!`);
+    console.log(`   - Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`   - Port: ${port}`);
+    console.log(`   - Host: ${host}`);
+    console.log(`   - من هذا الجهاز: http://localhost:${port}`);
+    console.log(`   - من هذا الجهاز أيضاً: http://127.0.0.1:${port}`);
+    console.log(`   - من أجهزة أخرى: http://[عنوان-IP]:${port}`);
+    console.log(`📱 لمعرفة عنوان IP: اكتب ipconfig في cmd`);
+    console.log(`🔧 السيرفر يعمل على جميع عناوين الشبكة (${host})`);
+    console.log(`💡 إذا لم يعمل localhost جرب: 127.0.0.1:${port}`);
+    console.log(`📖 راجع ملف 'تجربة-الاتصال.md' للمساعدة`);
+    
+    // Create initial backup
+    console.log("🚀 إنشاء نسخة احتياطية أولية...");
+    createBackup().catch(console.error);
+  });
+}
+
+startServer().catch(console.error);
