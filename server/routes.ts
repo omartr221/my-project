@@ -378,7 +378,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/customers/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const customer = await storage.getCustomer(id);
+      const customer = directSQLite.getCustomer(id);
 
       if (!customer) {
         return res.status(404).json({ message: "Customer not found" });
@@ -405,19 +405,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put("/api/customers/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const updates = insertCustomerSchema.partial().parse(req.body);
-      const customer = await storage.updateCustomer(id, updates);
+      const customer = directSQLite.updateCustomer(id, req.body);
 
       broadcastUpdate("customer_updated", customer);
       res.json(customer);
     } catch (error) {
       console.error("Error updating customer:", error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({
-          message: "Invalid customer data",
-          errors: error.errors,
-        });
-      }
       res.status(500).json({ message: "Failed to update customer" });
     }
   });
@@ -425,10 +418,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/customers/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      await storage.deleteCustomer(id);
+      const deleted = directSQLite.deleteCustomer(id);
 
-      broadcastUpdate("customer_deleted", { id });
-      res.status(204).send();
+      if (deleted) {
+        broadcastUpdate("customer_deleted", { id });
+        res.status(204).send();
+      } else {
+        res.status(404).json({ message: "Customer not found" });
+      }
     } catch (error) {
       console.error("Error deleting customer:", error);
       res.status(500).json({ message: "Failed to delete customer" });

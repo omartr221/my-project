@@ -302,6 +302,59 @@ export const directSQLite = {
   getAllWorkerNames: () => {
     const stmt = db.prepare("SELECT id, name, category FROM workers WHERE is_active = 1 ORDER BY name");
     return stmt.all();
+  },
+
+  // جلب عميل بالID
+  getCustomer: (id: number) => {
+    const stmt = db.prepare("SELECT * FROM customers WHERE id = ?");
+    return stmt.get(id);
+  },
+
+  // تحديث عميل
+  updateCustomer: (id: number, customerData: any) => {
+    try {
+      const stmt = db.prepare(`
+        UPDATE customers 
+        SET name = ?, phone_number = ?, email = ?, address = ?, notes = ?, updated_at = datetime('now', 'localtime')
+        WHERE id = ?
+      `);
+      
+      const sanitizedData = {
+        name: sanitizeValue(customerData.name) || '',
+        phone_number: sanitizeValue(customerData.phoneNumber) || '',
+        email: customerData.email ? sanitizeValue(customerData.email) : null,
+        address: customerData.address ? sanitizeValue(customerData.address) : null,
+        notes: customerData.notes ? sanitizeValue(customerData.notes) : null
+      };
+      
+      stmt.run(
+        sanitizedData.name,
+        sanitizedData.phone_number,
+        sanitizedData.email,
+        sanitizedData.address,
+        sanitizedData.notes,
+        id
+      );
+      
+      // إرجاع العميل المحدث
+      const getStmt = db.prepare("SELECT * FROM customers WHERE id = ?");
+      return getStmt.get(id);
+    } catch (error) {
+      console.error("Error updating customer:", error);
+      throw error;
+    }
+  },
+
+  // حذف عميل
+  deleteCustomer: (id: number) => {
+    try {
+      const stmt = db.prepare("DELETE FROM customers WHERE id = ?");
+      const result = stmt.run(id);
+      return result.changes > 0;
+    } catch (error) {
+      console.error("Error deleting customer:", error);
+      throw error;
+    }
   }
 };
 
