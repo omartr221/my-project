@@ -431,11 +431,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Customer cars routes
+  // Customer cars routes - استخدام directSQLite
   app.get("/api/customer-cars", async (req, res) => {
     try {
-      // مؤقتاً - نرجع array فارغ
-      res.json([]);
+      const cars = directSQLite.getCustomerCars();
+      res.json(cars);
     } catch (error) {
       console.error("Error fetching customer cars:", error);
       res.status(500).json({ message: "Failed to fetch customer cars" });
@@ -445,7 +445,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/customer-cars/customer/:customerId", async (req, res) => {
     try {
       const customerId = parseInt(req.params.customerId);
-      const cars = await storage.getCustomerCarsByCustomerId(customerId);
+      const cars = directSQLite.getCustomerCarsByCustomerId(customerId);
       res.json(cars);
     } catch (error) {
       console.error("Error fetching customer cars:", error);
@@ -456,7 +456,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/customer-cars/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const car = await storage.getCustomerCar(id);
+      const car = directSQLite.getCustomerCar(id);
 
       if (!car) {
         return res.status(404).json({ message: "Car not found" });
@@ -471,11 +471,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/customer-cars", async (req, res) => {
     try {
-      // مؤقتاً - نرجع رسالة نجاح بدون إنشاء سيارة
-      res.status(201).json({ 
-        message: "سيتم إضافة إدارة السيارات قريباً",
-        id: Math.floor(Math.random() * 1000)
-      });
+      console.log("Creating customer car with directSQLite:", req.body);
+      const car = directSQLite.createCustomerCar(req.body);
+      console.log("Customer car created:", car);
+      
+      // Broadcast update to all clients
+      broadcastUpdate("customer_car_created", car);
+
+      res.status(201).json(car);
     } catch (error) {
       console.error("Error creating customer car:", error);
       res.status(500).json({ message: "Failed to create customer car" });

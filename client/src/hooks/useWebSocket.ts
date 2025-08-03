@@ -114,6 +114,13 @@ export function useWebSocket() {
         queryClient.invalidateQueries({ queryKey: ['/api/customers'] });
         break;
         
+      case 'customer_car_created':
+      case 'customer_car_updated':
+      case 'customer_car_deleted':
+        // Invalidate customer cars queries to refresh data
+        queryClient.invalidateQueries({ queryKey: ['/api/customer-cars'] });
+        break;
+        
       case 'CAR_RECEIPT_CREATED':
       case 'CAR_POSTPONED':
       case 'CAR_ENTERED_WORKSHOP':

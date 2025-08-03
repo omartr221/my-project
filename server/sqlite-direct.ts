@@ -83,6 +83,23 @@ db.exec(`
     updated_at TEXT DEFAULT (datetime('now', 'localtime'))
   );
 
+  CREATE TABLE IF NOT EXISTS customer_cars (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    customer_id INTEGER NOT NULL,
+    car_brand TEXT NOT NULL,
+    car_model TEXT NOT NULL,
+    license_plate TEXT NOT NULL,
+    chassis_number TEXT,
+    engine_code TEXT,
+    year INTEGER,
+    color TEXT,
+    notes TEXT,
+    previous_owner TEXT,
+    created_at TEXT DEFAULT (datetime('now', 'localtime')),
+    updated_at TEXT DEFAULT (datetime('now', 'localtime')),
+    FOREIGN KEY (customer_id) REFERENCES customers (id)
+  );
+
   CREATE TABLE IF NOT EXISTS parts_requests (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     request_number TEXT UNIQUE NOT NULL,
@@ -355,6 +372,85 @@ export const directSQLite = {
       console.error("Error deleting customer:", error);
       throw error;
     }
+  },
+
+  // === وظائف إدارة السيارات ===
+  
+  // إنشاء سيارة جديدة لزبون
+  createCustomerCar: (carData: any) => {
+    try {
+      const stmt = db.prepare(`
+        INSERT INTO customer_cars (customer_id, car_brand, car_model, license_plate, chassis_number, engine_code, year, color, notes, previous_owner)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `);
+      
+      const sanitizedData = {
+        customer_id: parseInt(carData.customerId) || 0,
+        car_brand: sanitizeValue(carData.carBrand) || '',
+        car_model: sanitizeValue(carData.carModel) || '',
+        license_plate: sanitizeValue(carData.licensePlate) || '',
+        chassis_number: carData.chassisNumber ? sanitizeValue(carData.chassisNumber) : null,
+        engine_code: carData.engineCode ? sanitizeValue(carData.engineCode) : null,
+        year: carData.year ? parseInt(carData.year) : null,
+        color: carData.color ? sanitizeValue(carData.color) : null,
+        notes: carData.notes ? sanitizeValue(carData.notes) : null,
+        previous_owner: carData.previousOwner ? sanitizeValue(carData.previousOwner) : null
+      };
+      
+      const result = stmt.run(
+        sanitizedData.customer_id,
+        sanitizedData.car_brand,
+        sanitizedData.car_model,
+        sanitizedData.license_plate,
+        sanitizedData.chassis_number,
+        sanitizedData.engine_code,
+        sanitizedData.year,
+        sanitizedData.color,
+        sanitizedData.notes,
+        sanitizedData.previous_owner
+      );
+      
+      // إرجاع البيانات المُدخلة
+      const getStmt = db.prepare("SELECT * FROM customer_cars WHERE id = ?");
+      return getStmt.get(result.lastInsertRowid);
+    } catch (error) {
+      console.error("Error creating customer car:", error);
+      throw error;
+    }
+  },
+
+  // جلب جميع السيارات
+  getCustomerCars: () => {
+    const stmt = db.prepare(`
+      SELECT cc.*, c.name as customer_name 
+      FROM customer_cars cc
+      LEFT JOIN customers c ON cc.customer_id = c.id
+      ORDER BY cc.created_at DESC
+    `);
+    return stmt.all();
+  },
+
+  // جلب سيارات زبون معين
+  getCustomerCarsByCustomerId: (customerId: number) => {
+    const stmt = db.prepare(`
+      SELECT cc.*, c.name as customer_name 
+      FROM customer_cars cc
+      LEFT JOIN customers c ON cc.customer_id = c.id
+      WHERE cc.customer_id = ?
+      ORDER BY cc.created_at DESC
+    `);
+    return stmt.all(customerId);
+  },
+
+  // جلب سيارة واحدة
+  getCustomerCar: (id: number) => {
+    const stmt = db.prepare(`
+      SELECT cc.*, c.name as customer_name 
+      FROM customer_cars cc
+      LEFT JOIN customers c ON cc.customer_id = c.id
+      WHERE cc.id = ?
+    `);
+    return stmt.get(id);
   }
 };
 
