@@ -64,4 +64,18 @@ Preferred communication style: Simple, everyday language.
 - **express-session**: Session management middleware
 
 ### Desktop Application
-- **Electron**: For desktop application functionality.
+- **Electron**: For desktop application functionality
+
+## Deployment Configuration
+
+### Render Platform Support
+- **Database**: PostgreSQL on Neon (current: `ep-falling-union-aehti4wu-pooler.c-2.us-east-2.aws.neon.tech`)
+- **Build Files**: Created render-specific files (`src/main.tsx`, `index.html`, `package-render.json`)
+- **Vite Path Fix**: Added root-level entry points to resolve Render's path requirements
+- **Docker Support**: Dockerfile.render for containerized deployment
+
+### Known Issues Fixed
+- **Vite Main Path**: Render expects `/src/main.tsx` but project uses `/client/src/main.tsx`
+- **Solution**: Created bridge files that import from correct paths
+- **Authentication**: Fixed API routing conflicts with Vite middleware
+- **Database Connection**: Updated to use new Neon PostgreSQL instance
