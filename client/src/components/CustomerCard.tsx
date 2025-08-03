@@ -127,6 +127,25 @@ export default function CustomerCard() {
     }
   }, [editingCustomer]);
 
+  // Fill car form with current car data when editing
+  useEffect(() => {
+    if (editingCar) {
+      setCarForm({
+        carBrand: editingCar.carBrand || "",
+        carModel: editingCar.carModel || "",
+        licensePlate: editingCar.licensePlate || "",
+        color: editingCar.color || "",
+        year: editingCar.year ? editingCar.year.toString() : "",
+        engineCode: (editingCar as any).engineCode || "",
+        chassisNumber: (editingCar as any).chassisNumber || "",
+        previousOwner: (editingCar as any).previousOwner || "",
+        notes: editingCar.notes || "",
+      });
+    } else {
+      resetCarForm();
+    }
+  }, [editingCar]);
+
   const resetCustomerForm = () => {
     setCustomerForm({
       name: "",
@@ -331,15 +350,15 @@ export default function CustomerCard() {
     }
 
     const updates: Partial<InsertCustomerCar> = {
-      carBrand: carForm.carBrand || editingCar.carBrand,
-      carModel: carForm.carModel || editingCar.carModel,
-      licensePlate: carForm.licensePlate || editingCar.licensePlate,
-      color: carForm.color || editingCar.color || undefined,
-      year: carForm.year ? parseInt(carForm.year) : editingCar.year || undefined,
-      engineCode: carForm.engineCode || (editingCar as any).engineCode || undefined,
+      carBrand: carForm.carBrand,
+      carModel: carForm.carModel,
+      licensePlate: carForm.licensePlate,
+      color: carForm.color || undefined,
+      year: carForm.year ? parseInt(carForm.year) : undefined,
+      engineCode: carForm.engineCode || undefined,
       chassisNumber: chassisNumber || undefined,
-      previousOwner: carForm.previousOwner || (editingCar as any).previousOwner || undefined,
-      notes: carForm.notes || editingCar.notes || undefined,
+      previousOwner: carForm.previousOwner || undefined,
+      notes: carForm.notes || undefined,
     };
 
     editCarMutation.mutate({ id: editingCar.id, updates });
