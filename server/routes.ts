@@ -97,7 +97,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all worker names (for dropdown)
   app.get("/api/workers/names", async (req, res) => {
     try {
-      const workers = await storage.getAllWorkerNames();
+      const workers = directSQLite.getAllWorkerNames();
       res.json(workers);
     } catch (error) {
       console.error("Error fetching worker names:", error);
@@ -258,10 +258,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Statistics route
+  // Statistics route - Using direct SQLite
   app.get("/api/stats", async (req, res) => {
     try {
-      const stats = await storage.getWorkerStats();
+      const stats = directSQLite.getWorkerStats();
       res.json(stats);
     } catch (error) {
       console.error("Error fetching stats:", error);
@@ -367,7 +367,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Customer routes
   app.get("/api/customers", async (req, res) => {
     try {
-      const customers = await storage.getCustomers();
+      const customers = directSQLite.getCustomers();
       res.json(customers);
     } catch (error) {
       console.error("Error fetching customers:", error);
@@ -393,19 +393,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/customers", async (req, res) => {
     try {
-      const customerData = insertCustomerSchema.parse(req.body);
-      const customer = await storage.createCustomer(customerData);
-
+      const customer = directSQLite.createCustomer(req.body);
       broadcastUpdate("customer_created", customer);
       res.status(201).json(customer);
     } catch (error) {
       console.error("Error creating customer:", error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({
-          message: "Invalid customer data",
-          errors: error.errors,
-        });
-      }
       res.status(500).json({ message: "Failed to create customer" });
     }
   });

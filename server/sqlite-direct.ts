@@ -72,6 +72,17 @@ db.exec(`
     updated_at TEXT DEFAULT (datetime('now', 'localtime'))
   );
 
+  CREATE TABLE IF NOT EXISTS customers (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    phone_number TEXT NOT NULL,
+    email TEXT,
+    address TEXT,
+    notes TEXT,
+    created_at TEXT DEFAULT (datetime('now', 'localtime')),
+    updated_at TEXT DEFAULT (datetime('now', 'localtime'))
+  );
+
   CREATE TABLE IF NOT EXISTS parts_requests (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     request_number TEXT UNIQUE NOT NULL,
@@ -103,16 +114,16 @@ export const directSQLite = {
     `);
     
     const sanitizedData = {
-      name: sanitizeValue(workerData.name),
-      category: sanitizeValue(workerData.category),
-      supervisor: sanitizeValue(workerData.supervisor) || null,
-      assistant: sanitizeValue(workerData.assistant) || null,
-      engineer: sanitizeValue(workerData.engineer) || null,
-      national_id: sanitizeValue(workerData.nationalId) || null,
-      phone_number: sanitizeValue(workerData.phoneNumber) || null,
-      address: sanitizeValue(workerData.address) || null,
-      is_active: workerData.isActive ? 1 : 0,
-      is_predefined: workerData.isPredefined ? 1 : 0
+      name: sanitizeValue(workerData.name) || '',
+      category: sanitizeValue(workerData.category) || '',
+      supervisor: workerData.supervisor ? sanitizeValue(workerData.supervisor) : null,
+      assistant: workerData.assistant ? sanitizeValue(workerData.assistant) : null,
+      engineer: workerData.engineer ? sanitizeValue(workerData.engineer) : null,
+      national_id: workerData.nationalId ? sanitizeValue(workerData.nationalId) : null,
+      phone_number: workerData.phoneNumber ? sanitizeValue(workerData.phoneNumber) : null,
+      address: workerData.address ? sanitizeValue(workerData.address) : null,
+      is_active: workerData.isActive === true ? 1 : 0,
+      is_predefined: workerData.isPredefined === true ? 1 : 0
     };
     
     const result = stmt.run(
@@ -217,6 +228,79 @@ export const directSQLite = {
   // جلب طلبات القطع
   getPartsRequests: () => {
     const stmt = db.prepare("SELECT * FROM parts_requests ORDER BY created_at DESC");
+    return stmt.all();
+  },
+
+  // الحصول على إحصائيات العمال
+  getWorkerStats: () => {
+    try {
+      // جلب عدد العمال النشطين
+      const activeWorkersStmt = db.prepare("SELECT COUNT(*) as count FROM workers WHERE is_active = 1");
+      const activeWorkers = activeWorkersStmt.get() as { count: number };
+
+      // جلب إجمالي العمال
+      const totalWorkersStmt = db.prepare("SELECT COUNT(*) as count FROM workers");
+      const totalWorkers = totalWorkersStmt.get() as { count: number };
+
+      // إرجاع الإحصائيات
+      return {
+        activeWorkers: activeWorkers.count || 0,
+        totalWorkers: totalWorkers.count || 0,
+        totalTasks: 0, // سيتم تحديثها لاحقاً عند إضافة جدول المهام
+        completedTasks: 0
+      };
+    } catch (error) {
+      console.error("Error in getWorkerStats:", error);
+      return {
+        activeWorkers: 0,
+        totalWorkers: 0,
+        totalTasks: 0,
+        completedTasks: 0
+      };
+    }
+  },
+
+  // إنشاء عميل جديد
+  createCustomer: (customerData: any) => {
+    try {
+      const stmt = db.prepare(`
+        INSERT INTO customers (name, phone_number, email, address, notes)
+        VALUES (?, ?, ?, ?, ?)
+      `);
+      
+      const sanitizedData = {
+        name: sanitizeValue(customerData.name) || '',
+        phone_number: sanitizeValue(customerData.phoneNumber) || '',
+        email: customerData.email ? sanitizeValue(customerData.email) : null,
+        address: customerData.address ? sanitizeValue(customerData.address) : null,
+        notes: customerData.notes ? sanitizeValue(customerData.notes) : null
+      };
+      
+      const result = stmt.run(
+        sanitizedData.name,
+        sanitizedData.phone_number,
+        sanitizedData.email,
+        sanitizedData.address,
+        sanitizedData.notes
+      );
+      
+      const getStmt = db.prepare("SELECT * FROM customers WHERE id = ?");
+      return getStmt.get(result.lastInsertRowid);
+    } catch (error) {
+      console.error("Error creating customer:", error);
+      throw error;
+    }
+  },
+
+  // جلب العملاء
+  getCustomers: () => {
+    const stmt = db.prepare("SELECT * FROM customers ORDER BY created_at DESC");
+    return stmt.all();
+  },
+
+  // جلب أسماء العمال (للقوائم المنسدلة)
+  getAllWorkerNames: () => {
+    const stmt = db.prepare("SELECT id, name, category FROM workers WHERE is_active = 1 ORDER BY name");
     return stmt.all();
   }
 };
