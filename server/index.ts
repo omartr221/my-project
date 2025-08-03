@@ -127,9 +127,11 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
       log(`📖 راجع ملف 'تجربة-الاتصال.md' للمساعدة`);
     });
 
+    // إعداد routes أولاً قبل Vite
+    await registerRoutes(app);
+    
     // إعداد Vite مع الخادم الموجود
     await setupVite(app, server);
-    registerRoutes(app);
 
   } catch (error) {
     console.error('❌ خطأ في بدء تشغيل السيرفر:', error);
