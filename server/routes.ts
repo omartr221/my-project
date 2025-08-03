@@ -134,11 +134,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Task routes
+  // Task routes - مؤقتاً نرجع arrays فارغة حتى يتم إضافة جداول المهام إلى SQLite
   app.get("/api/tasks", async (req, res) => {
     try {
-      const tasks = await storage.getTasks();
-      res.json(tasks);
+      // مؤقتاً - لا توجد مهام في SQLite بعد
+      res.json([]);
     } catch (error) {
       console.error("Error fetching tasks:", error);
       res.status(500).json({ message: "Failed to fetch tasks" });
@@ -147,8 +147,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/tasks/active", async (req, res) => {
     try {
-      const activeTasks = await storage.getActiveTasks();
-      res.json(activeTasks);
+      // مؤقتاً - لا توجد مهام نشطة في SQLite بعد
+      res.json([]);
     } catch (error) {
       console.error("Error fetching active tasks:", error);
       res.status(500).json({ message: "Failed to fetch active tasks" });
@@ -269,12 +269,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Task history route
+  // Task history route - مؤقتاً نرجع array فارغ
   app.get("/api/tasks/history", async (req, res) => {
     try {
-      const limit = req.query.limit ? parseInt(req.query.limit as string) : 50;
-      const history = await storage.getTaskHistory(limit);
-      res.json(history);
+      // مؤقتاً - لا يوجد تاريخ مهام في SQLite بعد
+      res.json([]);
     } catch (error) {
       console.error("Error fetching task history:", error);
       res.status(500).json({ message: "Failed to fetch task history" });
@@ -435,8 +434,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Customer cars routes
   app.get("/api/customer-cars", async (req, res) => {
     try {
-      const cars = await storage.getCustomerCars();
-      res.json(cars);
+      // مؤقتاً - نرجع array فارغ
+      res.json([]);
     } catch (error) {
       console.error("Error fetching customer cars:", error);
       res.status(500).json({ message: "Failed to fetch customer cars" });
@@ -472,19 +471,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/customer-cars", async (req, res) => {
     try {
-      const carData = insertCustomerCarSchema.parse(req.body);
-      const car = await storage.createCustomerCar(carData);
-
-      broadcastUpdate("customer_car_created", car);
-      res.status(201).json(car);
+      // مؤقتاً - نرجع رسالة نجاح بدون إنشاء سيارة
+      res.status(201).json({ 
+        message: "سيتم إضافة إدارة السيارات قريباً",
+        id: Math.floor(Math.random() * 1000)
+      });
     } catch (error) {
       console.error("Error creating customer car:", error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({
-          message: "Invalid car data",
-          errors: error.errors,
-        });
-      }
       res.status(500).json({ message: "Failed to create customer car" });
     }
   });

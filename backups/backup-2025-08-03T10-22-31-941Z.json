@@ -1,0 +1,48 @@
+{
+  "timestamp": "2025-08-03T10:22:31.943Z",
+  "customers": [
+    {
+      "id": 1,
+      "name": "عميل محدث",
+      "phoneNumber": "111-222-333",
+      "email": null,
+      "address": "عنوان جديد",
+      "notes": null,
+      "createdAt": "2025-08-03 10:07:03",
+      "updatedAt": "2025-08-03 10:07:03"
+    },
+    {
+      "id": 2,
+      "name": "زبون تجريبي",
+      "phoneNumber": "0987654321",
+      "email": "test@example.com",
+      "address": null,
+      "notes": null,
+      "createdAt": "2025-08-03 10:07:58",
+      "updatedAt": "2025-08-03 10:07:58"
+    },
+    {
+      "id": 4,
+      "name": "اختبار محارف خطيرة",
+      "phoneNumber": "123456",
+      "email": "test@email.com",
+      "address": null,
+      "notes": null,
+      "createdAt": "2025-08-03 10:08:44",
+      "updatedAt": "2025-08-03 10:08:44"
+    },
+    {
+      "id": 5,
+      "name": "عمر طرابلسي",
+      "phoneNumber": "0969581161",
+      "email": null,
+      "address": null,
+      "notes": null,
+      "createdAt": "2025-08-03 10:20:59",
+      "updatedAt": "2025-08-03 10:20:59"
+    }
+  ],
+  "customerCars": [],
+  "partsRequests": [],
+  "version": "1.0"
+}
