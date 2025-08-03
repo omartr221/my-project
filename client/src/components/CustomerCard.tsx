@@ -56,6 +56,7 @@ export default function CustomerCard() {
     engineCode: "",
     chassisNumber: "",
     licensePlate: "",
+    previousOwner: "",
   });
 
   const [carForm, setCarForm] = useState({
@@ -116,8 +117,8 @@ export default function CustomerCard() {
       color: "",
       engineCode: "",
       chassisNumber: "",
-      previousOwner: "",
       licensePlate: "",
+      previousOwner: "",
     });
   };
 
