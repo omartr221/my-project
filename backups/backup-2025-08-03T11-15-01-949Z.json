@@ -1,0 +1,193 @@
+{
+  "timestamp": "2025-08-03T11:15:01.952Z",
+  "customers": [
+    {
+      "id": 1,
+      "name": "عميل محدث",
+      "phoneNumber": "111-222-333",
+      "email": null,
+      "address": "عنوان جديد",
+      "notes": null,
+      "createdAt": "2025-08-03 10:07:03",
+      "updatedAt": "2025-08-03 10:07:03"
+    },
+    {
+      "id": 2,
+      "name": "زبون تجريبي",
+      "phoneNumber": "0987654321",
+      "email": "test@example.com",
+      "address": null,
+      "notes": null,
+      "createdAt": "2025-08-03 10:07:58",
+      "updatedAt": "2025-08-03 10:07:58"
+    },
+    {
+      "id": 4,
+      "name": "اختبار محارف خطيرة",
+      "phoneNumber": "123456",
+      "email": "test@email.com",
+      "address": null,
+      "notes": null,
+      "createdAt": "2025-08-03 10:08:44",
+      "updatedAt": "2025-08-03 10:08:44"
+    },
+    {
+      "id": 5,
+      "name": "عمر طرابلسي",
+      "phoneNumber": "0969581161",
+      "email": null,
+      "address": null,
+      "notes": null,
+      "createdAt": "2025-08-03 10:20:59",
+      "updatedAt": "2025-08-03 10:20:59"
+    },
+    {
+      "id": 6,
+      "name": "عمر طرابلسي",
+      "phoneNumber": "sdsdsd",
+      "email": null,
+      "address": null,
+      "notes": null,
+      "createdAt": "2025-08-03 10:37:49",
+      "updatedAt": "2025-08-03 10:37:49"
+    },
+    {
+      "id": 7,
+      "name": "رائد مشارقة",
+      "phoneNumber": "0969581161",
+      "email": null,
+      "address": null,
+      "notes": null,
+      "createdAt": "2025-08-03 10:54:34",
+      "updatedAt": "2025-08-03 10:54:34"
+    },
+    {
+      "id": 8,
+      "name": "ماهر",
+      "phoneNumber": "0969581161",
+      "email": null,
+      "address": null,
+      "notes": null,
+      "createdAt": "2025-08-03 10:57:44",
+      "updatedAt": "2025-08-03 10:57:44"
+    },
+    {
+      "id": 9,
+      "name": "رضوان شاكر",
+      "phoneNumber": "45545545",
+      "email": null,
+      "address": null,
+      "notes": null,
+      "createdAt": "2025-08-03 11:01:55",
+      "updatedAt": "2025-08-03 11:01:55"
+    },
+    {
+      "id": 10,
+      "name": "لللل",
+      "phoneNumber": "0969581161",
+      "email": null,
+      "address": null,
+      "notes": null,
+      "createdAt": "2025-08-03 11:08:13",
+      "updatedAt": "2025-08-03 11:08:13"
+    },
+    {
+      "id": 11,
+      "name": "لللللا",
+      "phoneNumber": "45545545",
+      "email": null,
+      "address": null,
+      "notes": null,
+      "createdAt": "2025-08-03 11:13:41",
+      "updatedAt": "2025-08-03 11:13:41"
+    }
+  ],
+  "customerCars": [
+    {
+      "id": 1,
+      "customerId": 5,
+      "carBrand": "تويوتا",
+      "carModel": "كامري",
+      "licensePlate": "ABC123",
+      "chassisNumber": null,
+      "engineCode": null,
+      "year": 2020,
+      "color": "أبيض",
+      "notes": null,
+      "createdAt": "2025-08-03 10:53:03",
+      "updatedAt": "2025-08-03 10:53:03"
+    },
+    {
+      "id": 2,
+      "customerId": 7,
+      "carBrand": "SKODA",
+      "carModel": "Scala",
+      "licensePlate": "21323",
+      "chassisNumber": "ASDASDASDSAD22321",
+      "engineCode": "CNCD",
+      "year": 2222,
+      "color": "أخضر",
+      "notes": null,
+      "createdAt": "2025-08-03 10:54:34",
+      "updatedAt": "2025-08-03 10:54:34"
+    },
+    {
+      "id": 3,
+      "customerId": 8,
+      "carBrand": "SKODA",
+      "carModel": "Karoq",
+      "licensePlate": "سشيسي",
+      "chassisNumber": "WVWRV1161CM106990",
+      "engineCode": "QWS",
+      "year": 2999,
+      "color": "أصفر",
+      "notes": null,
+      "createdAt": "2025-08-03 10:57:44",
+      "updatedAt": "2025-08-03 10:57:44"
+    },
+    {
+      "id": 4,
+      "customerId": 9,
+      "carBrand": "SEAT",
+      "carModel": "Arona",
+      "licensePlate": "516-6291",
+      "chassisNumber": "SDDFG585757THGJK9",
+      "engineCode": "CDA",
+      "year": 55555,
+      "color": "رمادي",
+      "notes": null,
+      "createdAt": "2025-08-03 11:01:56",
+      "updatedAt": "2025-08-03 11:01:56"
+    },
+    {
+      "id": 5,
+      "customerId": 10,
+      "carBrand": "SKODA",
+      "carModel": "Yeti",
+      "licensePlate": "21323",
+      "chassisNumber": "WALCFCFP5FA007847",
+      "engineCode": "CNCD",
+      "year": 4444,
+      "color": "بني",
+      "notes": null,
+      "createdAt": "2025-08-03 11:08:13",
+      "updatedAt": "2025-08-03 11:08:13"
+    },
+    {
+      "id": 6,
+      "customerId": 11,
+      "carBrand": "AUDI",
+      "carModel": "Q3",
+      "licensePlate": "لالا",
+      "chassisNumber": "WVWRV1161CM106990",
+      "engineCode": "bfs",
+      "year": 4444,
+      "color": "برتقالي",
+      "notes": null,
+      "createdAt": "2025-08-03 11:13:41",
+      "updatedAt": "2025-08-03 11:13:41"
+    }
+  ],
+  "partsRequests": [],
+  "version": "1.0"
+}

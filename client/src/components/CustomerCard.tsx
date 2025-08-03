@@ -885,7 +885,7 @@ export default function CustomerCard() {
                                 <div>
                                   <Label htmlFor="editCarBrand">نوع السيارة *</Label>
                                   <Select 
-                                    value={carForm.carBrand || editingCar.carBrand} 
+                                    value={carForm.carBrand} 
                                     onValueChange={(value) => setCarForm({...carForm, carBrand: value, carModel: ""})}
                                   >
                                     <SelectTrigger>
@@ -903,14 +903,14 @@ export default function CustomerCard() {
                                 <div>
                                   <Label htmlFor="editCarModel">الموديل *</Label>
                                   <Select 
-                                    value={carForm.carModel || editingCar.carModel} 
+                                    value={carForm.carModel} 
                                     onValueChange={(value) => setCarForm({...carForm, carModel: value})}
                                   >
                                     <SelectTrigger>
                                       <SelectValue placeholder="اختر الطراز" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                      {getModelsByBrand(carForm.carBrand || editingCar.carBrand).map((model) => (
+                                      {getModelsByBrand(carForm.carBrand).map((model) => (
                                         <SelectItem key={model} value={model}>{model}</SelectItem>
                                       ))}
                                     </SelectContent>
@@ -920,7 +920,7 @@ export default function CustomerCard() {
                                   <Label htmlFor="editLicensePlate">رقم اللوحة *</Label>
                                   <Input
                                     id="editLicensePlate"
-                                    value={carForm.licensePlate || editingCar.licensePlate}
+                                    value={carForm.licensePlate}
                                     onChange={(e) => setCarForm({...carForm, licensePlate: e.target.value})}
                                     placeholder="123456"
                                   />
@@ -928,7 +928,7 @@ export default function CustomerCard() {
                                 <div>
                                   <Label htmlFor="editCarColor">اللون</Label>
                                   <Select 
-                                    value={carForm.color || editingCar.color || ""} 
+                                    value={carForm.color} 
                                     onValueChange={(value) => setCarForm({...carForm, color: value})}
                                   >
                                     <SelectTrigger>
@@ -954,7 +954,7 @@ export default function CustomerCard() {
                                   <Label htmlFor="editCarYear">سنة الصنع</Label>
                                   <Input
                                     id="editCarYear"
-                                    value={carForm.year || editingCar.year || ""}
+                                    value={carForm.year}
                                     onChange={(e) => setCarForm({...carForm, year: e.target.value})}
                                     placeholder="2020"
                                     type="number"
@@ -964,7 +964,7 @@ export default function CustomerCard() {
                                   <Label htmlFor="editEngineCode">رمز المحرك</Label>
                                   <Input
                                     id="editEngineCode"
-                                    value={carForm.engineCode || (editingCar as any).engineCode || ""}
+                                    value={carForm.engineCode}
                                     onChange={(e) => setCarForm({...carForm, engineCode: e.target.value})}
                                     placeholder="أدخل رمز المحرك"
                                   />
@@ -973,7 +973,7 @@ export default function CustomerCard() {
                                   <Label htmlFor="editChassisNumber">رقم الشاسيه (17 حرف ورقم)</Label>
                                   <Input
                                     id="editChassisNumber"
-                                    value={carForm.chassisNumber || (editingCar as any).chassisNumber || ""}
+                                    value={carForm.chassisNumber}
                                     onChange={(e) => {
                                       const value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
                                       if (value.length <= 17) {
@@ -983,10 +983,9 @@ export default function CustomerCard() {
                                     placeholder="أدخل رقم الشاسيه (17 حرف ورقم)"
                                     maxLength={17}
                                   />
-                                  {(carForm.chassisNumber || (editingCar as any).chassisNumber) && 
-                                   (carForm.chassisNumber || (editingCar as any).chassisNumber).length !== 17 && (
+                                  {carForm.chassisNumber && carForm.chassisNumber.length !== 17 && (
                                     <p className="text-red-500 text-sm mt-1">
-                                      رقم الشاسيه يجب أن يكون 17 حرف ورقم بالضبط (حالياً: {(carForm.chassisNumber || (editingCar as any).chassisNumber).length})
+                                      رقم الشاسيه يجب أن يكون 17 حرف ورقم بالضبط (حالياً: {carForm.chassisNumber.length})
                                     </p>
                                   )}
                                 </div>
@@ -994,7 +993,7 @@ export default function CustomerCard() {
                                   <Label htmlFor="editPreviousOwner">المالك السابق (اختياري)</Label>
                                   <Input
                                     id="editPreviousOwner"
-                                    value={carForm.previousOwner || (editingCar as any).previousOwner || ""}
+                                    value={carForm.previousOwner}
                                     onChange={(e) => setCarForm({...carForm, previousOwner: e.target.value})}
                                     placeholder="اسم المالك السابق إن وجد"
                                   />
@@ -1003,7 +1002,7 @@ export default function CustomerCard() {
                                   <Label htmlFor="editCarNotes">ملاحظات</Label>
                                   <Input
                                     id="editCarNotes"
-                                    value={carForm.notes || editingCar.notes || ""}
+                                    value={carForm.notes}
                                     onChange={(e) => setCarForm({...carForm, notes: e.target.value})}
                                     placeholder="أي ملاحظات إضافية"
                                   />
