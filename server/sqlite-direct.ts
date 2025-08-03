@@ -200,52 +200,89 @@ export const directSQLite = {
 
   // إنشاء طلب قطع غيار
   createPartsRequest: (requestData: any) => {
-    const stmt = db.prepare(`
-      INSERT INTO parts_requests (request_number, engineer_name, car_info, car_brand, car_model, license_plate, chassis_number, engine_code, reason_type, part_name, quantity, notes, status)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `);
-    
-    const requestNumber = `PR${Date.now()}`;
-    const sanitizedData = {
-      request_number: requestNumber,
-      engineer_name: sanitizeValue(requestData.engineerName),
-      car_info: sanitizeValue(requestData.carInfo),
-      car_brand: sanitizeValue(requestData.carBrand) || null,
-      car_model: sanitizeValue(requestData.carModel) || null,
-      license_plate: sanitizeValue(requestData.licensePlate) || null,
-      chassis_number: sanitizeValue(requestData.chassisNumber) || null,
-      engine_code: sanitizeValue(requestData.engineCode) || null,
-      reason_type: sanitizeValue(requestData.reasonType),
-      part_name: sanitizeValue(requestData.partName),
-      quantity: parseInt(requestData.quantity) || 1,
-      notes: sanitizeValue(requestData.notes) || null,
-      status: 'pending'
-    };
-    
-    const result = stmt.run(
-      sanitizedData.request_number,
-      sanitizedData.engineer_name,
-      sanitizedData.car_info,
-      sanitizedData.car_brand,
-      sanitizedData.car_model,
-      sanitizedData.license_plate,
-      sanitizedData.chassis_number,
-      sanitizedData.engine_code,
-      sanitizedData.reason_type,
-      sanitizedData.part_name,
-      sanitizedData.quantity,
-      sanitizedData.notes,
-      sanitizedData.status
-    );
-    
-    const getStmt = db.prepare("SELECT * FROM parts_requests WHERE id = ?");
-    return getStmt.get(result.lastInsertRowid);
+    try {
+      console.log('📦 Received data for parts request:', JSON.stringify(requestData, null, 2));
+      
+      const stmt = db.prepare(`
+        INSERT INTO parts_requests (request_number, engineer_name, car_info, car_brand, car_model, license_plate, chassis_number, engine_code, reason_type, part_name, quantity, notes, status)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `);
+      
+      const requestNumber = `PR${Date.now()}`;
+      // Handle car_info specifically since it's required
+      let carInfo = sanitizeValue(requestData.carInfo);
+      if (!carInfo) {
+        carInfo = sanitizeValue(requestData.licensePlate);
+      }
+      if (!carInfo) {
+        carInfo = 'غير محدد';
+      }
+      
+      const sanitizedData = {
+        request_number: requestNumber,
+        engineer_name: sanitizeValue(requestData.engineerName) || 'غير محدد',
+        car_info: carInfo,
+        car_brand: sanitizeValue(requestData.carBrand) || null,
+        car_model: sanitizeValue(requestData.carModel) || null,
+        license_plate: sanitizeValue(requestData.licensePlate) || null,
+        chassis_number: sanitizeValue(requestData.chassisNumber) || null,
+        engine_code: sanitizeValue(requestData.engineCode) || null,
+        reason_type: sanitizeValue(requestData.reasonType) || 'غير محدد',
+        part_name: sanitizeValue(requestData.partName) || 'غير محدد',
+        quantity: parseInt(requestData.quantity) || 1,
+        notes: sanitizeValue(requestData.notes) || null,
+        status: 'pending'
+      };
+      
+      console.log('✅ Sanitized data for insertion:', JSON.stringify(sanitizedData, null, 2));
+      
+      const result = stmt.run(
+        sanitizedData.request_number,
+        sanitizedData.engineer_name,
+        sanitizedData.car_info,
+        sanitizedData.car_brand,
+        sanitizedData.car_model,
+        sanitizedData.license_plate,
+        sanitizedData.chassis_number,
+        sanitizedData.engine_code,
+        sanitizedData.reason_type,
+        sanitizedData.part_name,
+        sanitizedData.quantity,
+        sanitizedData.notes,
+        sanitizedData.status
+      );
+      
+      console.log('✅ Insert successful, ID:', result.lastInsertRowid);
+      
+      const getStmt = db.prepare("SELECT * FROM parts_requests WHERE id = ?");
+      return getStmt.get(result.lastInsertRowid);
+    } catch (error) {
+      console.error('❌ Error in createPartsRequest:', error);
+      throw error;
+    }
   },
 
   // جلب طلبات القطع
   getPartsRequests: () => {
     const stmt = db.prepare("SELECT * FROM parts_requests ORDER BY created_at DESC");
     return stmt.all();
+  },
+
+  // جلب طلبات القطع لسيارة معينة
+  getPartsRequestsByLicensePlate: (licensePlate: string) => {
+    const stmt = db.prepare("SELECT * FROM parts_requests WHERE license_plate = ? ORDER BY created_at DESC");
+    return stmt.all(licensePlate);
+  },
+
+  // البحث عن بيانات السيارة للAutofill
+  getCarDataByLicensePlate: (licensePlate: string) => {
+    const stmt = db.prepare(`
+      SELECT car_brand, car_model, color, chassis_number, engine_code 
+      FROM customer_cars 
+      WHERE license_plate = ? 
+      LIMIT 1
+    `);
+    return stmt.get(licensePlate);
   },
 
   // الحصول على إحصائيات العمال

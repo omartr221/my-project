@@ -350,13 +350,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/cars/:licensePlate", async (req, res) => {
     try {
       const licensePlate = req.params.licensePlate;
-      const carData = await storage.getCarDataByLicensePlate(licensePlate);
+      const carData = directSQLite.getCarDataByLicensePlate(licensePlate);
 
       if (!carData) {
         return res.status(404).json({ message: "Car not found" });
       }
 
-      res.json(carData);
+      res.json({
+        licensePlate: licensePlate,
+        carBrand: carData.car_brand,
+        carModel: carData.car_model,
+        color: carData.color,
+        chassisNumber: carData.chassis_number,
+        engineCode: carData.engine_code,
+      });
     } catch (error) {
       console.error("Error fetching car data:", error);
       res.status(500).json({ message: "Failed to fetch car data" });
@@ -526,13 +533,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Search term is required" });
       }
 
-      const carData = await storage.searchCarInfoForParts(searchTerm);
+      const carData = directSQLite.getCarDataByLicensePlate(searchTerm);
 
       if (!carData) {
         return res.status(404).json({ message: "Car not found" });
       }
 
-      res.json(carData);
+      res.json({
+        licensePlate: searchTerm,
+        carBrand: carData.car_brand,
+        carModel: carData.car_model,
+        color: carData.color,
+        chassisNumber: carData.chassis_number,
+        engineCode: carData.engine_code,
+      });
     } catch (error) {
       console.error("Error searching for car:", error);
       res.status(500).json({ message: "Failed to search for car" });
@@ -543,8 +557,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/parts-requests/by-car/:licensePlate", async (req, res) => {
     try {
       const { licensePlate } = req.params;
-      const requests =
-        await storage.getPartsRequestsByLicensePlate(licensePlate);
+      const requests = directSQLite.getPartsRequestsByLicensePlate(licensePlate);
       res.json(requests);
     } catch (error) {
       console.error("Error fetching parts requests by car:", error);
@@ -566,7 +579,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Parts requests routes
   app.get("/api/parts-requests", async (req, res) => {
     try {
-      const requests = await storage.getPartsRequests();
+      const requests = directSQLite.getPartsRequests();
       res.json(requests);
     } catch (error) {
       console.error("Error fetching parts requests:", error);
@@ -597,13 +610,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         JSON.stringify(req.body, null, 2),
       );
 
-      const requestData = insertPartsRequestSchema.parse(req.body);
+      const requestData = req.body; // Direct use since directSQLite handles validation
       console.log(
         "✅ Parsed request data:",
         JSON.stringify(requestData, null, 2),
       );
 
-      const request = await storage.createPartsRequest(requestData);
+      const request = directSQLite.createPartsRequest(requestData);
       console.log("📋 Created request:", JSON.stringify(request, null, 2));
 
       // إرسال حدث مخصص للإشعارات
