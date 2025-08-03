@@ -4,8 +4,9 @@
   "description": "V POWER TUNING - نظام إدارة المهام للورش",
   "type": "module",
   "scripts": {
-    "build": "vite build",
-    "start": "NODE_ENV=production node dist/index.js",
+    "build": "vite build && npm run build:server",
+    "build:server": "mkdir -p dist && cp -r server dist/ && cp -r shared dist/",
+    "start": "node render-start.js",
     "dev": "NODE_ENV=development tsx server/index.ts",
     "db:push": "drizzle-kit push",
     "db:migrate": "drizzle-kit migrate",

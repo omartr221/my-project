@@ -107,21 +107,28 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   try {
     log("🚀 بدء تشغيل السيرفر...");
     
+    // Render requires process.env.PORT, fallback to 5000 for local development
     const port = parseInt(process.env.PORT || "5000");
-    const host = process.env.HOST || "0.0.0.0";
+    const host = process.env.NODE_ENV === 'production' ? "0.0.0.0" : (process.env.HOST || "0.0.0.0");
 
-    // إنشاء خادم HTTP أولاً
+    // إنشاء خادم HTTP أولاً - Render compatible
     const server = app.listen(port, host, () => {
       log(`🚀 V POWER TUNING Server جاهز!`);
       log(`   - Environment: ${process.env.NODE_ENV || 'development'}`);
-      log(`   - Port: ${port}`);
+      log(`   - Port: ${port} ${process.env.PORT ? '(Render assigned)' : '(default)'}`);
       log(`   - Host: ${host}`);
-      log(`   - من هذا الجهاز: http://localhost:${port}`);
-      log(`   - من هذا الجهاز أيضاً: http://127.0.0.1:${port}`);
-      log(`   - من أجهزة أخرى: http://[عنوان-IP]:${port}`);
-      log(`📱 لمعرفة عنوان IP: اكتب ipconfig في cmd`);
+      
+      if (process.env.NODE_ENV !== 'production') {
+        log(`   - من هذا الجهاز: http://localhost:${port}`);
+        log(`   - من هذا الجهاز أيضاً: http://127.0.0.1:${port}`);
+        log(`   - من أجهزة أخرى: http://[عنوان-IP]:${port}`);
+        log(`📱 لمعرفة عنوان IP: اكتب ipconfig في cmd`);
+        log(`💡 إذا لم يعمل localhost جرب: 127.0.0.1:${port}`);
+      } else {
+        log(`🌐 Production server ready on Render`);
+      }
+      
       log(`🔧 السيرفر يعمل على جميع عناوين الشبكة (${host})`);
-      log(`💡 إذا لم يعمل localhost جرب: 127.0.0.1:${port}`);
       log(`🌐 قاعدة البيانات: Render PostgreSQL`);
       log(`🔑 مستخدم الاستقبال: كلمة المرور 11`);
       log(`📖 راجع ملف 'تجربة-الاتصال.md' للمساعدة`);
