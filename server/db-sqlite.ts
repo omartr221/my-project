@@ -4,20 +4,24 @@ import * as schema from "@shared/schema-sqlite";
 
 const sqlite = new Database("database.db");
 
-// دالة تنظيف القيم قبل الإدخال
-export function sanitizeValue(value: any): any {
+// دالة تنظيف القيم قبل الإدخال - تتوافق مع أنواع البيانات المدعومة في SQLite
+export function sanitizeValue(value: any): string | number | bigint | Buffer | null {
+  // SQLite يدعم فقط: numbers, strings, bigints, buffers, null
   if (value === null || value === undefined) {
     return null;
   }
   
+  // معالجة النصوص
   if (typeof value === 'string') {
     // إزالة المحارف الخطيرة والتحكم
-    return value
+    const cleaned = value
       .replace(/[\x00-\x1F\x7F]/g, '') // إزالة محارف التحكم
       .replace(/[\uFEFF\uFFFE\uFFFF]/g, '') // إزالة محارف Unicode الخطيرة
       .trim();
+    return cleaned.length > 0 ? cleaned : null;
   }
   
+  // معالجة الأرقام
   if (typeof value === 'number') {
     // التأكد من صحة الأرقام
     if (!isFinite(value) || isNaN(value)) {
@@ -26,62 +30,86 @@ export function sanitizeValue(value: any): any {
     return value;
   }
   
-  if (typeof value === 'boolean') {
+  // معالجة BigInt
+  if (typeof value === 'bigint') {
     return value;
   }
   
-  if (Array.isArray(value)) {
-    // تنظيف عناصر المصفوفة
-    return value.map(item => sanitizeValue(item)).filter(item => item !== null);
+  // معالجة Buffer
+  if (Buffer.isBuffer(value)) {
+    return value;
   }
   
-  if (typeof value === 'object') {
-    // تنظيف خصائص الكائن
-    const cleaned: any = {};
-    for (const [key, val] of Object.entries(value)) {
-      const cleanedKey = sanitizeValue(key);
-      const cleanedVal = sanitizeValue(val);
-      if (cleanedKey && cleanedVal !== null) {
-        cleaned[cleanedKey] = cleanedVal;
-      }
+  // معالجة البيانات المنطقية - تحويل إلى رقم (0 أو 1)
+  if (typeof value === 'boolean') {
+    return value ? 1 : 0;
+  }
+  
+  // معالجة التواريخ - تحويل إلى نص ISO
+  if (value instanceof Date) {
+    return value.toISOString();
+  }
+  
+  // معالجة المصفوفات والكائنات - تحويل إلى JSON
+  if (Array.isArray(value) || (typeof value === 'object' && value !== null)) {
+    try {
+      return JSON.stringify(value);
+    } catch {
+      return null;
     }
-    return cleaned;
   }
   
-  return value;
+  // إذا لم يكن النوع مدعوم، حول إلى نص
+  try {
+    return String(value);
+  } catch {
+    return null;
+  }
 }
 
 // دالة تنظيف البيانات قبل الإدخال في قاعدة البيانات
-export function sanitizeInsertData<T extends Record<string, any>>(data: T): T {
-  const sanitized = {} as T;
+export function sanitizeInsertData<T extends Record<string, any>>(data: T): Record<string, any> {
+  const sanitized: Record<string, any> = {};
   
   for (const [key, value] of Object.entries(data)) {
-    // تنظيف القيم النصية
-    if (typeof value === 'string') {
-      sanitized[key as keyof T] = sanitizeValue(value);
+    // تنظيف المفتاح أولاً
+    const cleanKey = sanitizeValue(key);
+    if (typeof cleanKey !== 'string' || cleanKey.length === 0) {
+      continue; // تجاهل المفاتيح غير الصحيحة
     }
-    // تنظيف المصفوفات المحولة إلى JSON
-    else if (key === 'permissions' || key === 'technicians' || key === 'assistants') {
+    
+    // تنظيف المصفوفات المحولة إلى JSON (الحقول الخاصة)
+    if (key === 'permissions' || key === 'technicians' || key === 'assistants') {
       if (typeof value === 'string') {
         try {
           const parsed = JSON.parse(value);
           if (Array.isArray(parsed)) {
-            sanitized[key as keyof T] = JSON.stringify(parsed.map(item => sanitizeValue(item)));
+            // تنظيف عناصر المصفوفة وإعادة تحويلها إلى JSON
+            const cleanedArray = parsed
+              .map(item => sanitizeValue(item))
+              .filter(item => item !== null);
+            sanitized[cleanKey] = JSON.stringify(cleanedArray);
           } else {
-            sanitized[key as keyof T] = value;
+            sanitized[cleanKey] = sanitizeValue(value);
           }
         } catch {
-          sanitized[key as keyof T] = value;
+          sanitized[cleanKey] = sanitizeValue(value);
         }
       } else if (Array.isArray(value)) {
-        sanitized[key as keyof T] = JSON.stringify(value.map(item => sanitizeValue(item)));
+        const cleanedArray = value
+          .map(item => sanitizeValue(item))
+          .filter(item => item !== null);
+        sanitized[cleanKey] = JSON.stringify(cleanedArray);
       } else {
-        sanitized[key as keyof T] = value;
+        sanitized[cleanKey] = sanitizeValue(value);
       }
     }
-    // باقي القيم
+    // تنظيف باقي القيم
     else {
-      sanitized[key as keyof T] = sanitizeValue(value);
+      const cleanedValue = sanitizeValue(value);
+      if (cleanedValue !== null) {
+        sanitized[cleanKey] = cleanedValue;
+      }
     }
   }
   
@@ -93,7 +121,7 @@ sqlite.pragma("journal_mode = WAL");
 
 export const db = drizzle(sqlite, { schema });
 
-// Create tables if they don't exist
+// Create tables if they don't exist - بدون استخدام دوال PostgreSQL
 sqlite.exec(`
   CREATE TABLE IF NOT EXISTS workers (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -107,7 +135,7 @@ sqlite.exec(`
     address TEXT,
     is_active INTEGER DEFAULT 1,
     is_predefined INTEGER DEFAULT 0,
-    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    created_at TEXT DEFAULT (datetime('now', 'localtime'))
   );
 
   CREATE TABLE IF NOT EXISTS tasks (

@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage"; // ✅ هذا هو الملف الصح يلي فيه الدالة مفعلة
+import { directSQLite } from "./sqlite-direct";
 
 import {
   insertWorkerSchema,
@@ -85,7 +86,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Worker routes
   app.get("/api/workers", async (req, res) => {
     try {
-      const workers = await storage.getWorkers();
+      const workers = directSQLite.getWorkers();
       res.json(workers);
     } catch (error) {
       console.error("Error fetching workers:", error);
@@ -104,24 +105,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Route اختبار مباشر لـ SQLite  
+  app.post("/api/workers/test", async (req, res) => {
+    try {
+      console.log("Testing direct SQLite worker creation...");
+      const worker = directSQLite.createWorker(req.body);
+      console.log("Worker created successfully:", worker);
+      res.json(worker);
+    } catch (error) {
+      console.error("Error in direct SQLite:", error);
+      res.status(500).json({ message: "Direct SQLite error", error: error.message });
+    }
+  });
+
   app.post("/api/workers", async (req, res) => {
     try {
-      const workerData = insertWorkerSchema.parse(req.body);
-      const worker = await storage.createWorker(workerData);
-
+      console.log("Creating worker with directSQLite:", req.body);
+      const worker = directSQLite.createWorker(req.body);
+      console.log("Worker created:", worker);
+      
       // Broadcast update to all clients
       broadcastUpdate("worker_created", worker);
 
       res.json(worker);
     } catch (error) {
-      if (error instanceof z.ZodError) {
-        res
-          .status(400)
-          .json({ message: "Invalid worker data", errors: error.errors });
-      } else {
-        console.error("Error creating worker:", error);
-        res.status(500).json({ message: "Failed to create worker" });
-      }
+      console.error("Error creating worker:", error);
+      res.status(500).json({ message: "Failed to create worker", error: error.message });
     }
   });
 

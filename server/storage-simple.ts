@@ -135,7 +135,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createWorker(worker: InsertWorker): Promise<Worker> {
-    const sanitizedWorker = sanitizeInsertData(worker);
+    const sanitizedWorker = sanitizeInsertData({
+      ...worker,
+      createdAt: new Date().toISOString()
+    });
     const [newWorker] = await db.insert(workers).values(sanitizedWorker).returning();
     return newWorker;
   }
@@ -190,7 +193,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createTask(task: InsertTask): Promise<Task> {
-    const sanitizedTask = sanitizeInsertData(task);
+    const sanitizedTask = sanitizeInsertData({
+      ...task,
+      taskNumber: `T${Date.now()}`,
+      startTime: new Date().toISOString(),
+      createdAt: new Date().toISOString()
+    });
     const [newTask] = await db.insert(tasks).values(sanitizedTask).returning();
     return newTask;
   }
