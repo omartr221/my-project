@@ -6,7 +6,7 @@ import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { formatTime, getCarBrandInArabic } from "@/lib/utils";
-import { type TaskWithWorker } from "@shared/schema-sqlite";
+import { type TaskWithWorker } from "@shared/schema";
 
 interface PausedTasksListProps {
   tasks: TaskWithWorker[];

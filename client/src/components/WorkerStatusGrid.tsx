@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { insertWorkerSchema, type WorkerWithTasks, type InsertWorker } from "@shared/schema-sqlite";
+import { insertWorkerSchema, type WorkerWithTasks, type InsertWorker } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { formatDuration } from "@/lib/utils";

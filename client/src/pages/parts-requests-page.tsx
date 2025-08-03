@@ -5,10 +5,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { Package2, Plus, List } from "lucide-react";
 
 export default function PartsRequestsPage() {
-  const { user } = useAuth();
-  
-  // Check if user can create parts requests
-  const canCreateParts = user?.permissions?.includes('parts:create');
+  const { canCreate } = useAuth();
 
   return (
     <div className="min-h-screen bg-gray-50 p-4">
@@ -29,7 +26,7 @@ export default function PartsRequestsPage() {
               <List className="h-4 w-4" />
               قائمة الطلبات
             </TabsTrigger>
-            {canCreateParts && (
+            {canCreate("parts") && (
               <TabsTrigger value="new-request" className="flex items-center gap-2">
                 <Plus className="h-4 w-4" />
                 طلب جديد
@@ -41,7 +38,7 @@ export default function PartsRequestsPage() {
             <PartsRequestsList />
           </TabsContent>
 
-          {canCreateParts && (
+          {canCreate("parts") && (
             <TabsContent value="new-request" className="mt-6">
               <PartsRequestForm />
             </TabsContent>

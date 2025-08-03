@@ -8,7 +8,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { usePermissions } from "@/hooks/use-auth";
 import { formatDuration, formatTime, getCarBrandInArabic, getWorkerCategoryInArabic, getTaskStatusInArabic, getTaskStatusColor } from "@/lib/utils";
-import { type TaskWithWorker } from "@shared/schema-sqlite";
+import { type TaskWithWorker } from "@shared/schema";
 import { useState, useEffect } from "react";
 import PauseTaskDialog from "./PauseTaskDialog";
 import EditTaskDialog from "./EditTaskDialog";

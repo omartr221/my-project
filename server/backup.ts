@@ -1,5 +1,5 @@
-import { db } from './db-sqlite';
-import { customers, customerCars, partsRequests } from '@shared/schema-sqlite';
+import { db } from './db';
+import { customers, customerCars, partsRequests } from '@shared/schema';
 import { writeFileSync, existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
 

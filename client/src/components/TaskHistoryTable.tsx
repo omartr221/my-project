@@ -15,7 +15,7 @@ import { z } from "zod";
 import { formatDuration, formatTime, formatDate, getCarBrandInArabic, getTaskStatusInArabic, getTaskStatusColor } from "@/lib/utils";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { type TaskHistory } from "@shared/schema-sqlite";
+import { type TaskHistory } from "@shared/schema";
 
 const archiveFormSchema = z.object({
   archivedBy: z.string().min(1, "يجب إدخال اسم المستلم"),

@@ -9,7 +9,7 @@ import { Edit, Save, X } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { insertTaskSchema, type TaskWithWorker } from "@shared/schema-sqlite";
+import { insertTaskSchema, type TaskWithWorker } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";

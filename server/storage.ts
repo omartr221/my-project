@@ -1,8 +1,9 @@
 import { workers, tasks, timeEntries, customers, customerCars, users, partsRequests, carReceipts, type Worker, type InsertWorker, type Task, type InsertTask, type TimeEntry, type InsertTimeEntry, type WorkerWithTasks, type TaskWithWorker, type TaskHistory, type Customer, type InsertCustomer, type CustomerCar, type InsertCustomerCar, type CustomerWithCars, type User, type InsertUser, type PartsRequest, type InsertPartsRequest, type CarReceipt, type InsertCarReceipt } from "@shared/schema";
-import { db } from "./db-sqlite";
+import { db } from "./db";
 import { eq, desc, and, isNull, or, like, isNotNull, asc, sql } from "drizzle-orm";
 import session from "express-session";
-import MemoryStore from "memorystore";
+import connectPg from "connect-pg-simple";
+import { pool } from "./db";
 
 export interface IStorage {
   // Worker management
@@ -83,12 +84,15 @@ export interface IStorage {
   sessionStore: any;
 }
 
+const PostgresSessionStore = connectPg(session);
+
 export class DatabaseStorage implements IStorage {
   sessionStore: any;
   
   constructor() {
-    this.sessionStore = new (MemoryStore(session))({
-      checkPeriod: 86400000, // prune expired entries every 24h
+    this.sessionStore = new PostgresSessionStore({ 
+      pool, 
+      createTableIfMissing: true 
     });
   }
   async getWorkers(): Promise<WorkerWithTasks[]> {

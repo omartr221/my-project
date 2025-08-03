@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Car, User, Gauge, Fuel, Bell, Check } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import type { CarReceipt } from "@shared/schema-sqlite";
+import type { CarReceipt } from "@shared/schema";
 
 interface WorkshopNotification {
   type: string;
