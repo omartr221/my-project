@@ -90,6 +90,7 @@ export const customerCars = sqliteTable("customer_cars", {
   engineCode: text("engine_code"),
   year: integer("year"),
   color: text("color"),
+  previousOwner: text("previous_owner"),
   notes: text("notes"),
   createdAt: text("created_at").default("CURRENT_TIMESTAMP"),
   updatedAt: text("updated_at").default("CURRENT_TIMESTAMP"),

@@ -130,15 +130,16 @@ export default function CustomerCard() {
   // Fill car form with current car data when editing
   useEffect(() => {
     if (editingCar) {
+      console.log("Editing car data:", editingCar);
       setCarForm({
-        carBrand: editingCar.carBrand || "",
-        carModel: editingCar.carModel || "",
-        licensePlate: editingCar.licensePlate || "",
+        carBrand: editingCar.carBrand || editingCar.car_brand || "",
+        carModel: editingCar.carModel || editingCar.car_model || "",
+        licensePlate: editingCar.licensePlate || editingCar.license_plate || "",
         color: editingCar.color || "",
         year: editingCar.year ? editingCar.year.toString() : "",
-        engineCode: (editingCar as any).engineCode || "",
-        chassisNumber: (editingCar as any).chassisNumber || "",
-        previousOwner: (editingCar as any).previousOwner || "",
+        engineCode: editingCar.engineCode || editingCar.engine_code || "",
+        chassisNumber: editingCar.chassisNumber || editingCar.chassis_number || "",
+        previousOwner: editingCar.previousOwner || editingCar.previous_owner || "",
         notes: editingCar.notes || "",
       });
     } else {
