@@ -359,7 +359,7 @@ export default function CustomerCard() {
   };
 
   const getCustomerCars = (customerId: number) => {
-    return customerCars.filter(car => car.customerId === customerId);
+    return customerCars.filter(car => car.customer_id === customerId);
   };
 
   return (
