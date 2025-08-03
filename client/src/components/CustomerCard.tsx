@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -104,6 +104,28 @@ export default function CustomerCard() {
     setSearchTerm(value);
     setCurrentPage(1); // Reset to first page when searching
   };
+
+  // Fill form with current customer data when editing
+  useEffect(() => {
+    if (editingCustomer) {
+      setCustomerForm({
+        name: editingCustomer.name || "",
+        phoneNumber: editingCustomer.phoneNumber || "",
+        address: editingCustomer.address || "",
+        notes: editingCustomer.notes || "",
+        carBrand: "",
+        carModel: "",
+        year: "",
+        color: "",
+        engineCode: "",
+        chassisNumber: "",
+        licensePlate: "",
+        previousOwner: "",
+      });
+    } else {
+      resetCustomerForm();
+    }
+  }, [editingCustomer]);
 
   const resetCustomerForm = () => {
     setCustomerForm({
@@ -350,10 +372,10 @@ export default function CustomerCard() {
     if (!editingCustomer) return;
 
     const updates: Partial<InsertCustomer> = {
-      name: customerForm.name || editingCustomer.name,
-      phoneNumber: customerForm.phoneNumber || editingCustomer.phoneNumber,
-      address: customerForm.address || editingCustomer.address || undefined,
-      notes: customerForm.notes || editingCustomer.notes || undefined,
+      name: customerForm.name,
+      phoneNumber: customerForm.phoneNumber,
+      address: customerForm.address || undefined,
+      notes: customerForm.notes || undefined,
     };
 
     editCustomerMutation.mutate({ id: editingCustomer.id, updates });
@@ -568,7 +590,7 @@ export default function CustomerCard() {
                       <Label htmlFor="editCustomerName">اسم الزبون *</Label>
                       <Input
                         id="editCustomerName"
-                        value={customerForm.name || editingCustomer.name}
+                        value={customerForm.name}
                         onChange={(e) => setCustomerForm({...customerForm, name: e.target.value})}
                         placeholder="أدخل اسم الزبون"
                       />
@@ -577,7 +599,7 @@ export default function CustomerCard() {
                       <Label htmlFor="editCustomerPhone">الهاتف *</Label>
                       <Input
                         id="editCustomerPhone"
-                        value={customerForm.phoneNumber || editingCustomer.phoneNumber}
+                        value={customerForm.phoneNumber}
                         onChange={(e) => setCustomerForm({...customerForm, phoneNumber: e.target.value})}
                         placeholder="أدخل رقم الهاتف"
                       />
@@ -586,7 +608,7 @@ export default function CustomerCard() {
                       <Label htmlFor="editCustomerAddress">العنوان</Label>
                       <Input
                         id="editCustomerAddress"
-                        value={customerForm.address || editingCustomer.address || ""}
+                        value={customerForm.address}
                         onChange={(e) => setCustomerForm({...customerForm, address: e.target.value})}
                         placeholder="أدخل العنوان"
                       />
@@ -595,7 +617,7 @@ export default function CustomerCard() {
                       <Label htmlFor="editCustomerNotes">ملاحظات</Label>
                       <Input
                         id="editCustomerNotes"
-                        value={customerForm.notes || editingCustomer.notes || ""}
+                        value={customerForm.notes}
                         onChange={(e) => setCustomerForm({...customerForm, notes: e.target.value})}
                         placeholder="أي ملاحظات إضافية"
                       />
