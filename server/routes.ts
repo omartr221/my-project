@@ -961,13 +961,32 @@ function broadcastUpdate(type: string, data: any) {
   });
 }
 
-async function sendInitialData(ws: WebSocket) {
+function sendInitialData(ws: WebSocket) {
   try {
-    const [workers, activeTasks, stats] = await Promise.all([
-      storage.getWorkers(),
-      storage.getActiveTasks(),
-      storage.getWorkerStats(),
-    ]);
+    console.log("📡 Starting to send initial data...");
+    
+    // جلب البيانات بشكل منفصل لتحديد مصدر المشكلة
+    let workers: any[] = [];
+    let stats: any = {};
+    let activeTasks: any[] = [];
+
+    try {
+      workers = directSQLite.getWorkers();
+      console.log("✅ Workers fetched successfully:", workers.length);
+    } catch (error) {
+      console.error("❌ Error fetching workers:", error);
+      workers = [];
+    }
+
+    try {
+      stats = directSQLite.getWorkerStats();
+      console.log("✅ Stats fetched successfully:", stats);
+    } catch (error) {
+      console.error("❌ Error fetching stats:", error);
+      stats = { activeWorkers: 0, totalWorkers: 0, totalTasks: 0, completedTasks: 0 };
+    }
+
+    console.log("📤 Sending data to WebSocket client");
 
     if (ws.readyState === WebSocket.OPEN) {
       ws.send(
@@ -980,6 +999,9 @@ async function sendInitialData(ws: WebSocket) {
           },
         }),
       );
+      console.log("✅ Initial data sent successfully");
+    } else {
+      console.log("⚠️ WebSocket not open, skipping send");
     }
   } catch (error) {
     console.error("Error sending initial data:", error);
