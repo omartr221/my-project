@@ -157,7 +157,7 @@ export default function PartsRequestForm() {
                 <FormItem>
                   <FormLabel>رقم السيارة</FormLabel>
                   <FormControl>
-                    <Input placeholder="مثال: 12345" {...field} />
+                    <Input placeholder="مثال: 12345" {...field} value={field.value || ""} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -234,6 +234,7 @@ export default function PartsRequestForm() {
                       placeholder="أي ملاحظات إضافية..."
                       className="resize-none"
                       {...field}
+                      value={field.value || ""}
                     />
                   </FormControl>
                   <FormMessage />

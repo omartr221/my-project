@@ -72,12 +72,12 @@ export default function CustomerCard() {
   });
 
   // Fetch customers data
-  const { data: customers = [] } = useQuery({
+  const { data: customers = [] } = useQuery<Customer[]>({
     queryKey: ['/api/customers'],
   });
 
   // Fetch customer cars data  
-  const { data: customerCars = [] } = useQuery({
+  const { data: customerCars = [] } = useQuery<CustomerCar[]>({
     queryKey: ['/api/customer-cars'],
   });
 
@@ -131,14 +131,14 @@ export default function CustomerCard() {
   useEffect(() => {
     if (editingCar) {
       setCarForm({
-        carBrand: editingCar.car_brand || "",
-        carModel: editingCar.car_model || "",
-        licensePlate: editingCar.license_plate || "",
+        carBrand: editingCar.carBrand || "",
+        carModel: editingCar.carModel || "",
+        licensePlate: editingCar.licensePlate || "",
         color: editingCar.color || "",
         year: editingCar.year ? editingCar.year.toString() : "",
-        engineCode: editingCar.engine_code || "",
-        chassisNumber: editingCar.chassis_number || "",
-        previousOwner: editingCar.previous_owner || "",
+        engineCode: editingCar.engineCode || "",
+        chassisNumber: editingCar.chassisNumber || "",
+        previousOwner: editingCar.previousOwner || "",
         notes: editingCar.notes || "",
       });
     } else {
@@ -401,7 +401,7 @@ export default function CustomerCard() {
   };
 
   const getCustomerCars = (customerId: number) => {
-    return customerCars.filter(car => car.customer_id === customerId);
+    return customerCars.filter((car: CustomerCar) => car.customerId === customerId);
   };
 
   return (
@@ -1043,14 +1043,14 @@ export default function CustomerCard() {
                                     {car.color && ` - ${car.color}`}
                                     {car.year && ` - ${car.year}`}
                                   </div>
-                                  {(car as any).engineCode && (
+                                  {car.engineCode && (
                                     <div className="text-xs text-gray-600">
-                                      رمز المحرك: {(car as any).engineCode}
+                                      رمز المحرك: {car.engineCode}
                                     </div>
                                   )}
-                                  {(car as any).chassisNumber && (
+                                  {car.chassisNumber && (
                                     <div className="text-xs text-gray-600">
-                                      رقم الشاسيه: {(car as any).chassisNumber}
+                                      رقم الشاسيه: {car.chassisNumber}
                                     </div>
                                   )}
                                   {car.notes && (
