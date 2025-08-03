@@ -4,6 +4,90 @@ import * as schema from "@shared/schema-sqlite";
 
 const sqlite = new Database("database.db");
 
+// دالة تنظيف القيم قبل الإدخال
+export function sanitizeValue(value: any): any {
+  if (value === null || value === undefined) {
+    return null;
+  }
+  
+  if (typeof value === 'string') {
+    // إزالة المحارف الخطيرة والتحكم
+    return value
+      .replace(/[\x00-\x1F\x7F]/g, '') // إزالة محارف التحكم
+      .replace(/[\uFEFF\uFFFE\uFFFF]/g, '') // إزالة محارف Unicode الخطيرة
+      .trim();
+  }
+  
+  if (typeof value === 'number') {
+    // التأكد من صحة الأرقام
+    if (!isFinite(value) || isNaN(value)) {
+      return null;
+    }
+    return value;
+  }
+  
+  if (typeof value === 'boolean') {
+    return value;
+  }
+  
+  if (Array.isArray(value)) {
+    // تنظيف عناصر المصفوفة
+    return value.map(item => sanitizeValue(item)).filter(item => item !== null);
+  }
+  
+  if (typeof value === 'object') {
+    // تنظيف خصائص الكائن
+    const cleaned: any = {};
+    for (const [key, val] of Object.entries(value)) {
+      const cleanedKey = sanitizeValue(key);
+      const cleanedVal = sanitizeValue(val);
+      if (cleanedKey && cleanedVal !== null) {
+        cleaned[cleanedKey] = cleanedVal;
+      }
+    }
+    return cleaned;
+  }
+  
+  return value;
+}
+
+// دالة تنظيف البيانات قبل الإدخال في قاعدة البيانات
+export function sanitizeInsertData<T extends Record<string, any>>(data: T): T {
+  const sanitized = {} as T;
+  
+  for (const [key, value] of Object.entries(data)) {
+    // تنظيف القيم النصية
+    if (typeof value === 'string') {
+      sanitized[key as keyof T] = sanitizeValue(value);
+    }
+    // تنظيف المصفوفات المحولة إلى JSON
+    else if (key === 'permissions' || key === 'technicians' || key === 'assistants') {
+      if (typeof value === 'string') {
+        try {
+          const parsed = JSON.parse(value);
+          if (Array.isArray(parsed)) {
+            sanitized[key as keyof T] = JSON.stringify(parsed.map(item => sanitizeValue(item)));
+          } else {
+            sanitized[key as keyof T] = value;
+          }
+        } catch {
+          sanitized[key as keyof T] = value;
+        }
+      } else if (Array.isArray(value)) {
+        sanitized[key as keyof T] = JSON.stringify(value.map(item => sanitizeValue(item)));
+      } else {
+        sanitized[key as keyof T] = value;
+      }
+    }
+    // باقي القيم
+    else {
+      sanitized[key as keyof T] = sanitizeValue(value);
+    }
+  }
+  
+  return sanitized;
+}
+
 // Enable WAL mode for better performance
 sqlite.pragma("journal_mode = WAL");
 

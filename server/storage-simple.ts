@@ -1,8 +1,9 @@
 import { workers, tasks, timeEntries, customers, customerCars, users, partsRequests, carReceipts, type Worker, type InsertWorker, type Task, type InsertTask, type TimeEntry, type InsertTimeEntry, type WorkerWithTasks, type TaskWithWorker, type TaskHistory, type Customer, type InsertCustomer, type CustomerCar, type InsertCustomerCar, type CustomerWithCars, type User, type InsertUser, type PartsRequest, type InsertPartsRequest, type CarReceipt, type InsertCarReceipt } from "@shared/schema-sqlite";
-import { db } from "./db-sqlite";
+import { db, sanitizeInsertData } from "./db-sqlite";
 import { eq, desc, and, isNull, or, like, isNotNull, asc, sql } from "drizzle-orm";
 import session from "express-session";
 import MemoryStore from "memorystore";
+import { sanitizeValue } from "./db-sqlite";
 
 export interface IStorage {
   // Worker management
@@ -134,12 +135,14 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createWorker(worker: InsertWorker): Promise<Worker> {
-    const [newWorker] = await db.insert(workers).values(worker).returning();
+    const sanitizedWorker = sanitizeInsertData(worker);
+    const [newWorker] = await db.insert(workers).values(sanitizedWorker).returning();
     return newWorker;
   }
 
   async updateWorker(id: number, updates: Partial<InsertWorker>): Promise<Worker> {
-    const [updated] = await db.update(workers).set(updates).where(eq(workers.id, id)).returning();
+    const sanitizedUpdates = sanitizeInsertData(updates);
+    const [updated] = await db.update(workers).set(sanitizedUpdates).where(eq(workers.id, id)).returning();
     return updated;
   }
 
@@ -187,30 +190,34 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createTask(task: InsertTask): Promise<Task> {
-    const [newTask] = await db.insert(tasks).values(task).returning();
+    const sanitizedTask = sanitizeInsertData(task);
+    const [newTask] = await db.insert(tasks).values(sanitizedTask).returning();
     return newTask;
   }
 
   async updateTask(id: number, updates: Partial<Task>): Promise<Task> {
-    const [updated] = await db.update(tasks).set(updates).where(eq(tasks.id, id)).returning();
+    const sanitizedUpdates = sanitizeInsertData(updates);
+    const [updated] = await db.update(tasks).set(sanitizedUpdates).where(eq(tasks.id, id)).returning();
     return updated;
   }
 
   // Simplified implementations for other methods
   async startTask(taskId: number): Promise<TimeEntry> {
-    const timeEntry = await db.insert(timeEntries).values({
+    const entryData = sanitizeInsertData({
       taskId,
-      startTime: new Date(),
+      startTime: new Date().toISOString(),
       entryType: "work"
-    }).returning();
+    });
+    const timeEntry = await db.insert(timeEntries).values(entryData).returning();
     return timeEntry[0];
   }
 
   async pauseTask(taskId: number): Promise<Task> {
-    const [updated] = await db.update(tasks).set({
+    const updateData = sanitizeInsertData({
       status: "paused",
-      pausedAt: new Date()
-    }).where(eq(tasks.id, taskId)).returning();
+      pausedAt: new Date().toISOString()
+    });
+    const [updated] = await db.update(tasks).set(updateData).where(eq(tasks.id, taskId)).returning();
     return updated;
   }
 
@@ -220,42 +227,46 @@ export class DatabaseStorage implements IStorage {
       pausedAt: null
     }).where(eq(tasks.id, taskId));
     
-    const timeEntry = await db.insert(timeEntries).values({
+    const entryData = sanitizeInsertData({
       taskId,
-      startTime: new Date(),
+      startTime: new Date().toISOString(),
       entryType: "work"
-    }).returning();
+    });
+    const timeEntry = await db.insert(timeEntries).values(entryData).returning();
     return timeEntry[0];
   }
 
   async finishTask(taskId: number): Promise<Task> {
-    const [updated] = await db.update(tasks).set({
+    const updateData = sanitizeInsertData({
       status: "completed",
-      endTime: new Date()
-    }).where(eq(tasks.id, taskId)).returning();
+      endTime: new Date().toISOString()
+    });
+    const [updated] = await db.update(tasks).set(updateData).where(eq(tasks.id, taskId)).returning();
     return updated;
   }
 
   async archiveTask(taskId: number, archivedBy: string, notes?: string, rating?: number): Promise<Task> {
-    const [updated] = await db.update(tasks).set({
+    const updateData = sanitizeInsertData({
       status: "archived",
       isArchived: true,
-      archivedAt: new Date(),
+      archivedAt: new Date().toISOString(),
       archivedBy,
       archiveNotes: notes,
       rating
-    }).where(eq(tasks.id, taskId)).returning();
+    });
+    const [updated] = await db.update(tasks).set(updateData).where(eq(tasks.id, taskId)).returning();
     return updated;
   }
 
   async cancelTask(taskId: number, cancelledBy: string, reason: string): Promise<Task> {
-    const [updated] = await db.update(tasks).set({
+    const updateData = sanitizeInsertData({
       status: "cancelled",
       isCancelled: true,
-      cancelledAt: new Date(),
+      cancelledAt: new Date().toISOString(),
       cancelledBy,
       cancellationReason: reason
-    }).where(eq(tasks.id, taskId)).returning();
+    });
+    const [updated] = await db.update(tasks).set(updateData).where(eq(tasks.id, taskId)).returning();
     return updated;
   }
 
@@ -342,12 +353,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createUser(user: InsertUser): Promise<User> {
-    const userData = {
+    const userData = sanitizeInsertData({
       ...user,
       permissions: Array.isArray(user.permissions) 
         ? JSON.stringify(user.permissions) 
         : JSON.stringify([])
-    };
+    });
     
     const [newUser] = await db.insert(users).values(userData).returning();
     return {
@@ -364,7 +375,8 @@ export class DatabaseStorage implements IStorage {
         : JSON.stringify([]);
     }
     
-    const [updated] = await db.update(users).set(updateData).where(eq(users.id, id)).returning();
+    const sanitizedUpdates = sanitizeInsertData(updateData);
+    const [updated] = await db.update(users).set(sanitizedUpdates).where(eq(users.id, id)).returning();
     return {
       ...updated,
       permissions: JSON.parse(updated.permissions || '[]')
@@ -372,8 +384,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateUserPermissions(username: string, permissions: string[]): Promise<User> {
+    const updateData = sanitizeInsertData({ 
+      permissions: JSON.stringify(permissions.map(p => sanitizeValue(p))) 
+    });
     const [updated] = await db.update(users)
-      .set({ permissions: JSON.stringify(permissions) })
+      .set(updateData)
       .where(eq(users.username, username))
       .returning();
     return {
@@ -391,7 +406,8 @@ export class DatabaseStorage implements IStorage {
   async getCustomers(): Promise<Customer[]> { return []; }
   async getCustomer(): Promise<undefined> { return undefined; }
   async createCustomer(customer: InsertCustomer): Promise<Customer> { 
-    const [newCustomer] = await db.insert(customers).values(customer).returning();
+    const sanitizedCustomer = sanitizeInsertData(customer);
+    const [newCustomer] = await db.insert(customers).values(sanitizedCustomer).returning();
     return newCustomer;
   }
   async updateCustomer(): Promise<Customer> { throw new Error("Not implemented"); }
@@ -424,16 +440,18 @@ export class DatabaseStorage implements IStorage {
   
   async createPartsRequest(request: InsertPartsRequest): Promise<PartsRequest> {
     const requestNumber = `PR${Date.now()}`;
-    const [newRequest] = await db.insert(partsRequests).values({
+    const sanitizedRequest = sanitizeInsertData({
       ...request,
       requestNumber
-    }).returning();
+    });
+    const [newRequest] = await db.insert(partsRequests).values(sanitizedRequest).returning();
     return newRequest;
   }
   
   async updatePartsRequestStatus(id: number, status: string, notes?: string): Promise<PartsRequest> {
+    const updateData = sanitizeInsertData({ status, notes });
     const [updated] = await db.update(partsRequests)
-      .set({ status, notes })
+      .set(updateData)
       .where(eq(partsRequests.id, id))
       .returning();
     return updated;
