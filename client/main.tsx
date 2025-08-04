@@ -18,6 +18,6 @@ window.addEventListener('unhandledrejection', function(event) {
 });
 
 // تسجيل حدث النشر
-console.log('🚀 V POWER TUNING - Starting application...');
+console.log('🚀 V POWER TUNING - Starting in production mode...');
 
 createRoot(document.getElementById('root')!).render(<App />);
