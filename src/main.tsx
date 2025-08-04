@@ -1,7 +1,6 @@
 import { createRoot } from "react-dom/client";
-import TestApp from "../test-app";
-// import App from "../client/src/App";
-// import "../client/src/index.css";
+import App from "../client/src/App";
+import "../client/src/index.css";
 
 // معالج شامل لجميع الأخطاء
 window.addEventListener('error', function(event) {
@@ -35,4 +34,4 @@ window.confirm = function() { return true; };
   };
 })();
 
-createRoot(document.getElementById("root")!).render(<TestApp />);
+createRoot(document.getElementById("root")!).render(<App />);
