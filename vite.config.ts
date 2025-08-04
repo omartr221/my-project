@@ -3,6 +3,9 @@ import react from "@vitejs/plugin-react";
 import path from "path";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 
+// استخدم import.meta.url لتحويله إلى __dirname
+const __dirname = new URL('.', import.meta.url).pathname;
+
 export default defineConfig({
   plugins: [
     react(),
@@ -18,15 +21,15 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      "@": path.resolve(path.dirname(import.meta.url), "client", "src"),
-      "@shared": path.resolve(path.dirname(import.meta.url), "shared"),
-      "@assets": path.resolve(path.dirname(import.meta.url), "attached_assets"),
+      "@": path.resolve(__dirname, "client", "src"),
+      "@shared": path.resolve(__dirname, "shared"),
+      "@assets": path.resolve(__dirname, "attached_assets"),
     },
     logLevel: "info"
   },
-  root: path.resolve(path.dirname(import.meta.url), "client"),
+  root: path.resolve(__dirname, "client"),  // استخدام __dirname
   build: {
-    outDir: path.resolve(path.dirname(import.meta.url), "dist/public"),
+    outDir: path.resolve(__dirname, "dist/public"),
     emptyOutDir: true,
   },
   server: {
