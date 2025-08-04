@@ -58,14 +58,7 @@ export function setupAuth(app: Express) {
         if (!user || !(await comparePasswords(password, user.password))) {
           return done(null, false);
         } else {
-          // تحويل المستخدم إلى النوع المطلوب
-          const authUser: Express.User = {
-            id: user.id,
-            username: user.username,
-            role: user.role,
-            permissions: user.permissions || []
-          };
-          return done(null, authUser);
+          return done(null, user);
         }
       } catch (error) {
         console.error("🚨 Authentication error:", error);
@@ -78,17 +71,7 @@ export function setupAuth(app: Express) {
   passport.deserializeUser(async (id: number, done) => {
     try {
       const user = await storage.getUser(id);
-      if (user) {
-        const authUser: Express.User = {
-          id: user.id,
-          username: user.username,
-          role: user.role,
-          permissions: user.permissions || []
-        };
-        done(null, authUser);
-      } else {
-        done(null, null);
-      }
+      done(null, user);
     } catch (error) {
       done(error);
     }
@@ -106,16 +89,9 @@ export function setupAuth(app: Express) {
         password: await hashPassword(req.body.password),
       });
 
-      const authUser: Express.User = {
-        id: user.id,
-        username: user.username,
-        role: user.role,
-        permissions: user.permissions || []
-      };
-
-      req.login(authUser, (err) => {
+      req.login(user, (err) => {
         if (err) return next(err);
-        res.status(201).json(authUser);
+        res.status(201).json(user);
       });
     } catch (error) {
       next(error);

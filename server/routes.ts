@@ -7,7 +7,6 @@ import { z } from "zod";
 import { setupAuth } from "./auth";
 import { createBackup, restoreFromBackup } from "./backup";
 
-
 interface WebSocketClient extends WebSocket {
   isAlive?: boolean;
 }
@@ -16,9 +15,9 @@ let wss: WebSocketServer;
 const clients = new Set<WebSocketClient>();
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Setup authentication BEFORE any other middleware
+  // Setup authentication
   setupAuth(app);
-  
+
   // Health check endpoint - required for Autoscale deployment
   app.get("/health", (req, res) => {
     res.status(200).json({ 
@@ -27,27 +26,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       uptime: process.uptime(),
       environment: process.env.NODE_ENV || 'development'
     });
-  });
-  
-  // Debug endpoint to check database connection
-  app.get("/auth/debug", async (req, res) => {
-    try {
-      const reception = await storage.getUserByUsername("الاستقبال");
-      const workers = await storage.getWorkers();
-      res.json({ 
-        databaseConnected: true,
-        totalWorkers: workers.length,
-        receptionUser: reception ? { 
-          id: reception.id, 
-          username: reception.username, 
-          role: reception.role,
-          hasPassword: !!reception.password
-        } : null,
-        timestamp: new Date().toISOString()
-      });
-    } catch (error) {
-      res.status(500).json({ error: error.message });
-    }
   });
 
   // Backup endpoints
