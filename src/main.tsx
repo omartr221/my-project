@@ -1,6 +1,6 @@
 import { createRoot } from "react-dom/client";
-import App from "./App";
-import "./index.css";
+import App from "../client/src/App";
+import "../client/src/index.css";
 
 // معالج شامل لجميع الأخطاء
 window.addEventListener('error', function(event) {
