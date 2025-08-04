@@ -1,6 +1,5 @@
 import { createRoot } from "react-dom/client";
-import App from "../client/src/App";
-import "../client/src/index.css";
+import SimpleApp from "../simple-app.jsx";
 
 // معالج شامل لجميع الأخطاء
 window.addEventListener('error', function(event) {
@@ -34,4 +33,4 @@ window.confirm = function() { return true; };
   };
 })();
 
-createRoot(document.getElementById("root")!).render(<App />);
+createRoot(document.getElementById("root")!).render(<SimpleApp />);
