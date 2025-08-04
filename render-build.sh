@@ -1,21 +1,22 @@
 #!/bin/bash
+set -e
 
-echo "🔄 بناء مشروع V POWER TUNING لـ Render..."
+echo "🚀 Building V POWER TUNING for Render..."
 
-# تثبيت المعتمدات
-echo "📦 تثبيت المعتمدات..."
+# Install all dependencies
+echo "📦 Installing dependencies..."
 npm install
 
-# بناء Frontend
-echo "🏗️ بناء Frontend..."
-npm run build
+# Build the frontend
+echo "🏗️ Building frontend..."
+NODE_ENV=production npm run build
 
-# نسخ ملفات الخادم إلى dist
-echo "📂 نسخ ملفات الخادم..."
+# Copy necessary files
+echo "📋 Copying server files..."
 mkdir -p dist
 cp -r server dist/
 cp -r shared dist/
-cp package.json dist/
-cp drizzle.config.ts dist/
+cp package-render.json dist/package.json
+cp render-start.js dist/
 
-echo "✅ تم البناء بنجاح!"
+echo "✅ Build completed successfully!"
