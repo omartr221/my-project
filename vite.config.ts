@@ -18,16 +18,15 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      "@": path.resolve(import.meta.dirname, "client", "src"),
-      "@shared": path.resolve(import.meta.dirname, "shared"),
-      "@assets": path.resolve(import.meta.dirname, "attached_assets"),
+      "@": path.resolve(path.dirname(import.meta.url), "client", "src"),
+      "@shared": path.resolve(path.dirname(import.meta.url), "shared"),
+      "@assets": path.resolve(path.dirname(import.meta.url), "attached_assets"),
     },
     logLevel: "info"
-
   },
-  root: path.resolve(import.meta.dirname, "client"),
+  root: path.resolve(path.dirname(import.meta.url), "client"),
   build: {
-    outDir: path.resolve(import.meta.dirname, "dist/public"),
+    outDir: path.resolve(path.dirname(import.meta.url), "dist/public"),
     emptyOutDir: true,
   },
   server: {
@@ -37,4 +36,3 @@ export default defineConfig({
     },
   },
 });
-
