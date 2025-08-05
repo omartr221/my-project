@@ -1,85 +1,85 @@
-import { pgTable, text, serial, integer, boolean, timestamp, varchar } from "drizzle-orm/pg-core";
+import { sqliteTable, text, integer, numeric, blob } from "drizzle-orm/sqlite-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-export const workers = pgTable("workers", {
-  id: serial("id").primaryKey(),
-  name: varchar("name", { length: 100 }).notNull(),
-  category: varchar("category", { length: 50 }).notNull(), // فني، مساعد، مشرف، فني تحت الإشراف
-  supervisor: varchar("supervisor", { length: 100 }),
-  assistant: varchar("assistant", { length: 100 }),
-  engineer: varchar("engineer", { length: 100 }),
-  nationalId: varchar("national_id", { length: 20 }),
-  phoneNumber: varchar("phone_number", { length: 20 }),
-  address: varchar("address", { length: 255 }),
-  isActive: boolean("is_active").default(true),
-  isPredefined: boolean("is_predefined").default(false),
-  createdAt: timestamp("created_at").defaultNow(),
+export const workers = sqliteTable("workers", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  name: text("name").notNull(),
+  category: text("category").notNull(), // فني، مساعد، مشرف، فني تحت الإشراف
+  supervisor: text("supervisor"),
+  assistant: text("assistant"),
+  engineer: text("engineer"),
+  nationalId: text("national_id"),
+  phoneNumber: text("phone_number"),
+  address: text("address"),
+  isActive: integer("is_active", { mode: "boolean" }).default(true),
+  isPredefined: integer("is_predefined", { mode: "boolean" }).default(false),
+  createdAt: text("created_at").default("CURRENT_TIMESTAMP"),
 });
 
-export const tasks = pgTable("tasks", {
-  id: serial("id").primaryKey(),
-  taskNumber: varchar("task_number", { length: 20 }).unique().notNull(),
+export const tasks = sqliteTable("tasks", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  taskNumber: text("task_number").notNull().unique(),
   workerId: integer("worker_id").notNull().references(() => workers.id),
-  workerRole: varchar("worker_role", { length: 50 }).notNull().default("technician"), // assistant, technician, supervisor, engineer
-  description: varchar("description", { length: 500 }).notNull(),
-  carBrand: varchar("car_brand", { length: 50 }).notNull(), // audi, seat, skoda, volkswagen
-  carModel: varchar("car_model", { length: 100 }).notNull(),
-  licensePlate: varchar("license_plate", { length: 20 }).notNull(),
+  workerRole: text("worker_role").notNull().default("technician"), // assistant, technician, supervisor, engineer
+  description: text("description").notNull(),
+  carBrand: text("car_brand").notNull(), // audi, seat, skoda, volkswagen
+  carModel: text("car_model").notNull(),
+  licensePlate: text("license_plate").notNull(),
   estimatedDuration: integer("estimated_duration"), // in minutes
-  engineerName: varchar("engineer_name", { length: 100 }),
-  supervisorName: varchar("supervisor_name", { length: 100 }),
-  technicianName: varchar("technician_name", { length: 100 }),
-  assistantName: varchar("assistant_name", { length: 100 }),
-  technicians: text("technicians").array(), // Array of technician names
-  assistants: text("assistants").array(), // Array of assistant names
-  repairOperation: varchar("repair_operation", { length: 200 }),
-  taskType: varchar("task_type", { length: 20 }), // ميكانيك, كهربا
-  color: varchar("color", { length: 20 }), // اللون
-  timerType: varchar("timer_type", { length: 20 }).notNull().default("automatic"), // automatic, manual
+  engineerName: text("engineer_name"),
+  supervisorName: text("supervisor_name"),
+  technicianName: text("technician_name"),
+  assistantName: text("assistant_name"),
+  technicians: text("technicians"), // JSON string of technician names
+  assistants: text("assistants"), // JSON string of assistant names
+  repairOperation: text("repair_operation"),
+  taskType: text("task_type"), // ميكانيك, كهربا
+  color: text("color"), // اللون
+  timerType: text("timer_type").notNull().default("automatic"), // automatic, manual
   consumedTime: integer("consumed_time"), // in minutes - for manual timer
-  status: varchar("status", { length: 20 }).notNull().default("active"), // active, paused, completed, archived
-  startTime: timestamp("start_time").defaultNow(),
-  endTime: timestamp("end_time"),
-  pausedAt: timestamp("paused_at"),
-  pauseReason: varchar("pause_reason", { length: 100 }),
-  pauseNotes: varchar("pause_notes", { length: 500 }),
+  status: text("status").notNull().default("active"), // active, paused, completed, archived
+  startTime: text("start_time").default("CURRENT_TIMESTAMP"),
+  endTime: text("end_time"),
+  pausedAt: text("paused_at"),
+  pauseReason: text("pause_reason"),
+  pauseNotes: text("pause_notes"),
   totalPausedDuration: integer("total_paused_duration").default(0), // in seconds
-  isArchived: boolean("is_archived").default(false),
-  archivedAt: timestamp("archived_at"),
-  archivedBy: varchar("archived_by", { length: 100 }),
-  archiveNotes: varchar("archive_notes", { length: 1000 }),
+  isArchived: integer("is_archived", { mode: "boolean" }).default(false),
+  archivedAt: text("archived_at"),
+  archivedBy: text("archived_by"),
+  archiveNotes: text("archive_notes"),
   rating: integer("rating"), // 1-3 stars rating
   deliveryNumber: integer("delivery_number"), // Sequential number for delivered tasks
-  isCancelled: boolean("is_cancelled").default(false),
+  isCancelled: integer("is_cancelled", { mode: "boolean" }).default(false),
   cancellationReason: text("cancellation_reason"),
-  cancelledAt: timestamp("cancelled_at"),
-  cancelledBy: varchar("cancelled_by", { length: 100 }),
-  createdAt: timestamp("created_at").defaultNow(),
+  cancelledAt: text("cancelled_at"),
+  cancelledBy: text("cancelled_by"),
+  createdAt: text("created_at").default("CURRENT_TIMESTAMP"),
 });
 
-export const timeEntries = pgTable("time_entries", {
-  id: serial("id").primaryKey(),
+export const timeEntries = sqliteTable("time_entries", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   taskId: integer("task_id").notNull().references(() => tasks.id),
-  startTime: timestamp("start_time").notNull(),
-  endTime: timestamp("end_time"),
+  startTime: text("start_time").notNull(),
+  endTime: text("end_time"),
   duration: integer("duration"), // in seconds
-  entryType: varchar("entry_type", { length: 20 }).notNull(), // work, pause
-  createdAt: timestamp("created_at").defaultNow(),
+  entryType: text("entry_type").notNull(), // work, pause
+  createdAt: text("created_at").default("CURRENT_TIMESTAMP"),
 });
 
-export const customers = pgTable("customers", {
-  id: serial("id").primaryKey(),
+export const customers = sqliteTable("customers", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
   phoneNumber: text("phone_number").notNull(),
   address: text("address"),
   notes: text("notes"),
-  createdAt: timestamp("created_at").defaultNow(),
+  createdAt: text("created_at").default("CURRENT_TIMESTAMP"),
 });
 
-export const customerCars = pgTable("customer_cars", {
-  id: serial("id").primaryKey(),
+export const customerCars = sqliteTable("customer_cars", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   customerId: integer("customer_id").references(() => customers.id, { onDelete: "cascade" }),
   carBrand: text("car_brand").notNull(),
   carModel: text("car_model").notNull(),
@@ -90,7 +90,7 @@ export const customerCars = pgTable("customer_cars", {
   chassisNumber: text("chassis_number"),
   previousOwner: text("previous_owner"),
   notes: text("notes"),
-  createdAt: timestamp("created_at").defaultNow(),
+  createdAt: text("created_at").default("CURRENT_TIMESTAMP"),
 });
 
 // Relations
@@ -127,40 +127,39 @@ export const customerCarsRelations = relations(customerCars, ({ one }) => ({
 
 
 // Users table for authentication
-export const users = pgTable("users", {
-  id: serial("id").primaryKey(),
-  username: varchar("username", { length: 50 }).notNull().unique(),
-  password: varchar("password", { length: 255 }).notNull(),
-  role: varchar("role", { length: 50 }).notNull(),
-  permissions: text("permissions").array().default([]),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+export const users = sqliteTable("users", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  username: text("username").notNull().unique(),
+  password: text("password").notNull(),
+  role: text("role").notNull(),
+  permissions: text("permissions"), // JSON string of permissions array
+  createdAt: text("created_at").notNull().default("CURRENT_TIMESTAMP"),
+  updatedAt: text("updated_at").notNull().default("CURRENT_TIMESTAMP"),
 });
 
-export const carReceipts = pgTable("car_receipts", {
-  id: serial("id").primaryKey(),
-  receiptNumber: varchar("receipt_number", { length: 20 }).unique().notNull(),
-  licensePlate: varchar("license_plate", { length: 20 }).notNull(),
-  customerName: varchar("customer_name", { length: 100 }).notNull(),
-
-  carBrand: varchar("car_brand", { length: 50 }).notNull(),
-  carModel: varchar("car_model", { length: 100 }).notNull(),
-  carColor: varchar("car_color", { length: 50 }),
-  chassisNumber: varchar("chassis_number", { length: 100 }),
-  engineCode: varchar("engine_code", { length: 100 }),
+export const carReceipts = sqliteTable("car_receipts", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  receiptNumber: text("receipt_number").unique().notNull(),
+  licensePlate: text("license_plate").notNull(),
+  customerName: text("customer_name").notNull(),
+  carBrand: text("car_brand").notNull(),
+  carModel: text("car_model").notNull(),
+  carColor: text("car_color"),
+  chassisNumber: text("chassis_number"),
+  engineCode: text("engine_code"),
   entryMileage: text("entry_mileage").notNull(), // عداد الدخول
-  fuelLevel: varchar("fuel_level", { length: 20 }).notNull(), // نسبة البنزين
+  fuelLevel: text("fuel_level").notNull(), // نسبة البنزين
   entryNotes: text("entry_notes"), // ملاحظات عند الدخول
   repairType: text("repair_type").notNull(), // طلبات الإصلاح المتعددة
-  receivedBy: varchar("received_by", { length: 100 }).notNull(),
-  receivedAt: timestamp("received_at").defaultNow(),
-  status: varchar("status", { length: 20 }).notNull().default("received"), // received, workshop_pending, postponed, in_workshop, completed
-  workshopNotificationSent: boolean("workshop_notification_sent").default(false),
-  sentToWorkshopAt: timestamp("sent_to_workshop_at"),
-  sentToWorkshopBy: varchar("sent_to_workshop_by", { length: 100 }),
-  postponedAt: timestamp("postponed_at"),
-  postponedBy: varchar("postponed_by", { length: 100 }),
-  createdAt: timestamp("created_at").defaultNow(),
+  receivedBy: text("received_by").notNull(),
+  receivedAt: text("received_at").default("CURRENT_TIMESTAMP"),
+  status: text("status").notNull().default("received"), // received, workshop_pending, postponed, in_workshop, completed
+  workshopNotificationSent: integer("workshop_notification_sent", { mode: "boolean" }).default(false),
+  sentToWorkshopAt: text("sent_to_workshop_at"),
+  sentToWorkshopBy: text("sent_to_workshop_by"),
+  postponedAt: text("postponed_at"),
+  postponedBy: text("postponed_by"),
+  createdAt: text("created_at").default("CURRENT_TIMESTAMP"),
 });
 
 
@@ -221,38 +220,38 @@ export const insertCustomerCarSchema = createInsertSchema(customerCars).omit({
   chassisNumber: true,
 });
 
-export const partsRequests = pgTable("parts_requests", {
-  id: serial("id").primaryKey(),
-  requestNumber: varchar("request_number", { length: 50 }).unique(),
-  engineerName: varchar("engineer_name", { length: 100 }).notNull(),
-  carInfo: varchar("car_info", { length: 255 }).notNull(), // License plate, chassis number, or customer name
-  carBrand: varchar("car_brand", { length: 50 }),
-  carModel: varchar("car_model", { length: 100 }),
-  licensePlate: varchar("license_plate", { length: 50 }), // رقم السيارة
-  chassisNumber: varchar("chassis_number", { length: 100 }), // رقم الشاسيه
-  engineCode: varchar("engine_code", { length: 50 }), // رمز المحرك
-  reasonType: varchar("reason_type", { length: 50 }).notNull(), // "expense" or "loan"
-  partName: varchar("part_name", { length: 255 }).notNull(),
+export const partsRequests = sqliteTable("parts_requests", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  requestNumber: text("request_number").unique(),
+  engineerName: text("engineer_name").notNull(),
+  carInfo: text("car_info").notNull(), // License plate, chassis number, or customer name
+  carBrand: text("car_brand"),
+  carModel: text("car_model"),
+  licensePlate: text("license_plate"), // رقم السيارة
+  chassisNumber: text("chassis_number"), // رقم الشاسيه
+  engineCode: text("engine_code"), // رمز المحرك
+  reasonType: text("reason_type").notNull(), // "expense" or "loan"
+  partName: text("part_name").notNull(),
   quantity: integer("quantity").notNull(),
-  status: varchar("status", { length: 50 }).default("pending"), // pending, approved, rejected, delivered
+  status: text("status").default("pending"), // pending, approved, rejected, delivered
   notes: text("notes"),
-  requestedBy: varchar("requested_by", { length: 100 }),
-  requestedAt: timestamp("requested_at").defaultNow(),
-  approvedBy: varchar("approved_by", { length: 100 }),
-  approvedAt: timestamp("approved_at"),
-  inPreparationAt: timestamp("in_preparation_at"),
-  readyForPickupAt: timestamp("ready_for_pickup_at"),
-  orderedExternallyAt: timestamp("ordered_externally_at"),
-  orderedExternallyBy: varchar("ordered_externally_by", { length: 100 }),
-  estimatedArrival: varchar("estimated_arrival", { length: 200 }),
-  partsArrivedAt: timestamp("parts_arrived_at"),
-  partsArrivedBy: varchar("parts_arrived_by", { length: 100 }),
-  unavailableAt: timestamp("unavailable_at"),
-  unavailableBy: varchar("unavailable_by", { length: 100 }),
-  deliveredBy: varchar("delivered_by", { length: 100 }),
-  deliveredAt: timestamp("delivered_at"),
-  returnedAt: timestamp("returned_at"),
-  returnedBy: varchar("returned_by", { length: 100 }),
+  requestedBy: text("requested_by"),
+  requestedAt: text("requested_at").default("CURRENT_TIMESTAMP"),
+  approvedBy: text("approved_by"),
+  approvedAt: text("approved_at"),
+  inPreparationAt: text("in_preparation_at"),
+  readyForPickupAt: text("ready_for_pickup_at"),
+  orderedExternallyAt: text("ordered_externally_at"),
+  orderedExternallyBy: text("ordered_externally_by"),
+  estimatedArrival: text("estimated_arrival"),
+  partsArrivedAt: text("parts_arrived_at"),
+  partsArrivedBy: text("parts_arrived_by"),
+  unavailableAt: text("unavailable_at"),
+  unavailableBy: text("unavailable_by"),
+  deliveredBy: text("delivered_by"),
+  deliveredAt: text("delivered_at"),
+  returnedAt: text("returned_at"),
+  returnedBy: text("returned_by"),
   returnReason: text("return_reason"),
   userNotes: text("user_notes"),
 });
@@ -291,19 +290,33 @@ export const insertPartsRequestSchema = createInsertSchema(partsRequests).omit({
   userNotes: true,
 });
 
-// Types
-export type Worker = typeof workers.$inferSelect;
+// Base types from database
+export type WorkerDB = typeof workers.$inferSelect;
+export type TaskDB = typeof tasks.$inferSelect;
+export type UserDB = typeof users.$inferSelect;
+
+// Application types with parsed arrays
+export type Worker = WorkerDB;
+export type Task = Omit<TaskDB, 'technicians' | 'assistants'> & {
+  technicians: string[];
+  assistants: string[];
+};
+export type User = Omit<UserDB, 'permissions'> & {
+  permissions: string[];
+};
+
+// Insert types
 export type InsertWorker = z.infer<typeof insertWorkerSchema>;
-export type Task = typeof tasks.$inferSelect;
 export type InsertTask = z.infer<typeof insertTaskSchema>;
+export type InsertUser = z.infer<typeof insertUserSchema>;
+
+// Other types
 export type TimeEntry = typeof timeEntries.$inferSelect;
 export type InsertTimeEntry = z.infer<typeof insertTimeEntrySchema>;
 export type Customer = typeof customers.$inferSelect;
 export type InsertCustomer = z.infer<typeof insertCustomerSchema>;
 export type CustomerCar = typeof customerCars.$inferSelect;
 export type InsertCustomerCar = z.infer<typeof insertCustomerCarSchema>;
-export type User = typeof users.$inferSelect;
-export type InsertUser = z.infer<typeof insertUserSchema>;
 export type PartsRequest = typeof partsRequests.$inferSelect;
 export type InsertPartsRequest = z.infer<typeof insertPartsRequestSchema>;
 

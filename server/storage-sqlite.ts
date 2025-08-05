@@ -171,7 +171,7 @@ class SQLiteStorage implements IStorage {
   }
 
   // Helper function to parse JSON arrays
-  private parseJsonArray(jsonString: string | null): string[] {
+  private parseJsonArray(jsonString: string | null | undefined): string[] {
     if (!jsonString) return [];
     try {
       return JSON.parse(jsonString);
@@ -283,18 +283,18 @@ class SQLiteStorage implements IStorage {
       worker: result[0].workers,
       technicians: this.parseJsonArray(result[0].tasks.technicians),
       assistants: this.parseJsonArray(result[0].tasks.assistants)
-    } as TaskWithWorker;
+    };
   }
 
   async createTask(task: InsertTask): Promise<Task> {
     const taskNumber = `TSK-${this.nextTaskNumber.toString().padStart(4, '0')}`;
     this.nextTaskNumber++;
 
-    const taskData = {
+    const taskData: any = {
       ...task,
       taskNumber,
-      technicians: this.stringifyArray(task.technicians),
-      assistants: this.stringifyArray(task.assistants),
+      technicians: this.stringifyArray((task as any).technicians),
+      assistants: this.stringifyArray((task as any).assistants),
       startTime: new Date().toISOString()
     };
 
@@ -312,11 +312,11 @@ class SQLiteStorage implements IStorage {
       ...createdTask,
       technicians: this.parseJsonArray(createdTask.technicians),
       assistants: this.parseJsonArray(createdTask.assistants)
-    } as Task;
+    };
   }
 
   async updateTask(id: number, updates: Partial<Task>): Promise<Task> {
-    const updateData = { ...updates };
+    const updateData: any = { ...updates };
     if (updates.technicians) {
       updateData.technicians = this.stringifyArray(updates.technicians);
     }
@@ -333,7 +333,7 @@ class SQLiteStorage implements IStorage {
       ...result[0],
       technicians: this.parseJsonArray(result[0].technicians),
       assistants: this.parseJsonArray(result[0].assistants)
-    } as Task;
+    };
   }
 
   // Time tracking methods
@@ -666,7 +666,7 @@ class SQLiteStorage implements IStorage {
       return {
         ...result[0],
         permissions: this.parseJsonArray(result[0].permissions)
-      } as User;
+      };
     }
     return undefined;
   }
@@ -677,15 +677,15 @@ class SQLiteStorage implements IStorage {
       return {
         ...result[0],
         permissions: this.parseJsonArray(result[0].permissions)
-      } as User;
+      };
     }
     return undefined;
   }
 
   async createUser(user: InsertUser): Promise<User> {
-    const userData = {
+    const userData: any = {
       ...user,
-      permissions: this.stringifyArray(user.permissions),
+      permissions: this.stringifyArray((user as any).permissions),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
@@ -694,17 +694,17 @@ class SQLiteStorage implements IStorage {
     return {
       ...result[0],
       permissions: this.parseJsonArray(result[0].permissions)
-    } as User;
+    };
   }
 
   async updateUser(id: number, updates: Partial<InsertUser>): Promise<User> {
-    const updateData = {
+    const updateData: any = {
       ...updates,
       updatedAt: new Date().toISOString()
     };
 
-    if (updates.permissions) {
-      updateData.permissions = this.stringifyArray(updates.permissions);
+    if ((updates as any).permissions) {
+      updateData.permissions = this.stringifyArray((updates as any).permissions);
     }
 
     const result = await db.update(users)
@@ -715,7 +715,7 @@ class SQLiteStorage implements IStorage {
     return {
       ...result[0],
       permissions: this.parseJsonArray(result[0].permissions)
-    } as User;
+    };
   }
 
   async updateUserPermissions(username: string, permissions: string[]): Promise<User> {
@@ -730,7 +730,7 @@ class SQLiteStorage implements IStorage {
     return {
       ...result[0],
       permissions: this.parseJsonArray(result[0].permissions)
-    } as User;
+    };
   }
 
   async deleteUser(id: number): Promise<void> {
