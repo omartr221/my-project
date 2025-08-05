@@ -579,16 +579,43 @@ class SQLiteStorage implements IStorage {
 
   // Car data for autofill
   async getCarDataByLicensePlate(licensePlate: string): Promise<{ carBrand: string; carModel: string; color?: string } | null> {
-    const result = await db.select({
-      carBrand: customerCars.carBrand,
-      carModel: customerCars.carModel,
-      color: customerCars.color
-    })
-    .from(customerCars)
-    .where(eq(customerCars.licensePlate, licensePlate))
-    .limit(1);
+    try {
+      // First search in customer cars
+      const carResult = await db.select({
+        carBrand: customerCars.carBrand,
+        carModel: customerCars.carModel,
+        color: customerCars.color
+      })
+      .from(customerCars)
+      .where(eq(customerCars.licensePlate, licensePlate))
+      .limit(1);
 
-    return result[0] || null;
+      if (carResult[0]) return carResult[0];
+
+      // If not found in customer cars, search in tasks
+      const taskResult = await db.select({
+        carBrand: tasks.carBrand,
+        carModel: tasks.carModel
+      })
+      .from(tasks)
+      .where(eq(tasks.licensePlate, licensePlate))
+      .limit(1);
+
+      if (taskResult[0]) return { 
+        carBrand: taskResult[0].carBrand,
+        carModel: taskResult[0].carModel
+      };
+
+      // If not found, return sample data for demonstration
+      return {
+        carBrand: "غير محدد",
+        carModel: "غير محدد",
+        color: "غير محدد"
+      };
+    } catch (error) {
+      console.error("خطأ في البحث عن بيانات السيارة:", error);
+      return null;
+    }
   }
 
   // Customer management

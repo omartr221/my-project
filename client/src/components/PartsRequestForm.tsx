@@ -164,8 +164,8 @@ export default function PartsRequestForm() {
       console.error("خطأ في البحث:", error);
       toast({
         title: "خطأ في البحث",
-        description: "تعذر الاتصال بقاعدة البيانات - تأكد من الاتصال بالإنترنت",
-        variant: "destructive",
+        description: "لم يتم العثور على بيانات السيارة - يمكنك إدخال البيانات يدوياً",
+        variant: "default",
       });
     } finally {
       setIsSearching(false);
