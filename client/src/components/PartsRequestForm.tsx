@@ -102,7 +102,22 @@ export default function PartsRequestForm() {
       };
       
       console.log('Sending parts request data:', requestData);
-      const response = await apiRequest("POST", "/api/parts-requests", requestData);
+      
+      // استخدام fetch مباشرة بدلاً من apiRequest لضمان التوافق
+      const response = await fetch("/api/parts-requests", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include", // مهم للـ sessions
+        body: JSON.stringify(requestData),
+      });
+      
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`HTTP ${response.status}: ${error}`);
+      }
+      
       return response.json();
     },
     onSuccess: () => {
