@@ -1,10 +1,10 @@
-import { sqliteTable, text, integer, numeric, blob } from "drizzle-orm/sqlite-core";
+import { pgTable, text, integer, serial, timestamp, boolean, json } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-export const workers = sqliteTable("workers", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
+export const workers = pgTable("workers", {
+  id: serial("id").primaryKey(),
   name: text("name").notNull(),
   category: text("category").notNull(), // فني، مساعد، مشرف، فني تحت الإشراف
   supervisor: text("supervisor"),
@@ -13,13 +13,13 @@ export const workers = sqliteTable("workers", {
   nationalId: text("national_id"),
   phoneNumber: text("phone_number"),
   address: text("address"),
-  isActive: integer("is_active", { mode: "boolean" }).default(true),
-  isPredefined: integer("is_predefined", { mode: "boolean" }).default(false),
-  createdAt: text("created_at").default("CURRENT_TIMESTAMP"),
+  isActive: boolean("is_active").default(true),
+  isPredefined: boolean("is_predefined").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
-export const tasks = sqliteTable("tasks", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
+export const tasks = pgTable("tasks", {
+  id: serial("id").primaryKey(),
   taskNumber: text("task_number").notNull().unique(),
   workerId: integer("worker_id").notNull().references(() => workers.id),
   workerRole: text("worker_role").notNull().default("technician"), // assistant, technician, supervisor, engineer
@@ -46,21 +46,21 @@ export const tasks = sqliteTable("tasks", {
   pauseReason: text("pause_reason"),
   pauseNotes: text("pause_notes"),
   totalPausedDuration: integer("total_paused_duration").default(0), // in seconds
-  isArchived: integer("is_archived", { mode: "boolean" }).default(false),
-  archivedAt: text("archived_at"),
+  isArchived: boolean("is_archived").default(false),
+  archivedAt: timestamp("archived_at"),
   archivedBy: text("archived_by"),
   archiveNotes: text("archive_notes"),
   rating: integer("rating"), // 1-3 stars rating
   deliveryNumber: integer("delivery_number"), // Sequential number for delivered tasks
-  isCancelled: integer("is_cancelled", { mode: "boolean" }).default(false),
+  isCancelled: boolean("is_cancelled").default(false),
   cancellationReason: text("cancellation_reason"),
   cancelledAt: text("cancelled_at"),
   cancelledBy: text("cancelled_by"),
   createdAt: text("created_at").default("CURRENT_TIMESTAMP"),
 });
 
-export const timeEntries = sqliteTable("time_entries", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
+export const timeEntries = pgTable("time_entries", {
+  id: serial("id").primaryKey(),
   taskId: integer("task_id").notNull().references(() => tasks.id),
   startTime: text("start_time").notNull(),
   endTime: text("end_time"),
@@ -69,8 +69,8 @@ export const timeEntries = sqliteTable("time_entries", {
   createdAt: text("created_at").default("CURRENT_TIMESTAMP"),
 });
 
-export const customers = sqliteTable("customers", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
+export const customers = pgTable("customers", {
+  id: serial("id").primaryKey(),
   name: text("name").notNull(),
   phoneNumber: text("phone_number").notNull(),
   address: text("address"),
@@ -78,8 +78,8 @@ export const customers = sqliteTable("customers", {
   createdAt: text("created_at").default("CURRENT_TIMESTAMP"),
 });
 
-export const customerCars = sqliteTable("customer_cars", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
+export const customerCars = pgTable("customer_cars", {
+  id: serial("id").primaryKey(),
   customerId: integer("customer_id").references(() => customers.id, { onDelete: "cascade" }),
   carBrand: text("car_brand").notNull(),
   carModel: text("car_model").notNull(),
@@ -127,8 +127,8 @@ export const customerCarsRelations = relations(customerCars, ({ one }) => ({
 
 
 // Users table for authentication
-export const users = sqliteTable("users", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
+export const users = pgTable("users", {
+  id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
   role: text("role").notNull(),
@@ -137,8 +137,8 @@ export const users = sqliteTable("users", {
   updatedAt: text("updated_at").notNull().default("CURRENT_TIMESTAMP"),
 });
 
-export const carReceipts = sqliteTable("car_receipts", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
+export const carReceipts = pgTable("car_receipts", {
+  id: serial("id").primaryKey(),
   receiptNumber: text("receipt_number").unique().notNull(),
   licensePlate: text("license_plate").notNull(),
   customerName: text("customer_name").notNull(),
@@ -220,8 +220,8 @@ export const insertCustomerCarSchema = createInsertSchema(customerCars).omit({
   chassisNumber: true,
 });
 
-export const partsRequests = sqliteTable("parts_requests", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
+export const partsRequests = pgTable("parts_requests", {
+  id: serial("id").primaryKey(),
   requestNumber: text("request_number").unique(),
   engineerName: text("engineer_name").notNull(),
   customerName: text("customer_name"), // اسم الزبون

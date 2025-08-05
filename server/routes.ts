@@ -911,3 +911,5 @@ async function sendInitialData(ws: WebSocket) {
     console.error("Error sending initial data:", error);
   }
 }
+
+export { registerRoutes as setupRoutes };
