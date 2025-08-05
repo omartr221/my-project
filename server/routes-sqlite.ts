@@ -294,7 +294,7 @@ export function setupRoutes(app: Express) {
     }
   });
 
-  app.post("/api/customers", requirePermission("customers:create"), async (req, res, next) => {
+  app.post("/api/customers", requireAuth, async (req, res, next) => {
     try {
       const customerData = insertCustomerSchema.parse(req.body);
       const customer = await storage.createCustomer(customerData);
@@ -307,7 +307,7 @@ export function setupRoutes(app: Express) {
     }
   });
 
-  app.put("/api/customers/:id", requirePermission("customers:edit"), async (req, res, next) => {
+  app.put("/api/customers/:id", requireAuth, async (req, res, next) => {
     try {
       const id = parseInt(req.params.id);
       const updates = insertCustomerSchema.partial().parse(req.body);
@@ -321,7 +321,7 @@ export function setupRoutes(app: Express) {
     }
   });
 
-  app.delete("/api/customers/:id", requirePermission("customers:delete"), async (req, res, next) => {
+  app.delete("/api/customers/:id", requireAuth, async (req, res, next) => {
     try {
       const id = parseInt(req.params.id);
       await storage.deleteCustomer(id);
@@ -364,7 +364,7 @@ export function setupRoutes(app: Express) {
     }
   });
 
-  app.post("/api/customer-cars", requirePermission("customers:write"), async (req, res, next) => {
+  app.post("/api/customer-cars", requireAuth, async (req, res, next) => {
     try {
       const carData = insertCustomerCarSchema.parse(req.body);
       const car = await storage.createCustomerCar(carData);
@@ -377,7 +377,7 @@ export function setupRoutes(app: Express) {
     }
   });
 
-  app.put("/api/customer-cars/:id", requirePermission("customers:edit"), async (req, res, next) => {
+  app.put("/api/customer-cars/:id", requireAuth, async (req, res, next) => {
     try {
       const id = parseInt(req.params.id);
       const updates = insertCustomerCarSchema.partial().parse(req.body);
@@ -391,7 +391,7 @@ export function setupRoutes(app: Express) {
     }
   });
 
-  app.delete("/api/customer-cars/:id", requirePermission("customers:delete"), async (req, res, next) => {
+  app.delete("/api/customer-cars/:id", requireAuth, async (req, res, next) => {
     try {
       const id = parseInt(req.params.id);
       await storage.deleteCustomerCar(id);
@@ -424,7 +424,7 @@ export function setupRoutes(app: Express) {
     }
   });
 
-  app.post("/api/parts-requests", requirePermission("parts:create"), async (req, res, next) => {
+  app.post("/api/parts-requests", requireAuth, async (req, res, next) => {
     try {
       const requestData = insertPartsRequestSchema.parse(req.body);
       const request = await storage.createPartsRequest(requestData);
@@ -437,7 +437,7 @@ export function setupRoutes(app: Express) {
     }
   });
 
-  app.put("/api/parts-requests/:id/status", requirePermission("parts:approve"), async (req, res, next) => {
+  app.put("/api/parts-requests/:id/status", requireAuth, async (req, res, next) => {
     try {
       const id = parseInt(req.params.id);
       const { status, notes } = req.body;
@@ -482,7 +482,7 @@ export function setupRoutes(app: Express) {
   });
 
   // Car receipts routes
-  app.post("/api/car-receipts", requirePermission("receipts:create"), async (req, res, next) => {
+  app.post("/api/car-receipts", requireAuth, async (req, res, next) => {
     try {
       const receiptData = insertCarReceiptSchema.parse(req.body);
       const receipt = await storage.createCarReceipt(receiptData);
@@ -518,7 +518,7 @@ export function setupRoutes(app: Express) {
     }
   });
 
-  app.put("/api/car-receipts/:id/status", requirePermission("receipts:write"), async (req, res, next) => {
+  app.put("/api/car-receipts/:id/status", requireAuth, async (req, res, next) => {
     try {
       const id = parseInt(req.params.id);
       const { status, updatedBy } = req.body;
@@ -529,7 +529,7 @@ export function setupRoutes(app: Express) {
     }
   });
 
-  app.post("/api/car-receipts/:id/send-to-workshop", requirePermission("receipts:write"), async (req, res, next) => {
+  app.post("/api/car-receipts/:id/send-to-workshop", requireAuth, async (req, res, next) => {
     try {
       const id = parseInt(req.params.id);
       const { sentBy } = req.body;
@@ -540,7 +540,7 @@ export function setupRoutes(app: Express) {
     }
   });
 
-  app.post("/api/car-receipts/:id/postpone", requirePermission("receipts:write"), async (req, res, next) => {
+  app.post("/api/car-receipts/:id/postpone", requireAuth, async (req, res, next) => {
     try {
       const id = parseInt(req.params.id);
       const { postponedBy } = req.body;
@@ -564,7 +564,7 @@ export function setupRoutes(app: Express) {
     }
   });
 
-  app.delete("/api/car-receipts/:id", requirePermission("receipts:delete"), async (req, res, next) => {
+  app.delete("/api/car-receipts/:id", requireAuth, async (req, res, next) => {
     try {
       const id = parseInt(req.params.id);
       await storage.deleteCarReceipt(id);
