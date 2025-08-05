@@ -153,7 +153,7 @@ class SQLiteStorage implements IStorage {
       .orderBy(desc(partsRequests.id))
       .limit(1);
     
-    if (latestRequest.length > 0) {
+    if (latestRequest.length > 0 && latestRequest[0].requestNumber) {
       const match = latestRequest[0].requestNumber.match(/(\d+)$/);
       this.nextRequestNumber = match ? parseInt(match[1]) + 1 : 1;
     }
@@ -882,6 +882,7 @@ class SQLiteStorage implements IStorage {
 
     const requestData = {
       ...request,
+      requestNumber,
       requestedAt: new Date().toISOString()
     };
     
