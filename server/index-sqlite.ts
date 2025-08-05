@@ -10,7 +10,7 @@ import fs from "fs";
 import path from "path";
 
 const app = express();
-const port = parseInt(process.env.PORT || "5000");
+const port = parseInt(process.env.PORT || "80");
 const host = process.env.HOST || "0.0.0.0";
 
 async function startServer() {
@@ -42,8 +42,7 @@ async function startServer() {
   // Create HTTP server
   const server = createServer(app);
 
-  // Skip Vite for now and serve React interface directly
-  // Add React interface as default route
+  // Serve the React interface directly as default route
   app.get("/", (req, res) => {
     res.sendFile(path.join(process.cwd(), "client/simple-react.html"));
   });
