@@ -18,6 +18,17 @@ import { useAuth } from "@/hooks/use-auth";
 
 const partsRequestFormSchema = insertPartsRequestSchema.extend({
   quantity: z.coerce.number().min(1, "يجب أن يكون العدد أكبر من صفر"),
+  engineerName: z.string().min(1, "يجب اختيار المهندس"),
+  carInfo: z.string().min(1, "يجب إدخال معلومات السيارة"),
+  reasonType: z.string().min(1, "يجب اختيار سبب الطلب"),
+  partName: z.string().min(1, "يجب إدخال اسم القطعة"),
+}).partial({
+  carBrand: true,
+  carModel: true,
+  licensePlate: true,
+  chassisNumber: true,
+  engineCode: true,
+  notes: true,
 });
 
 type PartsRequestFormData = z.infer<typeof partsRequestFormSchema>;
@@ -69,7 +80,6 @@ export default function PartsRequestForm() {
       partName: "",
       quantity: 1,
       notes: "",
-      status: "pending",
     },
   });
 
@@ -87,8 +97,7 @@ export default function PartsRequestForm() {
         reasonType: data.reasonType,
         partName: data.partName,
         quantity: Number(data.quantity),
-        notes: data.notes,
-        status: data.status || 'pending'
+        notes: data.notes || ""
       };
       
       console.log('Sending parts request data:', requestData);
@@ -286,7 +295,7 @@ export default function PartsRequestForm() {
                 <FormItem>
                   <FormLabel>نوع السيارة</FormLabel>
                   <FormControl>
-                    <Input placeholder="مثال: AUDI" {...field} />
+                    <Input placeholder="مثال: AUDI" {...field} value={field.value || ""} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -301,7 +310,7 @@ export default function PartsRequestForm() {
                 <FormItem>
                   <FormLabel>موديل السيارة</FormLabel>
                   <FormControl>
-                    <Input placeholder="مثال: A4" {...field} />
+                    <Input placeholder="مثال: A4" {...field} value={field.value || ""} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -316,7 +325,7 @@ export default function PartsRequestForm() {
                 <FormItem>
                   <FormLabel>رقم السيارة</FormLabel>
                   <FormControl>
-                    <Input placeholder="مثال: 12345" {...field} />
+                    <Input placeholder="مثال: 12345" {...field} value={field.value || ""} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -331,7 +340,7 @@ export default function PartsRequestForm() {
                 <FormItem>
                   <FormLabel>رقم الشاسيه</FormLabel>
                   <FormControl>
-                    <Input placeholder="مثال: WAUEXXX" {...field} />
+                    <Input placeholder="مثال: WAUEXXX" {...field} value={field.value || ""} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -346,7 +355,7 @@ export default function PartsRequestForm() {
                 <FormItem>
                   <FormLabel>رمز المحرك</FormLabel>
                   <FormControl>
-                    <Input placeholder="مثال: BHF" {...field} />
+                    <Input placeholder="مثال: BHF" {...field} value={field.value || ""} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -423,6 +432,7 @@ export default function PartsRequestForm() {
                       placeholder="أي ملاحظات إضافية..."
                       className="resize-none"
                       {...field}
+                      value={field.value || ""}
                     />
                   </FormControl>
                   <FormMessage />

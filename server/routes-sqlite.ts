@@ -443,10 +443,21 @@ export function setupRoutes(app: Express) {
 
   app.post("/api/parts-requests", requirePermission("parts:create"), async (req, res, next) => {
     try {
-      const requestData = insertPartsRequestSchema.parse(req.body);
+      // إضافة معلومات المستخدم الذي طلب القطعة
+      const requestData = {
+        ...req.body,
+        requestedBy: (req as any).user?.username || 'غير معروف'
+      };
+      
+      console.log('Creating parts request:', requestData);
       const request = await storage.createPartsRequest(requestData);
+      
+      // إرسال إشعار لهبة (المشرفة) - سيتم تنفيذه لاحقاً
+      console.log('تم إنشاء طلب قطعة جديد، سيتم إشعار المشرفة');
+      
       res.status(201).json(request);
     } catch (error) {
+      console.error('Error creating parts request:', error);
       if (error instanceof ZodError) {
         return res.status(400).json({ error: "بيانات غير صحيحة", details: error.errors });
       }
