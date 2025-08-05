@@ -167,6 +167,19 @@ export const partsRequests = sqliteTable("parts_requests", {
   userNotes: text("user_notes"),
 });
 
+export const notifications = sqliteTable("notifications", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  userId: text("user_id", { length: 100 }).notNull(), // اسم المستخدم المراد إشعاره
+  type: text("type", { length: 50 }).notNull(), // نوع الإشعار: parts_request_created, task_assigned, etc.
+  title: text("title", { length: 200 }).notNull(), // عنوان الإشعار
+  message: text("message").notNull(), // نص الإشعار
+  relatedId: integer("related_id"), // معرف العنصر المرتبط (مثل رقم الطلب)
+  relatedType: text("related_type", { length: 50 }), // نوع العنصر المرتبط: parts_request, task, etc.
+  isRead: integer("is_read", { mode: "boolean" }).default(false),
+  createdAt: text("created_at").default("CURRENT_TIMESTAMP"),
+  readAt: text("read_at"),
+});
+
 // Relations
 export const workersRelations = relations(workers, ({ many }) => ({
   tasks: many(tasks),
@@ -306,6 +319,8 @@ export type CarReceipt = typeof carReceipts.$inferSelect;
 export type InsertCarReceipt = z.infer<typeof insertCarReceiptSchema>;
 export type PartsRequest = typeof partsRequests.$inferSelect;
 export type InsertPartsRequest = z.infer<typeof insertPartsRequestSchema>;
+export type Notification = typeof notifications.$inferSelect;
+export type InsertNotification = typeof notifications.$inferInsert;
 
 // Extended types
 export type WorkerWithTasks = Worker & { tasks: Task[] };

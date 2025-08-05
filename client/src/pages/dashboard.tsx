@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import { useAuth, usePermissions } from "@/hooks/use-auth";
 import logoImage from "@assets/Empty Logo with brands_1750921899348.png";
+import { NotificationCenter } from "@/components/NotificationCenter";
 import { formatTime, formatDate } from "@/lib/utils";
 import ActiveTimers from "@/components/ActiveTimers";
 import NewTaskForm from "@/components/NewTaskForm";
@@ -254,6 +255,7 @@ export default function Dashboard() {
                 }).format(currentTime)}
               </span>
               <div className="flex items-center space-x-reverse space-x-4">
+                <NotificationCenter />
                 <span className="text-sm">
                   مرحباً، {user?.username || 'المستخدم'}
                 </span>

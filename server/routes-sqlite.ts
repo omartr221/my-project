@@ -615,4 +615,40 @@ export function setupRoutes(app: Express) {
       size: req.file.size
     });
   });
+
+  // Notifications endpoints
+  app.get("/api/notifications", requireAuth, async (req, res) => {
+    try {
+      const user = req.user;
+      const isRead = req.query.isRead === 'true' ? true : req.query.isRead === 'false' ? false : undefined;
+      
+      const notifications = await storage.getNotifications(user.username, isRead);
+      res.json(notifications);
+    } catch (error) {
+      console.error("Error getting notifications:", error);
+      res.status(500).json({ error: "خطأ في استرجاع الإشعارات" });
+    }
+  });
+
+  app.patch("/api/notifications/:id/read", requireAuth, async (req, res) => {
+    try {
+      const notificationId = parseInt(req.params.id);
+      const notification = await storage.markNotificationAsRead(notificationId);
+      res.json(notification);
+    } catch (error) {
+      console.error("Error marking notification as read:", error);
+      res.status(500).json({ error: "خطأ في تحديث الإشعار" });
+    }
+  });
+
+  app.delete("/api/notifications/:id", requireAuth, async (req, res) => {
+    try {
+      const notificationId = parseInt(req.params.id);
+      await storage.deleteNotification(notificationId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting notification:", error);
+      res.status(500).json({ error: "خطأ في حذف الإشعار" });
+    }
+  });
 }

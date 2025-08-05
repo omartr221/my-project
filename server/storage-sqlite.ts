@@ -1,4 +1,4 @@
-import { workers, tasks, timeEntries, customers, customerCars, users, partsRequests, carReceipts, type Worker, type InsertWorker, type Task, type InsertTask, type TimeEntry, type InsertTimeEntry, type WorkerWithTasks, type TaskWithWorker, type TaskHistory, type Customer, type InsertCustomer, type CustomerCar, type InsertCustomerCar, type CustomerWithCars, type User, type InsertUser, type PartsRequest, type InsertPartsRequest, type CarReceipt, type InsertCarReceipt } from "@shared/schema-sqlite";
+import { workers, tasks, timeEntries, customers, customerCars, users, partsRequests, carReceipts, notifications, type Worker, type InsertWorker, type Task, type InsertTask, type TimeEntry, type InsertTimeEntry, type WorkerWithTasks, type TaskWithWorker, type TaskHistory, type Customer, type InsertCustomer, type CustomerCar, type InsertCustomerCar, type CustomerWithCars, type User, type InsertUser, type PartsRequest, type InsertPartsRequest, type CarReceipt, type InsertCarReceipt, type Notification, type InsertNotification } from "@shared/schema-sqlite";
 import { db, initDatabase } from "./db-sqlite";
 import { eq, desc, and, isNull, or, like, isNotNull, asc, sql } from "drizzle-orm";
 import session from "express-session";
@@ -81,6 +81,12 @@ export interface IStorage {
   postponeCarReceipt(id: number, postponedBy: string): Promise<CarReceipt>;
   searchCarReceipts(searchTerm: string): Promise<CarReceipt[]>;
   deleteCarReceipt(id: number): Promise<void>;
+  
+  // Notifications management
+  createNotification(notification: InsertNotification): Promise<Notification>;
+  getNotifications(userId: string, isRead?: boolean): Promise<Notification[]>;
+  markNotificationAsRead(id: number): Promise<Notification>;
+  deleteNotification(id: number): Promise<void>;
   
   sessionStore: any;
 }
@@ -882,7 +888,19 @@ class SQLiteStorage implements IStorage {
     };
     
     const result = await db.insert(partsRequests).values(requestData).returning();
-
+    
+    // إنشاء إشعار للمشرفين
+    await this.createNotification({
+      userId: "هبة", // اسم المشرفة
+      type: "parts_request_created",
+      title: "طلب قطعة جديد",
+      message: `طلب قطعة جديد من ${request.requestedBy}: ${request.partName} للسيارة ${request.carInfo}`,
+      relatedId: result[0].id,
+      relatedType: "parts_request"
+    });
+    
+    console.log("تم إنشاء طلب قطعة جديد، سيتم إشعار المشرفة");
+    
     return result[0];
   }
 
@@ -1024,6 +1042,41 @@ class SQLiteStorage implements IStorage {
 
   async deleteCarReceipt(id: number): Promise<void> {
     await db.delete(carReceipts).where(eq(carReceipts.id, id));
+  }
+
+  // Notifications management
+  async createNotification(notification: InsertNotification): Promise<Notification> {
+    const result = await db.insert(notifications).values({
+      ...notification,
+      createdAt: new Date().toISOString()
+    }).returning();
+    return result[0];
+  }
+
+  async getNotifications(userId: string, isRead?: boolean): Promise<Notification[]> {
+    let query = db.select().from(notifications).where(eq(notifications.userId, userId));
+    
+    if (isRead !== undefined) {
+      query = query.where(eq(notifications.isRead, isRead));
+    }
+    
+    return await query.orderBy(desc(notifications.createdAt));
+  }
+
+  async markNotificationAsRead(id: number): Promise<Notification> {
+    const result = await db.update(notifications)
+      .set({ 
+        isRead: true,
+        readAt: new Date().toISOString()
+      })
+      .where(eq(notifications.id, id))
+      .returning();
+    
+    return result[0];
+  }
+
+  async deleteNotification(id: number): Promise<void> {
+    await db.delete(notifications).where(eq(notifications.id, id));
   }
 }
 
