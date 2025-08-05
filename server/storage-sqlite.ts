@@ -243,8 +243,7 @@ class SQLiteStorage implements IStorage {
   async getTasks(): Promise<TaskWithWorker[]> {
     const result = await db.select()
       .from(tasks)
-      .innerJoin(workers, eq(tasks.workerId, workers.id))
-      .orderBy(desc(tasks.createdAt));
+      .innerJoin(workers, eq(tasks.workerId, workers.id));
 
     return result.map(row => ({
       ...row.tasks,
@@ -259,7 +258,7 @@ class SQLiteStorage implements IStorage {
       .from(tasks)
       .innerJoin(workers, eq(tasks.workerId, workers.id))
       .where(eq(tasks.status, "active"))
-      .orderBy(desc(tasks.startTime));
+;
 
     return result.map(row => ({
       ...row.tasks,
@@ -869,7 +868,7 @@ class SQLiteStorage implements IStorage {
 
   // Parts requests management
   async getPartsRequests(): Promise<PartsRequest[]> {
-    return await db.select().from(partsRequests).orderBy(desc(partsRequests.createdAt));
+    return await db.select().from(partsRequests);
   }
 
   async getPartsRequest(id: number): Promise<PartsRequest | undefined> {
@@ -881,12 +880,12 @@ class SQLiteStorage implements IStorage {
     const requestNumber = `REQ-${this.nextRequestNumber.toString().padStart(4, '0')}`;
     this.nextRequestNumber++;
 
-    const result = await db.insert(partsRequests).values({
+    const requestData = {
       ...request,
-      requestNumber,
-      requestedAt: new Date().toISOString(),
-      createdAt: new Date().toISOString()
-    }).returning();
+      requestedAt: new Date().toISOString()
+    };
+    
+    const result = await db.insert(partsRequests).values(requestData).returning();
 
     return result[0];
   }
