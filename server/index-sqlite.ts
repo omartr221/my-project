@@ -42,9 +42,9 @@ async function startServer() {
   // Create HTTP server
   const server = createServer(app);
 
-  // Serve the React interface directly as default route
+  // Serve the main HTML interface as default route
   app.get("/", (req, res) => {
-    res.sendFile(path.join(process.cwd(), "client/simple-react.html"));
+    res.sendFile(path.join(process.cwd(), "server/public/index.html"));
   });
 
   // Setup WebSocket
