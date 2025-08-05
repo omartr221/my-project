@@ -3,6 +3,12 @@
 ## Overview
 This is a full-stack web application for task distribution and time tracking for automotive technicians across multiple car brands (Audi, Seat, Skoda, Volkswagen). The system provides real-time task management, time tracking, and worker status monitoring with Arabic language support. It aims to streamline operations, improve efficiency, and enhance communication within the automotive service industry.
 
+**Current Status**: ✅ Fully operational with SQLite database - January 2025
+- Successfully converted from PostgreSQL to SQLite for improved offline performance
+- All errors resolved and system running stably on port 5000
+- WebSocket connections optimized and working correctly
+- Reception user password updated to "11" as requested
+
 ## User Preferences
 Preferred communication style: Simple, everyday language.
 
@@ -24,10 +30,11 @@ Preferred communication style: Simple, everyday language.
 - **Error Handling**: Comprehensive error middleware
 
 ### Data Storage
-- **Database**: PostgreSQL (Neon serverless)
+- **Database**: SQLite (Local file-based) 
 - **ORM**: Drizzle ORM
-- **Connection**: Connection pooling (@neondatabase/serverless)
+- **Connection**: Better-sqlite3 driver for optimal performance
 - **Migrations**: Drizzle Kit
+- **Backup**: Automatic hourly JSON backups to `/backups` directory
 
 ### Key Features and Design Patterns
 - **Database Schema**: Workers, Tasks, Time Entries tables with proper relationships.

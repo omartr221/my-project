@@ -1,23 +1,11 @@
-// 🔄 تحويل إلى إصدار SQLite
-console.log("🔄 تحويل إلى إصدار SQLite...");
-console.log("🗄️ يعمل الآن مع قاعدة بيانات محلية");
+// تحويل إلى إصدار SQLite المحسن
+console.log("🔄 تحويل إلى إصدار SQLite المحسن...");
+console.log("🗄️ يعمل الآن مع قاعدة بيانات محلية محسنة");
 
-// تشغيل الإصدار الجديد
-import { spawn } from "child_process";
-
-const server = spawn("npx", ["tsx", "server/index-sqlite.ts"], {
-  stdio: "inherit",
-  env: { ...process.env, NODE_ENV: "development" }
-});
-
-server.on("error", (err) => {
-  console.error("❌ خطأ في تشغيل SQLite:", err);
-});
-
-process.on("SIGINT", () => {
-  console.log("\n⏹️ إيقاف النظام...");
-  server.kill();
-  process.exit(0);
+// تحميل الإصدار المحسن
+import("./index-sqlite-improved.js").catch(() => {
+  // If ES module import fails, use require
+  require("./index-sqlite-improved.ts");
 });
 
 export {};
