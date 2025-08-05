@@ -22,7 +22,13 @@ function requirePermission(permission: string) {
     }
     
     const user = req.user;
-    if (!user.permissions || !user.permissions.includes(permission)) {
+    if (!user) {
+      return res.status(403).json({ error: "User not found" });
+    }
+    
+    // Check if user has permissions and the specific permission
+    const permissions = user.permissions || [];
+    if (!Array.isArray(permissions) || !permissions.includes(permission)) {
       return res.status(403).json({ error: "Insufficient permissions" });
     }
     

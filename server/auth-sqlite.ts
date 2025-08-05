@@ -58,7 +58,7 @@ export function setupAuth(app: Express) {
         if (!user || !(await comparePasswords(password, user.password))) {
           return done(null, false);
         } else {
-          return done(null, user);
+          return done(null, user as any);
         }
       } catch (error) {
         console.error("🚨 Authentication error:", error);
@@ -71,7 +71,7 @@ export function setupAuth(app: Express) {
   passport.deserializeUser(async (id: number, done) => {
     try {
       const user = await storage.getUser(id);
-      done(null, user);
+      done(null, user as any);
     } catch (error) {
       done(error);
     }
@@ -89,7 +89,7 @@ export function setupAuth(app: Express) {
         password: await hashPassword(req.body.password),
       });
 
-      req.login(user, (err) => {
+      req.login(user as any, (err) => {
         if (err) return next(err);
         res.status(201).json(user);
       });
@@ -133,7 +133,7 @@ async function initializeDefaultUsers() {
           "tasks:read",
           "archive:read",
           "customers:read"
-        ],
+        ] as any,
       });
       console.log("✓ تم إنشاء مستخدم المالية: ملك");
     }
@@ -157,7 +157,7 @@ async function initializeDefaultUsers() {
           "customers:write",
           "parts:read",
           "parts:create"
-        ],
+        ] as any,
       });
       console.log("✓ تم إنشاء مستخدم العمليات: بدوي");
     }
@@ -178,7 +178,7 @@ async function initializeDefaultUsers() {
           "parts:read",
           "parts:approve",
           "parts:reject"
-        ],
+        ] as any,
       });
       console.log("✓ تم إنشاء مستخدم المشاهدة: هبة");
     }
@@ -198,7 +198,7 @@ async function initializeDefaultUsers() {
           "tasks:create",
           "archive:read",
           "customers:read"
-        ],
+        ] as any,
       });
       console.log("✓ تم إنشاء مستخدم المشرف: روان");
     }
@@ -243,7 +243,7 @@ async function initializeDefaultUsers() {
           "receipts:create",
           "receipts:edit",
           "receipts:delete"
-        ],
+        ] as any,
       });
       console.log("✓ تم إنشاء مستخدم الإدارة: فارس");
     }
@@ -266,7 +266,7 @@ async function initializeDefaultUsers() {
           "customers:read",
           "customers:write",
           "customers:create"
-        ],
+        ] as any,
       });
       console.log("✓ تم إنشاء مستخدم الاستقبال: الاستقبال");
     } else {
@@ -282,7 +282,7 @@ async function initializeDefaultUsers() {
         "customers:write",
         "customers:create"
       ];
-      await storage.updateUserPermissions("الاستقبال", updatedPermissions);
+      await storage.updateUserPermissions("الاستقبال", updatedPermissions as any);
       console.log("✓ تم تحديث صلاحيات مستخدم الاستقبال");
     }
   } catch (error) {
