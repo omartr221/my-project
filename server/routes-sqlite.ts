@@ -300,7 +300,7 @@ export function setupRoutes(app: Express) {
     }
   });
 
-  app.post("/api/customers", requirePermission("customers:create"), async (req, res, next) => {
+  app.post("/api/customers", requirePermission("customers:write"), async (req, res, next) => {
     try {
       const customerData = insertCustomerSchema.parse(req.body);
       const customer = await storage.createCustomer(customerData);
@@ -313,7 +313,7 @@ export function setupRoutes(app: Express) {
     }
   });
 
-  app.put("/api/customers/:id", requirePermission("customers:edit"), async (req, res, next) => {
+  app.put("/api/customers/:id", requirePermission("customers:write"), async (req, res, next) => {
     try {
       const id = parseInt(req.params.id);
       const updates = insertCustomerSchema.partial().parse(req.body);
@@ -383,7 +383,7 @@ export function setupRoutes(app: Express) {
     }
   });
 
-  app.put("/api/customer-cars/:id", requirePermission("customers:edit"), async (req, res, next) => {
+  app.put("/api/customer-cars/:id", requirePermission("customers:write"), async (req, res, next) => {
     try {
       const id = parseInt(req.params.id);
       const updates = insertCustomerCarSchema.partial().parse(req.body);
