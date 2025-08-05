@@ -8,10 +8,24 @@ import fs from "fs";
 
 // Helper function to handle authentication check
 function requireAuth(req: any, res: any, next: any) {
-  if (!req.isAuthenticated()) {
+  const userId = req.session?.userId;
+  if (!userId) {
     return res.status(401).json({ error: "Authentication required" });
   }
-  next();
+  
+  // Set user object for convenience
+  if (!req.user) {
+    storage.getUser(userId).then(user => {
+      if (user) {
+        req.user = user;
+      }
+      next();
+    }).catch(() => {
+      return res.status(401).json({ error: "Authentication required" });
+    });
+  } else {
+    next();
+  }
 }
 
 // Helper function to check permissions
@@ -649,6 +663,69 @@ export function setupRoutes(app: Express) {
     } catch (error) {
       console.error("Error deleting notification:", error);
       res.status(500).json({ error: "خطأ في حذف الإشعار" });
+    }
+  });
+
+  // Authentication routes
+  app.post("/api/login", async (req, res, next) => {
+    try {
+      const { username, password } = req.body;
+      
+      if (!username || !password) {
+        return res.status(400).json({ error: "اسم المستخدم وكلمة المرور مطلوبان" });
+      }
+
+      const user = await storage.getUserByUsername(username);
+      if (!user) {
+        return res.status(401).json({ error: "اسم المستخدم أو كلمة المرور غير صحيح" });
+      }
+
+      // Verify password
+      const crypto = require('crypto');
+      const [hash, salt] = user.password.split('.');
+      const testHash = crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex');
+      
+      if (testHash !== hash) {
+        return res.status(401).json({ error: "اسم المستخدم أو كلمة المرور غير صحيح" });
+      }
+
+      // Set user in session
+      (req as any).session.userId = user.id;
+      
+      // Return user without password
+      const { password: _, ...userWithoutPassword } = user;
+      res.json(userWithoutPassword);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.post("/api/logout", (req, res) => {
+    (req as any).session.destroy((err: any) => {
+      if (err) {
+        return res.status(500).json({ error: "خطأ في تسجيل الخروج" });
+      }
+      res.json({ success: true });
+    });
+  });
+
+  app.get("/api/user", async (req, res, next) => {
+    try {
+      const userId = (req as any).session?.userId;
+      if (!userId) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(401).json({ error: "User not found" });
+      }
+
+      // Return user without password
+      const { password: _, ...userWithoutPassword } = user;
+      res.json(userWithoutPassword);
+    } catch (error) {
+      next(error);
     }
   });
 }
