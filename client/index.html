@@ -10,24 +10,6 @@
     <meta name="description" content="نظام إدارة المهام والعمال - V POWER TUNING" />
     <script>
       
-      // معالج شامل لأخطاء السكريبتات الخارجية
-      window.addEventListener('error', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        return false;
-      }, true);
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/sw.js')
-          .then(() => console.log('✅ Service Worker Registered'))
-          .catch(err => console.log('SW registration skipped'));
-      }
-
-      window.addEventListener('unhandledrejection', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        return false;
-      }, true);
-      
       // تجاوز alert لمنع رسائل الخطأ
       window.alert = function() { return true; };
     </script>
