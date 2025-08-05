@@ -1,10 +1,12 @@
-// استخدام إصدار SQLite مع Vite
+// تحويل مؤقت إلى إصدار SQLite المبسط
 console.log("🔄 تحويل إلى إصدار SQLite...");
 console.log("🗄️ يعمل الآن مع قاعدة بيانات محلية");
 
-import("./index-sqlite.ts").then(() => {
-  console.log("✅ تم تحميل إصدار SQLite بنجاح");
-}).catch((error) => {
-  console.error("❌ خطأ في تحميل إصدار SQLite:", error);
-  process.exit(1);
+// تحميل الإصدار المبسط
+import("./index-simple.js").catch(() => {
+  // If ES module import fails, use require
+  require("./index-simple.ts");
 });
+
+// توقيف باقي الملف
+export {};

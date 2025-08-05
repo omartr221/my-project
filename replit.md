@@ -3,13 +3,6 @@
 ## Overview
 This is a full-stack web application for task distribution and time tracking for automotive technicians across multiple car brands (Audi, Seat, Skoda, Volkswagen). The system provides real-time task management, time tracking, and worker status monitoring with Arabic language support. It aims to streamline operations, improve efficiency, and enhance communication within the automotive service industry.
 
-## Recent Updates (August 2025)
-- **Port Configuration**: System now runs on port 80 for better compatibility
-- **Frontend Optimization**: Resolved Vite loading issues with React main.tsx
-- **Database Migration**: Successfully migrated to SQLite for local performance
-- **Interface Simplification**: Created stable React interface with direct HTML/JS approach
-- **Authentication Enhancement**: All user accounts working with simplified login (reception user password: "11")
-
 ## User Preferences
 Preferred communication style: Simple, everyday language.
 

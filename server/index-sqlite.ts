@@ -4,13 +4,13 @@ import { WebSocketServer } from "ws";
 import { setupVite, serveStatic } from "./vite";
 import { setupAuth } from "./auth-sqlite";
 import { storage } from "./storage-sqlite";
-import { setupRoutes } from "./routes-sqlite";
-import { setupWebSocket } from "./websocket";
+import { setupRoutes } from "./routes-sqlite.js";
+import { setupWebSocket } from "./websocket.js";
 import fs from "fs";
 import path from "path";
 
 const app = express();
-const port = parseInt(process.env.PORT || "80");
+const port = parseInt(process.env.PORT || "5000");
 const host = process.env.HOST || "0.0.0.0";
 
 async function startServer() {
@@ -28,24 +28,16 @@ async function startServer() {
 
   // Setup routes
   setupRoutes(app);
-  
-  // Add React interface route
-  app.get("/react", (req, res) => {
-    res.sendFile(path.join(process.cwd(), "client/simple-react.html"));
-  });
-  
-  // Add test route for troubleshooting
-  app.get("/test", (req, res) => {
-    res.sendFile(path.join(process.cwd(), "test-simple.html"));
-  });
 
   // Create HTTP server
   const server = createServer(app);
 
-  // Serve the main HTML interface as default route
-  app.get("/", (req, res) => {
-    res.sendFile(path.join(process.cwd(), "server/public/index.html"));
-  });
+  // Setup development middleware
+  if (process.env.NODE_ENV === "development") {
+    await setupVite(app, server);
+  } else {
+    serveStatic(app);
+  }
 
   // Setup WebSocket
   const wss = new WebSocketServer({ server });
