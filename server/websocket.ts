@@ -7,7 +7,7 @@ export function setupWebSocket(wss: WebSocketServer) {
     console.log("🔗 WebSocket client connected");
     clients.add(ws);
 
-    ws.on("message", (message: string) => {
+    ws.on("message", (message: Buffer) => {
       try {
         const data = JSON.parse(message.toString());
         console.log("📨 WebSocket message received:", data);
