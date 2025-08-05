@@ -28,6 +28,15 @@ async function startServer() {
 
   // Setup routes
   setupRoutes(app);
+  
+  // Add main interface routes
+  app.get("/", (req, res) => {
+    res.sendFile(path.join(__dirname, "../index.html"));
+  });
+  
+  app.get("/test", (req, res) => {
+    res.sendFile(path.join(__dirname, "../test-simple.html"));
+  });
 
   // Create HTTP server
   const server = createServer(app);

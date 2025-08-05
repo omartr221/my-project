@@ -1,12 +1,9 @@
-// تحويل مؤقت إلى إصدار SQLite المبسط
-console.log("🔄 تحويل إلى إصدار SQLite...");
-console.log("🗄️ يعمل الآن مع قاعدة بيانات محلية");
+// تشغيل مباشر لنظام SQLite
+console.log("🔄 تشغيل نظام V-POWER TUNING مع SQLite...");
 
-// تحميل الإصدار المبسط
-import("./index-simple.js").catch(() => {
-  // If ES module import fails, use require
-  require("./index-simple.ts");
+import("./index-direct.js").then(() => {
+  console.log("✅ تم تحميل النظام بنجاح");
+}).catch((error) => {
+  console.error("❌ خطأ في تحميل النظام:", error);
+  process.exit(1);
 });
-
-// توقيف باقي الملف
-export {};

@@ -14,21 +14,7 @@ function requireAuth(req: any, res: any, next: any) {
   next();
 }
 
-// Helper function to check permissions
-function requirePermission(permission: string) {
-  return (req: any, res: any, next: any) => {
-    if (!req.isAuthenticated()) {
-      return res.status(401).json({ error: "Authentication required" });
-    }
-    
-    const user = req.user;
-    if (!user.permissions || !user.permissions.includes(permission)) {
-      return res.status(403).json({ error: "Insufficient permissions" });
-    }
-    
-    next();
-  };
-}
+// Permission checking disabled for simplified access
 
 // Setup multer for file uploads
 const storage_config = multer.diskStorage({

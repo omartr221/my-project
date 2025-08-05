@@ -58,7 +58,11 @@ export function setupAuth(app: Express) {
         if (!user || !(await comparePasswords(password, user.password))) {
           return done(null, false);
         } else {
-          return done(null, user);
+          const authUser = {
+            ...user,
+            permissions: user.permissions ? JSON.parse(user.permissions) : []
+          };
+          return done(null, authUser);
         }
       } catch (error) {
         console.error("🚨 Authentication error:", error);
@@ -71,7 +75,15 @@ export function setupAuth(app: Express) {
   passport.deserializeUser(async (id: number, done) => {
     try {
       const user = await storage.getUser(id);
-      done(null, user);
+      if (user) {
+        const authUser = {
+          ...user,
+          permissions: user.permissions ? JSON.parse(user.permissions) : []
+        };
+        done(null, authUser);
+      } else {
+        done(null, false);
+      }
     } catch (error) {
       done(error);
     }
@@ -89,9 +101,13 @@ export function setupAuth(app: Express) {
         password: await hashPassword(req.body.password),
       });
 
-      req.login(user, (err) => {
+      const authUser = {
+        ...user,
+        permissions: user.permissions ? JSON.parse(user.permissions) : []
+      };
+      req.login(authUser, (err) => {
         if (err) return next(err);
-        res.status(201).json(user);
+        res.status(201).json(authUser);
       });
     } catch (error) {
       next(error);
@@ -128,12 +144,12 @@ async function initializeDefaultUsers() {
         username: "ملك",
         password: await hashPassword("12345"),
         role: "finance",
-        permissions: [
+        permissions: JSON.stringify([
           "dashboard:read",
           "tasks:read",
           "archive:read",
           "customers:read"
-        ],
+        ]),
       });
       console.log("✓ تم إنشاء مستخدم المالية: ملك");
     }
@@ -146,7 +162,7 @@ async function initializeDefaultUsers() {
         username: "بدوي",
         password: await hashPassword("0000"),
         role: "operator",
-        permissions: [
+        permissions: JSON.stringify([
           "dashboard:read",
           "timers:read",
           "timers:write",
@@ -157,7 +173,7 @@ async function initializeDefaultUsers() {
           "customers:write",
           "parts:read",
           "parts:create"
-        ],
+        ]),
       });
       console.log("✓ تم إنشاء مستخدم العمليات: بدوي");
     }
@@ -170,7 +186,7 @@ async function initializeDefaultUsers() {
         username: "هبة",
         password: await hashPassword("123456"),
         role: "viewer",
-        permissions: [
+        permissions: JSON.stringify([
           "dashboard:read",
           "timers:read",
           "tasks:read",
@@ -178,7 +194,7 @@ async function initializeDefaultUsers() {
           "parts:read",
           "parts:approve",
           "parts:reject"
-        ],
+        ]),
       });
       console.log("✓ تم إنشاء مستخدم المشاهدة: هبة");
     }
@@ -191,14 +207,14 @@ async function initializeDefaultUsers() {
         username: "روان",
         password: await hashPassword("1234567"),
         role: "supervisor",
-        permissions: [
+        permissions: JSON.stringify([
           "dashboard:read",
           "timers:read",
           "tasks:read",
           "tasks:create",
           "archive:read",
           "customers:read"
-        ],
+        ]),
       });
       console.log("✓ تم إنشاء مستخدم المشرف: روان");
     }
@@ -211,7 +227,7 @@ async function initializeDefaultUsers() {
         username: "فارس",
         password: await hashPassword("faris441111"),
         role: "admin",
-        permissions: [
+        permissions: JSON.stringify([
           "dashboard:read",
           "dashboard:write",
           "timers:read",
@@ -243,7 +259,7 @@ async function initializeDefaultUsers() {
           "receipts:create",
           "receipts:edit",
           "receipts:delete"
-        ],
+        ]),
       });
       console.log("✓ تم إنشاء مستخدم الإدارة: فارس");
     }
@@ -256,7 +272,7 @@ async function initializeDefaultUsers() {
         username: "الاستقبال",
         password: await hashPassword("11"),
         role: "reception",
-        permissions: [
+        permissions: JSON.stringify([
           "timers:read",
           "tasks:read",
           "parts:read",
@@ -266,12 +282,12 @@ async function initializeDefaultUsers() {
           "customers:read",
           "customers:write",
           "customers:create"
-        ],
+        ]),
       });
       console.log("✓ تم إنشاء مستخدم الاستقبال: الاستقبال");
     } else {
       // Update existing reception user with new permissions
-      const updatedPermissions = [
+      const updatedPermissions = JSON.stringify([
         "timers:read",
         "tasks:read",
         "parts:read",
@@ -281,7 +297,7 @@ async function initializeDefaultUsers() {
         "customers:read",
         "customers:write",
         "customers:create"
-      ];
+      ]);
       await storage.updateUserPermissions("الاستقبال", updatedPermissions);
       console.log("✓ تم تحديث صلاحيات مستخدم الاستقبال");
     }
