@@ -17,9 +17,9 @@
         return false;
       }, true);
       if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/client/public/sw.js')
+        navigator.serviceWorker.register('/sw.js')
           .then(() => console.log('✅ Service Worker Registered'))
-          .catch(err => console.error('❌ SW Error:', err));
+          .catch(err => console.log('SW registration skipped'));
       }
 
       window.addEventListener('unhandledrejection', function(e) {
