@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>V POWER TUNING - نظام إدارة المهام</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            direction: rtl;
+        }
+        
+        .container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .login-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            padding: 40px;
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .logo {
+            font-size: 32px;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        
+        .title {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+            text-align: right;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .login-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .login-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .login-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .error {
+            color: #e74c3c;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        
+        .success {
+            color: #27ae60;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        
+        .dashboard {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            padding: 40px;
+            max-width: 1200px;
+            width: 100%;
+            margin: 20px;
+        }
+        
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .welcome {
+            font-size: 24px;
+            color: #333;
+        }
+        
+        .logout-btn {
+            padding: 10px 20px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .logout-btn:hover {
+            background: #c0392b;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        function LoginForm({ onLogin }) {
+            const [username, setUsername] = useState('');
+            const [password, setPassword] = useState('');
+            const [loading, setLoading] = useState(false);
+            const [error, setError] = useState('');
+
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                setLoading(true);
+                setError('');
+
+                try {
+                    const response = await fetch('/api/auth/login', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ username, password }),
+                    });
+
+                    if (response.ok) {
+                        const user = await response.json();
+                        onLogin(user);
+                    } else {
+                        setError('خطأ في اسم المستخدم أو كلمة المرور');
+                    }
+                } catch (err) {
+                    setError('خطأ في الاتصال');
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            return (
+                <div className="container">
+                    <div className="login-card">
+                        <div className="logo">V POWER TUNING</div>
+                        <h1 className="title">نظام إدارة المهام</h1>
+                        
+                        <form onSubmit={handleSubmit}>
+                            <div className="form-group">
+                                <label>اسم المستخدم:</label>
+                                <input
+                                    type="text"
+                                    value={username}
+                                    onChange={(e) => setUsername(e.target.value)}
+                                    required
+                                    disabled={loading}
+                                />
+                            </div>
+                            
+                            <div className="form-group">
+                                <label>كلمة المرور:</label>
+                                <input
+                                    type="password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    required
+                                    disabled={loading}
+                                />
+                            </div>
+                            
+                            <button 
+                                type="submit" 
+                                className="login-btn"
+                                disabled={loading}
+                            >
+                                {loading ? 'جاري التحميل...' : 'تسجيل الدخول'}
+                            </button>
+                            
+                            {error && <div className="error">{error}</div>}
+                        </form>
+                        
+                        <div style={{marginTop: '20px', fontSize: '14px', color: '#666'}}>
+                            <p><strong>الحسابات المتاحة:</strong></p>
+                            <p>بدوي / 0000</p>
+                            <p>الاستقبال / 11</p>
+                            <p>ملك / 12345</p>
+                            <p>هبة / 123456</p>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        function Dashboard({ user, onLogout }) {
+            const [stats, setStats] = useState({
+                totalWorkers: 0,
+                activeTasks: 0,
+                completedTasks: 0,
+                pendingRequests: 0
+            });
+
+            useEffect(() => {
+                fetchStats();
+            }, []);
+
+            const fetchStats = async () => {
+                try {
+                    const response = await fetch('/api/stats');
+                    if (response.ok) {
+                        const data = await response.json();
+                        setStats(data);
+                    }
+                } catch (err) {
+                    console.error('Error fetching stats:', err);
+                }
+            };
+
+            return (
+                <div className="container">
+                    <div className="dashboard">
+                        <div className="dashboard-header">
+                            <div className="welcome">
+                                مرحباً، {user.displayName || user.username}
+                            </div>
+                            <button className="logout-btn" onClick={onLogout}>
+                                تسجيل خروج
+                            </button>
+                        </div>
+                        
+                        <div className="stats-grid">
+                            <div className="stat-card">
+                                <div className="stat-value">{stats.totalWorkers}</div>
+                                <div className="stat-label">إجمالي العمال</div>
+                            </div>
+                            <div className="stat-card">
+                                <div className="stat-value">{stats.activeTasks}</div>
+                                <div className="stat-label">المهام النشطة</div>
+                            </div>
+                            <div className="stat-card">
+                                <div className="stat-value">{stats.completedTasks}</div>
+                                <div className="stat-label">المهام المكتملة</div>
+                            </div>
+                            <div className="stat-card">
+                                <div className="stat-value">{stats.pendingRequests}</div>
+                                <div className="stat-label">طلبات قطع الغيار</div>
+                            </div>
+                        </div>
+                        
+                        <div style={{textAlign: 'center', marginTop: '30px'}}>
+                            <p style={{fontSize: '18px', color: '#667eea', fontWeight: 'bold'}}>
+                                🎉 مرحباً بك في واجهة React الأساسية!
+                            </p>
+                            <p style={{marginTop: '10px', color: '#666'}}>
+                                النظام يعمل الآن بواجهة React مع قاعدة بيانات SQLite محلية
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        function App() {
+            const [user, setUser] = useState(null);
+            const [loading, setLoading] = useState(true);
+
+            useEffect(() => {
+                checkAuth();
+            }, []);
+
+            const checkAuth = async () => {
+                try {
+                    const response = await fetch('/api/user');
+                    if (response.ok) {
+                        const userData = await response.json();
+                        setUser(userData);
+                    }
+                } catch (err) {
+                    console.error('Auth check failed:', err);
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            const handleLogin = (userData) => {
+                setUser(userData);
+            };
+
+            const handleLogout = async () => {
+                try {
+                    await fetch('/api/auth/logout', { method: 'POST' });
+                    setUser(null);
+                } catch (err) {
+                    console.error('Logout failed:', err);
+                }
+            };
+
+            if (loading) {
+                return (
+                    <div className="container">
+                        <div style={{color: 'white', fontSize: '24px'}}>
+                            جاري التحميل...
+                        </div>
+                    </div>
+                );
+            }
+
+            return user ? 
+                <Dashboard user={user} onLogout={handleLogout} /> : 
+                <LoginForm onLogin={handleLogin} />;
+        }
+
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>

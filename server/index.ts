@@ -1,9 +1,10 @@
-// تشغيل مباشر لنظام SQLite
-console.log("🔄 تشغيل نظام V-POWER TUNING مع SQLite...");
+// استخدام إصدار SQLite مع Vite
+console.log("🔄 تحويل إلى إصدار SQLite...");
+console.log("🗄️ يعمل الآن مع قاعدة بيانات محلية");
 
-import("./index-direct.js").then(() => {
-  console.log("✅ تم تحميل النظام بنجاح");
+import("./index-sqlite.js").then(() => {
+  console.log("✅ تم تحميل إصدار SQLite بنجاح");
 }).catch((error) => {
-  console.error("❌ خطأ في تحميل النظام:", error);
+  console.error("❌ خطأ في تحميل إصدار SQLite:", error);
   process.exit(1);
 });

@@ -29,24 +29,24 @@ async function startServer() {
   // Setup routes
   setupRoutes(app);
   
-  // Add main interface routes
-  app.get("/", (req, res) => {
-    res.sendFile(path.join(__dirname, "../index.html"));
+  // Add React interface route
+  app.get("/react", (req, res) => {
+    res.sendFile(path.join(process.cwd(), "client/simple-react.html"));
   });
   
+  // Add test route for troubleshooting
   app.get("/test", (req, res) => {
-    res.sendFile(path.join(__dirname, "../test-simple.html"));
+    res.sendFile(path.join(process.cwd(), "test-simple.html"));
   });
 
   // Create HTTP server
   const server = createServer(app);
 
-  // Setup development middleware
-  if (process.env.NODE_ENV === "development") {
-    await setupVite(app, server);
-  } else {
-    serveStatic(app);
-  }
+  // Skip Vite for now and serve React interface directly
+  // Add React interface as default route
+  app.get("/", (req, res) => {
+    res.sendFile(path.join(process.cwd(), "client/simple-react.html"));
+  });
 
   // Setup WebSocket
   const wss = new WebSocketServer({ server });
