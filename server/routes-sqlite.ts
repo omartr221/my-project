@@ -48,16 +48,6 @@ const storage_config = multer.diskStorage({
 const upload = multer({ storage: storage_config });
 
 export function setupRoutes(app: Express) {
-  // Health check endpoint
-  app.get("/api/health", (req, res) => {
-    res.json({ 
-      status: "OK", 
-      timestamp: new Date().toISOString(),
-      version: "1.0.0",
-      database: "SQLite",
-      environment: process.env.NODE_ENV || "development"
-    });
-  });
   // Worker routes
   app.get("/api/workers", requireAuth, async (req, res, next) => {
     try {
