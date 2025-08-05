@@ -83,7 +83,9 @@ export default function NewTaskForm() {
   const { data: workers } = useQuery({
     queryKey: ['/api/workers'],
     queryFn: async () => {
-      const response = await fetch('/api/workers');
+      const response = await fetch('/api/workers', {
+        credentials: 'include'
+      });
       return response.json();
     },
   });
@@ -91,12 +93,14 @@ export default function NewTaskForm() {
   const { data: customerCars } = useQuery({
     queryKey: ['/api/customer-cars'],
     queryFn: async () => {
-      const response = await fetch('/api/customer-cars');
+      const response = await fetch('/api/customer-cars', {
+        credentials: 'include'
+      });
       return response.json();
     },
   });
 
-  const workerNames = workers?.map((w: any) => w.name) || [];
+  const workerNames = Array.isArray(workers) ? workers.map((w: any) => w.name) : [];
 
   // Function to fetch car data by license plate for autofill
   const fetchCarDataByLicensePlate = async (licensePlate: string) => {
