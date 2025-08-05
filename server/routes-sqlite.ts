@@ -30,23 +30,30 @@ function requireAuth(req: any, res: any, next: any) {
 
 // Helper function to check permissions
 function requirePermission(permission: string) {
-  return (req: any, res: any, next: any) => {
-    if (!req.isAuthenticated()) {
+  return async (req: any, res: any, next: any) => {
+    const userId = req.session?.userId;
+    if (!userId) {
       return res.status(401).json({ error: "Authentication required" });
     }
     
-    const user = req.user;
-    if (!user) {
-      return res.status(403).json({ error: "User not found" });
+    try {
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(403).json({ error: "User not found" });
+      }
+      
+      req.user = user; // Set user for other middlewares
+      
+      // Check if user has permissions and the specific permission
+      const permissions = user.permissions || [];
+      if (!Array.isArray(permissions) || !permissions.includes(permission)) {
+        return res.status(403).json({ error: "Insufficient permissions" });
+      }
+      
+      next();
+    } catch (error) {
+      return res.status(401).json({ error: "Authentication required" });
     }
-    
-    // Check if user has permissions and the specific permission
-    const permissions = user.permissions || [];
-    if (!Array.isArray(permissions) || !permissions.includes(permission)) {
-      return res.status(403).json({ error: "Insufficient permissions" });
-    }
-    
-    next();
   };
 }
 
