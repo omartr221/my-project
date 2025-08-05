@@ -85,6 +85,22 @@ export interface IStorage {
   sessionStore: any;
 }
 
+// Helper functions for JSON serialization
+function parseJsonArray(jsonString: string | null): string[] {
+  if (!jsonString) return [];
+  try {
+    const parsed = JSON.parse(jsonString);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function stringifyJsonArray(array: string[] | undefined): string {
+  if (!array || !Array.isArray(array)) return JSON.stringify([]);
+  return JSON.stringify(array);
+}
+
 // SQLite Storage Implementation
 class SQLiteStorage implements IStorage {
   private nextTaskNumber = 1;
@@ -205,8 +221,8 @@ class SQLiteStorage implements IStorage {
       if (task && task.status === 'active') {
         workerMap.get(worker.id)!.tasks.push({
           ...task,
-          technicians: this.parseJsonArray(task.technicians),
-          assistants: this.parseJsonArray(task.assistants)
+          technicians: parseJsonArray(task.technicians),
+          assistants: parseJsonArray(task.assistants)
         } as Task);
       }
     });
@@ -249,8 +265,8 @@ class SQLiteStorage implements IStorage {
     return result.map(row => ({
       ...row.tasks,
       worker: row.workers,
-      technicians: this.parseJsonArray(row.tasks.technicians),
-      assistants: this.parseJsonArray(row.tasks.assistants)
+      technicians: parseJsonArray(row.tasks.technicians),
+      assistants: parseJsonArray(row.tasks.assistants)
     } as TaskWithWorker));
   }
 
@@ -264,8 +280,8 @@ class SQLiteStorage implements IStorage {
     return result.map(row => ({
       ...row.tasks,
       worker: row.workers,
-      technicians: this.parseJsonArray(row.tasks.technicians),
-      assistants: this.parseJsonArray(row.tasks.assistants)
+      technicians: parseJsonArray(row.tasks.technicians),
+      assistants: parseJsonArray(row.tasks.assistants)
     } as TaskWithWorker));
   }
 
@@ -281,8 +297,8 @@ class SQLiteStorage implements IStorage {
     return {
       ...result[0].tasks,
       worker: result[0].workers,
-      technicians: this.parseJsonArray(result[0].tasks.technicians),
-      assistants: this.parseJsonArray(result[0].tasks.assistants)
+      technicians: parseJsonArray(result[0].tasks.technicians),
+      assistants: parseJsonArray(result[0].tasks.assistants)
     } as TaskWithWorker;
   }
 
@@ -293,8 +309,8 @@ class SQLiteStorage implements IStorage {
     const taskData = {
       ...task,
       taskNumber,
-      technicians: this.stringifyArray(task.technicians),
-      assistants: this.stringifyArray(task.assistants),
+      technicians: stringifyJsonArray((task as any).technicians),
+      assistants: stringifyJsonArray((task as any).assistants),
       startTime: new Date().toISOString()
     };
 
@@ -310,18 +326,18 @@ class SQLiteStorage implements IStorage {
 
     return {
       ...createdTask,
-      technicians: this.parseJsonArray(createdTask.technicians),
-      assistants: this.parseJsonArray(createdTask.assistants)
+      technicians: parseJsonArray(createdTask.technicians),
+      assistants: parseJsonArray(createdTask.assistants)
     } as Task;
   }
 
   async updateTask(id: number, updates: Partial<Task>): Promise<Task> {
     const updateData = { ...updates };
-    if (updates.technicians) {
-      updateData.technicians = this.stringifyArray(updates.technicians);
+    if ((updates as any).technicians) {
+      (updateData as any).technicians = stringifyJsonArray((updates as any).technicians);
     }
-    if (updates.assistants) {
-      updateData.assistants = this.stringifyArray(updates.assistants);
+    if ((updates as any).assistants) {
+      (updateData as any).assistants = stringifyJsonArray((updates as any).assistants);
     }
 
     const result = await db.update(tasks)

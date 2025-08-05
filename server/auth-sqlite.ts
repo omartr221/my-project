@@ -287,7 +287,7 @@ async function initializeDefaultUsers() {
       console.log("✓ تم إنشاء مستخدم الاستقبال: الاستقبال");
     } else {
       // Update existing reception user with new permissions
-      const updatedPermissions = JSON.stringify([
+      const updatedPermissions = [
         "timers:read",
         "tasks:read",
         "parts:read",
@@ -297,7 +297,7 @@ async function initializeDefaultUsers() {
         "customers:read",
         "customers:write",
         "customers:create"
-      ]);
+      ];
       await storage.updateUserPermissions("الاستقبال", updatedPermissions);
       console.log("✓ تم تحديث صلاحيات مستخدم الاستقبال");
     }

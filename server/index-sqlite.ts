@@ -4,8 +4,8 @@ import { WebSocketServer } from "ws";
 import { setupVite, serveStatic } from "./vite";
 import { setupAuth } from "./auth-sqlite";
 import { storage } from "./storage-sqlite";
-import { setupRoutes } from "./routes-sqlite.js";
-import { setupWebSocket } from "./websocket.js";
+import { setupRoutes } from "./routes-sqlite";
+import { setupWebSocket } from "./websocket";
 import fs from "fs";
 import path from "path";
 
