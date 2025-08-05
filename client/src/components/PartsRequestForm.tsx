@@ -88,6 +88,7 @@ export default function PartsRequestForm() {
       // تحويل البيانات لتتوافق مع schema السيرفر
       const requestData = {
         engineerName: data.engineerName,
+        customerName: (window as any).lastFoundCustomerName || "", // اسم الزبون من البحث
         carInfo: data.carInfo || `${data.licensePlate || ''} ${data.chassisNumber || ''} ${data.carBrand || ''} ${data.carModel || ''}`.trim() || 'غير محدد',
         carBrand: data.carBrand,
         carModel: data.carModel,
@@ -154,6 +155,9 @@ export default function PartsRequestForm() {
           if (carData.engineCode) {
             form.setValue("engineCode", carData.engineCode);
           }
+          
+          // حفظ اسم الزبون للاستخدام عند الإرسال
+          (window as any).lastFoundCustomerName = carData.customerName || "";
           
           // إنشاء وصف شامل
           let description = `${carData.carBrand} ${carData.carModel}`;

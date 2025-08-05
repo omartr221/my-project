@@ -224,6 +224,7 @@ export const partsRequests = sqliteTable("parts_requests", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   requestNumber: text("request_number").unique(),
   engineerName: text("engineer_name").notNull(),
+  customerName: text("customer_name"), // اسم الزبون
   carInfo: text("car_info").notNull(), // License plate, chassis number, or customer name
   carBrand: text("car_brand"),
   carModel: text("car_model"),
@@ -275,6 +276,7 @@ export const insertPartsRequestSchema = createInsertSchema(partsRequests).omit({
   partName: z.string().min(1, "يجب إدخال اسم القطعة"),
   quantity: z.number().min(1, "يجب إدخال العدد"),
 }).partial({
+  customerName: true,
   carBrand: true,
   carModel: true,
   licensePlate: true,
