@@ -112,12 +112,13 @@ export default function PartsRequestForm() {
     },
   });
 
-  // البحث التلقائي عن معلومات السيارة
-  const searchCarInfo = async (searchTerm: string) => {
+  // البحث المتقدم عن معلومات السيارة (اسم الزبون، رقم الشاسيه، رقم اللوحة)
+  const searchCarInfo = async () => {
+    const searchTerm = form.getValues("carInfo");
     if (!searchTerm.trim()) {
       toast({
-        title: "خطأ في البحث",
-        description: "يرجى إدخال رقم السيارة أو معلومات البحث",
+        title: "خطأ",
+        description: "يرجى إدخال اسم الزبون أو رقم الشاسيه أو رقم اللوحة للبحث",
         variant: "destructive",
       });
       return;
@@ -125,17 +126,16 @@ export default function PartsRequestForm() {
     
     setIsSearching(true);
     try {
-      const response = await apiRequest("GET", `/api/car-search?q=${encodeURIComponent(searchTerm)}`);
+      const response = await fetch(`/api/search-car-info/${encodeURIComponent(searchTerm)}`);
       
       if (response.ok) {
         const carData = await response.json();
         
         if (carData && carData.carBrand && carData.carModel) {
-          // ملء البيانات الأساسية
+          // ملء جميع البيانات المتاحة
           form.setValue("carBrand", carData.carBrand);
           form.setValue("carModel", carData.carModel);
           
-          // ملء البيانات الإضافية
           if (carData.licensePlate) {
             form.setValue("licensePlate", carData.licensePlate);
           }
@@ -146,14 +146,26 @@ export default function PartsRequestForm() {
             form.setValue("engineCode", carData.engineCode);
           }
           
+          // إنشاء وصف شامل
+          let description = `${carData.carBrand} ${carData.carModel}`;
+          if (carData.customerName) {
+            description = `الزبون: ${carData.customerName} - ${description}`;
+          }
+          if (carData.chassisNumber) {
+            description += ` - شاسيه: ${carData.chassisNumber}`;
+          }
+          if (carData.licensePlate) {
+            description += ` - لوحة: ${carData.licensePlate}`;
+          }
+          
           toast({
             title: "✅ تم العثور على البيانات",
-            description: `${carData.carBrand} ${carData.carModel}${carData.chassisNumber ? ` - شاسيه: ${carData.chassisNumber}` : ''}`,
+            description: description,
           });
         } else {
           toast({
             title: "لم يتم العثور على بيانات",
-            description: "لا توجد معلومات مسجلة لهذه السيارة في قاعدة البيانات",
+            description: "لا توجد معلومات مسجلة لهذا الزبون أو السيارة",
             variant: "destructive",
           });
         }
@@ -164,7 +176,7 @@ export default function PartsRequestForm() {
       console.error("خطأ في البحث:", error);
       toast({
         title: "خطأ في البحث",
-        description: "لم يتم العثور على بيانات السيارة - يمكنك إدخال البيانات يدوياً",
+        description: "لم يتم العثور على بيانات - يمكنك إدخال البيانات يدوياً",
         variant: "default",
       });
     } finally {
@@ -225,31 +237,40 @@ export default function PartsRequestForm() {
                   <FormLabel>معلومات السيارة</FormLabel>
                   <div className="flex gap-2">
                     <FormControl>
-                      <Input
-                        placeholder="رقم اللوحة، رقم الشاسيه، أو اسم الزبون"
-                        {...field}
-                        className="flex-1"
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault();
-                            searchCarInfo(field.value);
-                          }
-                        }}
-                      />
+                      <div className="relative">
+                        <Input
+                          placeholder="اسم الزبون، رقم الشاسيه، أو رقم اللوحة (بحث تلقائي)"
+                          {...field}
+                          className={`flex-1 ${isSearching ? 'pr-10' : ''}`}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              searchCarInfo();
+                            }
+                          }}
+                          onBlur={() => {
+                            // البحث التلقائي عند إدخال البيانات وتغيير المجال
+                            if (field.value.trim()) {
+                              searchCarInfo();
+                            }
+                          }}
+                        />
+                        {isSearching && (
+                          <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                          </div>
+                        )}
+                      </div>
                     </FormControl>
                     <Button
                       type="button"
                       variant="outline"
                       size="sm"
-                      onClick={() => searchCarInfo(field.value)}
+                      onClick={() => searchCarInfo()}
                       disabled={isSearching || !field.value.trim()}
                     >
-                      {isSearching ? (
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-                      ) : (
-                        <Search className="h-4 w-4" />
-                      )}
-                      {isSearching ? 'جاري البحث...' : 'بحث'}
+                      <Search className="h-4 w-4" />
+                      بحث
                     </Button>
                   </div>
                   <FormMessage />

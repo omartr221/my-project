@@ -277,6 +277,17 @@ export function setupRoutes(app: Express) {
     }
   });
 
+  // Enhanced car search for parts requests (by customer name, chassis number, or license plate)
+  app.get("/api/search-car-info/:searchTerm", requireAuth, async (req, res, next) => {
+    try {
+      const searchTerm = req.params.searchTerm;
+      const carData = await storage.searchCarInfoForParts(searchTerm);
+      res.json(carData);
+    } catch (error) {
+      next(error);
+    }
+  });
+
   // Customer routes
   app.get("/api/customers", requireAuth, async (req, res, next) => {
     try {

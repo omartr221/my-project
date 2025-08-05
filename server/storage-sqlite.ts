@@ -606,14 +606,117 @@ class SQLiteStorage implements IStorage {
         carModel: taskResult[0].carModel
       };
 
-      // If not found, return sample data for demonstration
-      return {
-        carBrand: "غير محدد",
-        carModel: "غير محدد",
-        color: "غير محدد"
-      };
+      return null;
     } catch (error) {
       console.error("خطأ في البحث عن بيانات السيارة:", error);
+      return null;
+    }
+  }
+
+  // Enhanced search for parts requests - by customer name, chassis number, or license plate
+  async searchCarInfoForParts(searchTerm: string): Promise<{
+    carBrand: string;
+    carModel: string;
+    licensePlate?: string;
+    chassisNumber?: string;
+    engineCode?: string;
+    color?: string;
+    customerName?: string;
+  } | null> {
+    try {
+      const cleanTerm = searchTerm.trim();
+      console.log("البحث عن:", cleanTerm);
+
+      // البحث بواسطة اسم الزبون
+      const customerSearch = await db.select({
+        customerName: customers.name,
+        carBrand: customerCars.carBrand,
+        carModel: customerCars.carModel,
+        licensePlate: customerCars.licensePlate,
+        chassisNumber: customerCars.chassisNumber,
+        engineCode: customerCars.engineCode,
+        color: customerCars.color
+      })
+      .from(customers)
+      .innerJoin(customerCars, eq(customers.id, customerCars.customerId))
+      .where(like(customers.name, `%${cleanTerm}%`))
+      .limit(1);
+
+      if (customerSearch[0]) {
+        console.log("تم العثور على الزبون:", customerSearch[0]);
+        return customerSearch[0];
+      }
+
+      // البحث بواسطة رقم الشاسيه
+      const chassisSearch = await db.select({
+        customerName: customers.name,
+        carBrand: customerCars.carBrand,
+        carModel: customerCars.carModel,
+        licensePlate: customerCars.licensePlate,
+        chassisNumber: customerCars.chassisNumber,
+        engineCode: customerCars.engineCode,
+        color: customerCars.color
+      })
+      .from(customerCars)
+      .leftJoin(customers, eq(customerCars.customerId, customers.id))
+      .where(like(customerCars.chassisNumber, `%${cleanTerm}%`))
+      .limit(1);
+
+      if (chassisSearch[0]) {
+        console.log("تم العثور بالشاسيه:", chassisSearch[0]);
+        return chassisSearch[0];
+      }
+
+      // البحث بواسطة رقم اللوحة
+      const plateSearch = await db.select({
+        customerName: customers.name,
+        carBrand: customerCars.carBrand,
+        carModel: customerCars.carModel,
+        licensePlate: customerCars.licensePlate,
+        chassisNumber: customerCars.chassisNumber,
+        engineCode: customerCars.engineCode,
+        color: customerCars.color
+      })
+      .from(customerCars)
+      .leftJoin(customers, eq(customerCars.customerId, customers.id))
+      .where(like(customerCars.licensePlate, `%${cleanTerm}%`))
+      .limit(1);
+
+      if (plateSearch[0]) {
+        console.log("تم العثور باللوحة:", plateSearch[0]);
+        return plateSearch[0];
+      }
+
+      // البحث في المهام إذا لم توجد في الزبائن
+      const taskSearch = await db.select({
+        carBrand: tasks.carBrand,
+        carModel: tasks.carModel,
+        licensePlate: tasks.licensePlate,
+        chassisNumber: tasks.chassisNumber
+      })
+      .from(tasks)
+      .where(
+        or(
+          like(tasks.licensePlate, `%${cleanTerm}%`),
+          like(tasks.chassisNumber, `%${cleanTerm}%`)
+        )
+      )
+      .limit(1);
+
+      if (taskSearch[0]) {
+        console.log("تم العثور في المهام:", taskSearch[0]);
+        return {
+          carBrand: taskSearch[0].carBrand,
+          carModel: taskSearch[0].carModel,
+          licensePlate: taskSearch[0].licensePlate || undefined,
+          chassisNumber: taskSearch[0].chassisNumber || undefined
+        };
+      }
+
+      console.log("لم يتم العثور على نتائج");
+      return null;
+    } catch (error) {
+      console.error("خطأ في البحث المتقدم:", error);
       return null;
     }
   }
