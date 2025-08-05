@@ -147,16 +147,11 @@ class SQLiteStorage implements IStorage {
       this.nextReceiptNumber = match ? parseInt(match[1]) + 1 : 1;
     }
 
-    // Initialize parts request numbering
-    const latestRequest = await db.select({ requestNumber: partsRequests.requestNumber })
-      .from(partsRequests)
-      .orderBy(desc(partsRequests.id))
-      .limit(1);
+    // Initialize parts request numbering by counting all existing requests
+    const requestCount = await db.select({ count: sql<number>`count(*)` })
+      .from(partsRequests);
     
-    if (latestRequest.length > 0 && latestRequest[0].requestNumber) {
-      const match = latestRequest[0].requestNumber.match(/(\d+)$/);
-      this.nextRequestNumber = match ? parseInt(match[1]) + 1 : 1;
-    }
+    this.nextRequestNumber = (requestCount[0]?.count || 0) + 1;
 
     // Initialize delivery numbering
     const latestDelivery = await db.select({ deliveryNumber: tasks.deliveryNumber })
