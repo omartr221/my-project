@@ -34,7 +34,7 @@ export function NotificationCenter() {
 
   // تحديد الإشعار كمقروء
   const markAsReadMutation = useMutation({
-    mutationFn: (id: number) => apiRequest(`/api/notifications/${id}/read`, { method: 'PATCH' }),
+    mutationFn: (id: number) => apiRequest('PATCH', `/api/notifications/${id}/read`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
     }
@@ -42,7 +42,7 @@ export function NotificationCenter() {
 
   // حذف الإشعار
   const deleteNotificationMutation = useMutation({
-    mutationFn: (id: number) => apiRequest(`/api/notifications/${id}`, { method: 'DELETE' }),
+    mutationFn: (id: number) => apiRequest('DELETE', `/api/notifications/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
     }
