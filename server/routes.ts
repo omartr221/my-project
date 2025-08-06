@@ -510,6 +510,72 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // البحث عن معلومات السيارة للـ AUTOFILL في طلبات القطع
+  app.get("/api/search-car-info/:searchTerm", async (req, res) => {
+    try {
+      const searchTerm = decodeURIComponent(req.params.searchTerm).trim().toLowerCase();
+      
+      if (!searchTerm) {
+        return res.status(400).json({ error: "يرجى إدخال نص البحث" });
+      }
+
+      console.log(`🔍 البحث عن معلومات السيارة: "${searchTerm}"`);
+
+      // البحث في بيانات الزبائن
+      const customers = await storage.getCustomers();
+      const customerCars = await storage.getCustomerCars();
+
+      // البحث في اسم الزبون أولاً
+      let foundCustomer = customers.find(customer => 
+        customer.name.toLowerCase().includes(searchTerm)
+      );
+
+      let foundCar = null;
+
+      if (foundCustomer) {
+        // إذا وُجد الزبون، ابحث عن سياراته
+        foundCar = customerCars.find(car => car.customerId === foundCustomer.id);
+        console.log(`✅ تم العثور على الزبون: ${foundCustomer.name}`);
+      } else {
+        // البحث في بيانات السيارات (رقم اللوحة، رقم الشاسيه)
+        foundCar = customerCars.find(car => 
+          (car.licensePlate && car.licensePlate.toLowerCase().includes(searchTerm)) ||
+          (car.chassisNumber && car.chassisNumber.toLowerCase().includes(searchTerm)) ||
+          (car.previousLicensePlate && car.previousLicensePlate.toLowerCase().includes(searchTerm))
+        );
+        
+        if (foundCar) {
+          foundCustomer = customers.find(customer => customer.id === foundCar.customerId);
+          console.log(`✅ تم العثور على السيارة للزبون: ${foundCustomer?.name}`);
+        }
+      }
+
+      if (foundCustomer && foundCar) {
+        // إرجاع البيانات المطلوبة
+        const carInfo = {
+          customerName: foundCustomer.name,
+          carBrand: foundCar.carBrand,
+          carModel: foundCar.carModel,
+          licensePlate: foundCar.licensePlate,
+          previousLicensePlate: foundCar.previousLicensePlate,
+          chassisNumber: foundCar.chassisNumber,
+          engineCode: foundCar.engineCode,
+          year: foundCar.year,
+          color: foundCar.color
+        };
+
+        console.log(`✅ إرجاع بيانات السيارة للزبون: ${foundCustomer.name}`);
+        res.json(carInfo);
+      } else {
+        console.log(`❌ لم يتم العثور على بيانات للبحث: ${searchTerm}`);
+        res.status(404).json({ error: "لم يتم العثور على بيانات مطابقة" });
+      }
+    } catch (error) {
+      console.error("خطأ في البحث عن معلومات السيارة:", error);
+      res.status(500).json({ error: "خطأ في البحث عن معلومات السيارة" });
+    }
+  });
+
   // Parts requests routes
   app.get("/api/parts-requests", async (req, res) => {
     try {

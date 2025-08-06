@@ -137,10 +137,10 @@ export default function PartsRequestForm() {
     },
   });
 
-  // البحث المتقدم عن معلومات السيارة (اسم الزبون، رقم الشاسيه، رقم اللوحة)
-  const searchCarInfo = async () => {
-    const searchTerm = form.getValues("carInfo");
-    if (!searchTerm.trim()) {
+  // البحث التلقائي عن معلومات السيارة من بطاقة الزبون
+  const searchCarInfo = async (searchTerm?: string) => {
+    const term = searchTerm || form.getValues("carInfo");
+    if (!term?.trim()) {
       toast({
         title: "خطأ",
         description: "يرجى إدخال اسم الزبون أو رقم الشاسيه أو رقم اللوحة للبحث",
@@ -151,25 +151,29 @@ export default function PartsRequestForm() {
     
     setIsSearching(true);
     try {
-      const response = await fetch(`/api/search-car-info/${encodeURIComponent(searchTerm)}`);
+      const response = await fetch(`/api/search-car-info/${encodeURIComponent(term.trim())}`);
       
       if (response.ok) {
         const carData = await response.json();
         
-        if (carData && carData.carBrand && carData.carModel) {
-          // ملء جميع البيانات المتاحة
+        if (carData && carData.carBrand) {
+          // ملء جميع البيانات المتاحة مع الحفاظ على البيانات المدخلة يدوياً
           form.setValue("carBrand", carData.carBrand);
-          form.setValue("carModel", carData.carModel);
+          form.setValue("carModel", carData.carModel || "");
           
-          if (carData.licensePlate) {
+          if (carData.licensePlate && !form.getValues("licensePlate")) {
             form.setValue("licensePlate", carData.licensePlate);
           }
-          if (carData.chassisNumber) {
+          if (carData.chassisNumber && !form.getValues("chassisNumber")) {
             form.setValue("chassisNumber", carData.chassisNumber);
           }
-          if (carData.engineCode) {
+          if (carData.engineCode && !form.getValues("engineCode")) {
             form.setValue("engineCode", carData.engineCode);
           }
+          
+          // تحديث معلومات السيارة المدمجة
+          const updatedCarInfo = `${carData.customerName || ''} - ${carData.carBrand} ${carData.carModel || ''} - ${carData.licensePlate || ''}`.trim();
+          form.setValue("carInfo", updatedCarInfo);
           
           // حفظ اسم الزبون للاستخدام عند الإرسال
           (window as any).lastFoundCustomerName = carData.customerName || "";
@@ -209,6 +213,21 @@ export default function PartsRequestForm() {
       });
     } finally {
       setIsSearching(false);
+    }
+  };
+
+  // البحث التلقائي عند تغيير معلومات السيارة
+  const handleCarInfoChange = async (value: string) => {
+    form.setValue("carInfo", value);
+    
+    // إذا كان النص يحتوي على أكثر من 3 أحرف، قم بالبحث التلقائي
+    if (value.trim().length >= 3) {
+      // تأخير البحث لتجنب الطلبات المتكررة
+      setTimeout(() => {
+        if (form.getValues("carInfo") === value) {
+          searchCarInfo(value);
+        }
+      }, 800);
     }
   };
 
@@ -312,7 +331,7 @@ export default function PartsRequestForm() {
               name="carBrand"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>نوع السيارة</FormLabel>
+                  <FormLabel>الصانع</FormLabel>
                   <FormControl>
                     <Input placeholder="مثال: AUDI" {...field} value={field.value || ""} />
                   </FormControl>
@@ -327,7 +346,7 @@ export default function PartsRequestForm() {
               name="carModel"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>موديل السيارة</FormLabel>
+                  <FormLabel>الطراز</FormLabel>
                   <FormControl>
                     <Input placeholder="مثال: A4" {...field} value={field.value || ""} />
                   </FormControl>
