@@ -49,6 +49,7 @@ export default function CustomerCard() {
     phoneNumber: "",
     address: "",
     notes: "",
+    customerStatus: "A",
     carBrand: "",
     carModel: "",
     year: "",
@@ -56,12 +57,14 @@ export default function CustomerCard() {
     engineCode: "",
     chassisNumber: "",
     licensePlate: "",
+    previousLicensePlate: "",
   });
 
   const [carForm, setCarForm] = useState({
     carBrand: "",
     carModel: "",
     licensePlate: "",
+    previousLicensePlate: "",
     color: "",
     year: "",
     engineCode: "",
@@ -110,14 +113,15 @@ export default function CustomerCard() {
       phoneNumber: "",
       address: "",
       notes: "",
+      customerStatus: "A",
       carBrand: "",
       carModel: "",
       year: "",
       color: "",
       engineCode: "",
       chassisNumber: "",
-      previousOwner: "",
       licensePlate: "",
+      previousLicensePlate: "",
     });
   };
 
@@ -126,6 +130,7 @@ export default function CustomerCard() {
       carBrand: "",
       carModel: "",
       licensePlate: "",
+      previousLicensePlate: "",
       color: "",
       year: "",
       engineCode: "",
@@ -147,11 +152,11 @@ export default function CustomerCard() {
         carBrand: customerForm.carBrand,
         carModel: customerForm.carModel,
         licensePlate: customerForm.licensePlate,
+        previousLicensePlate: customerForm.previousLicensePlate || undefined,
         color: customerForm.color || undefined,
         year: customerForm.year ? parseInt(customerForm.year) : undefined,
         engineCode: customerForm.engineCode || undefined,
         chassisNumber: customerForm.chassisNumber || undefined,
-        previousOwner: customerForm.previousOwner || undefined,
       };
       
       await apiRequest("POST", "/api/customer-cars", carData);
@@ -200,10 +205,13 @@ export default function CustomerCard() {
       return;
     }
 
-    // Create customer data (only name and phone for customer table)
+    // Create customer data (name, phone, and status for customer table)
     const customerData: InsertCustomer = {
       name: customerForm.name,
       phoneNumber: customerForm.phoneNumber,
+      address: customerForm.address || undefined,
+      notes: customerForm.notes || undefined,
+      customerStatus: customerForm.customerStatus,
     };
 
     // Create mutation that will also create the car
@@ -258,6 +266,7 @@ export default function CustomerCard() {
       carBrand: carForm.carBrand,
       carModel: carForm.carModel,
       licensePlate: carForm.licensePlate,
+      previousLicensePlate: carForm.previousLicensePlate || undefined,
       color: carForm.color || undefined,
       year: carForm.year ? parseInt(carForm.year) : undefined,
       engineCode: carForm.engineCode || undefined,
@@ -419,6 +428,19 @@ export default function CustomerCard() {
                       />
                     </div>
                     <div>
+                      <Label htmlFor="customerStatus">حالة الزبون *</Label>
+                      <Select value={customerForm.customerStatus} onValueChange={(value) => setCustomerForm({...customerForm, customerStatus: value})}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="اختر حالة الزبون" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="A">A - ممتاز</SelectItem>
+                          <SelectItem value="B">B - جيد</SelectItem>
+                          <SelectItem value="C">C - عادي</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
                       <Label htmlFor="carBrand">الصانع *</Label>
                       <Select value={customerForm.carBrand} onValueChange={(value) => setCustomerForm({...customerForm, carBrand: value, carModel: ""})}>
                         <SelectTrigger>
@@ -516,13 +538,22 @@ export default function CustomerCard() {
                         placeholder="اسم المالك السابق إن وجد"
                       />
                     </div>
-                    <div className="md:col-span-2">
+                    <div>
                       <Label htmlFor="licensePlate">رقم اللوحة *</Label>
                       <Input
                         id="licensePlate"
                         value={customerForm.licensePlate}
                         onChange={(e) => setCustomerForm({...customerForm, licensePlate: e.target.value})}
                         placeholder="أدخل رقم اللوحة"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="previousLicensePlate">رقم اللوحة السابق (اختياري)</Label>
+                      <Input
+                        id="previousLicensePlate"
+                        value={customerForm.previousLicensePlate}
+                        onChange={(e) => setCustomerForm({...customerForm, previousLicensePlate: e.target.value})}
+                        placeholder="أدخل رقم اللوحة السابق إن وجد"
                       />
                     </div>
                   </div>
@@ -689,10 +720,10 @@ export default function CustomerCard() {
                             <CardContent className="p-4">
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 <div>
-                                  <Label htmlFor="carBrand">نوع السيارة *</Label>
+                                  <Label htmlFor="carBrand">الصانع *</Label>
                                   <Select value={carForm.carBrand} onValueChange={(value) => setCarForm({...carForm, carBrand: value, carModel: ""})}>
                                     <SelectTrigger>
-                                      <SelectValue placeholder="اختر نوع السيارة" />
+                                      <SelectValue placeholder="اختر الصانع" />
                                     </SelectTrigger>
                                     <SelectContent>
                                       <SelectItem value="AUDI">AUDI</SelectItem>
@@ -704,7 +735,7 @@ export default function CustomerCard() {
                                   </Select>
                                 </div>
                                 <div>
-                                  <Label htmlFor="carModel">الموديل *</Label>
+                                  <Label htmlFor="carModel">الطراز *</Label>
                                   <Select value={carForm.carModel} onValueChange={(value) => setCarForm({...carForm, carModel: value})}>
                                     <SelectTrigger>
                                       <SelectValue placeholder="اختر الطراز" />
@@ -723,6 +754,15 @@ export default function CustomerCard() {
                                     value={carForm.licensePlate}
                                     onChange={(e) => setCarForm({...carForm, licensePlate: e.target.value})}
                                     placeholder="123456"
+                                  />
+                                </div>
+                                <div>
+                                  <Label htmlFor="previousLicensePlate">رقم اللوحة السابق (اختياري)</Label>
+                                  <Input
+                                    id="previousLicensePlate"
+                                    value={carForm.previousLicensePlate}
+                                    onChange={(e) => setCarForm({...carForm, previousLicensePlate: e.target.value})}
+                                    placeholder="رقم اللوحة السابق إن وجد"
                                   />
                                 </div>
                                 <div>
@@ -841,13 +881,13 @@ export default function CustomerCard() {
                               </div>
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 <div>
-                                  <Label htmlFor="editCarBrand">نوع السيارة *</Label>
+                                  <Label htmlFor="editCarBrand">الصانع *</Label>
                                   <Select 
                                     value={carForm.carBrand || editingCar.carBrand} 
                                     onValueChange={(value) => setCarForm({...carForm, carBrand: value, carModel: ""})}
                                   >
                                     <SelectTrigger>
-                                      <SelectValue placeholder="اختر نوع السيارة" />
+                                      <SelectValue placeholder="اختر الصانع" />
                                     </SelectTrigger>
                                     <SelectContent>
                                       <SelectItem value="AUDI">AUDI</SelectItem>
@@ -859,7 +899,7 @@ export default function CustomerCard() {
                                   </Select>
                                 </div>
                                 <div>
-                                  <Label htmlFor="editCarModel">الموديل *</Label>
+                                  <Label htmlFor="editCarModel">الطراز *</Label>
                                   <Select 
                                     value={carForm.carModel || editingCar.carModel} 
                                     onValueChange={(value) => setCarForm({...carForm, carModel: value})}
@@ -881,6 +921,15 @@ export default function CustomerCard() {
                                     value={carForm.licensePlate || editingCar.licensePlate}
                                     onChange={(e) => setCarForm({...carForm, licensePlate: e.target.value})}
                                     placeholder="123456"
+                                  />
+                                </div>
+                                <div>
+                                  <Label htmlFor="editPreviousLicensePlate">رقم اللوحة السابق (اختياري)</Label>
+                                  <Input
+                                    id="editPreviousLicensePlate"
+                                    value={carForm.previousLicensePlate || editingCar.previousLicensePlate || ""}
+                                    onChange={(e) => setCarForm({...carForm, previousLicensePlate: e.target.value})}
+                                    placeholder="رقم اللوحة السابق إن وجد"
                                   />
                                 </div>
                                 <div>

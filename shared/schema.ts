@@ -75,6 +75,8 @@ export const customers = pgTable("customers", {
   phoneNumber: text("phone_number").notNull(),
   address: text("address"),
   notes: text("notes"),
+  customerStatus: text("customer_status").default("A"), // A, B, C
+  isFavorite: integer("is_favorite", { mode: "boolean" }).default(false),
   createdAt: text("created_at").default("CURRENT_TIMESTAMP"),
 });
 
@@ -84,6 +86,7 @@ export const customerCars = pgTable("customer_cars", {
   carBrand: text("car_brand").notNull(),
   carModel: text("car_model").notNull(),
   licensePlate: text("license_plate").notNull(),
+  previousLicensePlate: text("previous_license_plate"), // رقم اللوحة السابق
   color: text("color"),
   year: integer("year"),
   engineCode: text("engine_code"),
@@ -206,18 +209,20 @@ export const insertCustomerSchema = createInsertSchema(customers).omit({
 }).extend({
   name: z.string().min(1, "يجب إدخال اسم الزبون"),
   phoneNumber: z.string().min(1, "يجب إدخال رقم الهاتف"),
+  customerStatus: z.enum(["A", "B", "C"]).default("A"),
 });
 
 export const insertCustomerCarSchema = createInsertSchema(customerCars).omit({
   id: true,
   createdAt: true,
 }).extend({
-  carBrand: z.string().min(1, "يجب اختيار نوع السيارة"),
-  carModel: z.string().min(1, "يجب إدخال موديل السيارة"),
+  carBrand: z.string().min(1, "يجب اختيار الصانع"),
+  carModel: z.string().min(1, "يجب إدخال الطراز"),
   licensePlate: z.string().min(1, "يجب إدخال رقم اللوحة"),
 }).partial({
   engineCode: true,
   chassisNumber: true,
+  previousLicensePlate: true,
 });
 
 export const partsRequests = pgTable("parts_requests", {

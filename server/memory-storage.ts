@@ -287,6 +287,7 @@ export class MemoryStorage implements IStorage {
     const newCustomer: Customer = {
       ...customer,
       id: nextCustomerId++,
+      customerStatus: customer.customerStatus || "A",
       isFavorite: customer.isFavorite ?? false,
       createdAt: new Date().toISOString()
     };
@@ -324,6 +325,7 @@ export class MemoryStorage implements IStorage {
     const newCar: CustomerCar = {
       ...car,
       id: nextCustomerCarId++,
+      previousLicensePlate: car.previousLicensePlate || null,
       createdAt: new Date().toISOString()
     };
     customerCars.push(newCar);
