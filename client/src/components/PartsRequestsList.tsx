@@ -190,7 +190,7 @@ export default function PartsRequestsList() {
       }
       
       // نفس الأولوية: ترتيب حسب التاريخ (الأحدث أولاً)
-      return new Date(b.requestedAt).getTime() - new Date(a.requestedAt).getTime();
+      return new Date(b.requestedAt || '').getTime() - new Date(a.requestedAt || '').getTime();
     });
 
   const handleStatusUpdate = (id: number, newStatus: string) => {
@@ -250,7 +250,7 @@ export default function PartsRequestsList() {
             <Card className="p-4 bg-blue-50 border-blue-200">
               <div className="text-center">
                 <div className="text-2xl font-bold text-blue-800">
-                  {partsRequests.filter(r => ['approved', 'in_preparation'].includes(r.status)).length}
+                  {partsRequests.filter(r => ['approved', 'in_preparation'].includes(r.status || '')).length}
                 </div>
                 <div className="text-sm text-blue-600">قيد التحضير</div>
               </div>
@@ -258,7 +258,7 @@ export default function PartsRequestsList() {
             <Card className="p-4 bg-purple-50 border-purple-200">
               <div className="text-center">
                 <div className="text-2xl font-bold text-purple-800">
-                  {partsRequests.filter(r => ['awaiting_pickup', 'parts_arrived'].includes(r.status)).length}
+                  {partsRequests.filter(r => ['awaiting_pickup', 'parts_arrived'].includes(r.status || '')).length}
                 </div>
                 <div className="text-sm text-purple-600">جاهزة للاستلام</div>
               </div>
@@ -341,7 +341,7 @@ export default function PartsRequestsList() {
                             {request.requestNumber || `#${request.id}`}
                           </Badge>
                           <div className="text-xs text-gray-500">
-                            {new Date(request.requestedAt).toLocaleDateString('ar-SA')}
+                            {new Date(request.requestedAt || '').toLocaleDateString('ar-SA')}
                           </div>
                         </div>
                       </TableCell>
@@ -382,12 +382,12 @@ export default function PartsRequestsList() {
                           </Badge>
                           {request.status === 'delivered' && request.deliveredAt && (
                             <div className="text-xs text-green-600">
-                              تم في: {new Date(request.deliveredAt).toLocaleDateString('ar-SA')}
+                              تم في: {new Date(request.deliveredAt || '').toLocaleDateString('ar-SA')}
                             </div>
                           )}
                           {request.status === 'pending' && (
                             <div className="text-xs text-yellow-600">
-                              منذ: {Math.floor((Date.now() - new Date(request.requestedAt).getTime()) / (1000 * 60 * 60))} ساعة
+                              منذ: {Math.floor((Date.now() - new Date(request.requestedAt || '').getTime()) / (1000 * 60 * 60))} ساعة
                             </div>
                           )}
                         </div>
