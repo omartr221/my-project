@@ -658,6 +658,16 @@ export default function CustomerCard() {
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
                           <h3 className="font-semibold text-lg">{customer.name}</h3>
+                          <Badge 
+                            variant={
+                              customer.customerStatus === 'A' ? 'default' : 
+                              customer.customerStatus === 'B' ? 'secondary' : 
+                              'destructive'
+                            }
+                            className="text-xs font-bold"
+                          >
+                            {customer.customerStatus}
+                          </Badge>
                           <Badge variant="outline">
                             {getCustomerCars(customer.id).length} سيارة
                           </Badge>
