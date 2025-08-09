@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -11,10 +11,12 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { insertWorkerSchema, type InsertWorker } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 import { z } from "zod";
 
 const workerFormSchema = insertWorkerSchema.extend({
   name: z.string().min(1, "يجب إدخال اسم الموظف"),
+  category: z.string().min(1, "يجب اختيار فئة الموظف"),
 });
 
 type WorkerFormData = z.infer<typeof workerFormSchema>;
@@ -23,23 +25,29 @@ export default function AddWorkerForm() {
   const [password, setPassword] = useState("");
   const [showForm, setShowForm] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
   const queryClient = useQueryClient();
+
+  // إذا كان المستخدم فارس، تجاوز كلمة المرور
+  useEffect(() => {
+    if (user?.username === "فارس") {
+      setShowForm(true);
+    }
+  }, [user]);
   
   const form = useForm<WorkerFormData>({
     resolver: zodResolver(workerFormSchema),
     defaultValues: {
       name: "",
-      category: "technician",
-      birthDate: undefined,
-      maritalStatus: undefined,
+      category: "فني",
       nationalId: "",
-      startDate: undefined,
-      endDate: undefined,
       phoneNumber: "",
       address: "",
       supervisor: "",
       assistant: "",
       engineer: "",
+      isActive: true,
+      isPredefined: false,
     },
   });
 
@@ -47,6 +55,9 @@ export default function AddWorkerForm() {
     mutationFn: async (data: WorkerFormData) => {
       const response = await apiRequest("/api/workers", {
         method: "POST",
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify(data),
       });
       return response.json();
@@ -86,7 +97,8 @@ export default function AddWorkerForm() {
     }
   };
 
-  if (!showForm) {
+  // عدم عرض شاشة كلمة المرور للمستخدم فارس
+  if (!showForm && user?.username !== "فارس") {
     return (
       <Card className="w-full max-w-md mx-auto">
         <CardHeader>
@@ -153,50 +165,10 @@ export default function AddWorkerForm() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="technician">فني</SelectItem>
-                        <SelectItem value="administrative">إداري</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="birthDate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>مواليد</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="date" 
-                        {...field} 
-                        value={field.value || ""}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="maritalStatus"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>الحالة الاجتماعية</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value || ""}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="اختر الحالة الاجتماعية" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="single">أعزب</SelectItem>
-                        <SelectItem value="married">متزوج</SelectItem>
-                        <SelectItem value="divorced">مطلق</SelectItem>
-                        <SelectItem value="widowed">أرمل</SelectItem>
+                        <SelectItem value="فني">فني</SelectItem>
+                        <SelectItem value="مساعد">مساعد</SelectItem>
+                        <SelectItem value="مشرف">مشرف</SelectItem>
+                        <SelectItem value="فني تحت الإشراف">فني تحت الإشراف</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -242,16 +214,12 @@ export default function AddWorkerForm() {
 
               <FormField
                 control={form.control}
-                name="startDate"
+                name="supervisor"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>تاريخ بداية العمل</FormLabel>
+                    <FormLabel>المشرف</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="date" 
-                        {...field} 
-                        value={field.value || ""}
-                      />
+                      <Input placeholder="اسم المشرف" {...field} value={field.value || ""} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -260,16 +228,26 @@ export default function AddWorkerForm() {
 
               <FormField
                 control={form.control}
-                name="endDate"
+                name="engineer"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>تاريخ نهاية العمل</FormLabel>
+                    <FormLabel>المهندس</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="date" 
-                        {...field} 
-                        value={field.value || ""}
-                      />
+                      <Input placeholder="اسم المهندس" {...field} value={field.value || ""} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="assistant"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>المساعد</FormLabel>
+                    <FormControl>
+                      <Input placeholder="اسم المساعد" {...field} value={field.value || ""} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
