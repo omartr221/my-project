@@ -27,10 +27,18 @@ export default function Workshop() {
 
   // Enter car to workshop mutation
   const enterWorkshopMutation = useMutation({
-    mutationFn: (entryId: number) => 
-      apiRequest(`/api/reception-entries/${entryId}/enter-workshop`, {
+    mutationFn: async (entryId: number) => {
+      const response = await fetch(`/api/reception-entries/${entryId}/enter-workshop`, {
         method: "POST",
-      }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      if (!response.ok) {
+        throw new Error("Failed to enter car to workshop");
+      }
+      return response.json();
+    },
     onSuccess: (data, entryId) => {
       toast({
         title: "تم إدخال السيارة للورشة",
