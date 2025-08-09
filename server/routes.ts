@@ -838,6 +838,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const entry = await storage.enterReceptionCarToWorkshop(entryId, workshopUserId);
       
+      // تحديث حالة السيارة في car_status من "في الاستقبال" إلى "في الورشة"
+      const carStatuses = await storage.getCarStatuses();
+      const carStatus = carStatuses.find(status => 
+        status.licensePlate === entry.licensePlate && 
+        status.currentStatus === "في الاستقبال"
+      );
+      
+      if (carStatus) {
+        await storage.updateCarStatus(carStatus.id, {
+          currentStatus: "في الورشة",
+          enteredWorkshopAt: new Date(),
+        });
+      }
+      
       // Broadcast workshop entry update
       broadcastUpdate("car_entered_workshop", {
         type: "car_workshop_entry",
