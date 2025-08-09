@@ -418,6 +418,7 @@ export const carStatus = pgTable("car_status", {
 export const insertCarStatusSchema = createInsertSchema(carStatus).omit({
   id: true,
   updatedAt: true,
+  createdAt: true,
 }).extend({
   customerName: z.string().min(1, "يجب إدخال اسم الزبون"),
   licensePlate: z.string().min(1, "يجب إدخال رقم السيارة"),
