@@ -23,12 +23,13 @@ import HabaNotificationDialog from "@/components/HabaNotificationDialog";
 import WorkshopNotificationDialog from "@/components/WorkshopNotificationDialog";
 import CarReceiptForm from "@/components/CarReceiptForm";
 import CarReceiptsList from "@/components/CarReceiptsList";
+import CarStatusDisplay from "@/components/CarStatusDisplay";
 
 import Reception from "@/pages/Reception";
 import Workshop from "@/pages/Workshop";
 import { useNotifications } from "@/hooks/useNotifications";
 
-type TabType = "dashboard" | "timers" | "history" | "archive" | "addworker" | "customercard" | "parts-requests" | "requests" | "prepare-delivery" | "car-receipts" | "reception" | "workshop";
+type TabType = "dashboard" | "timers" | "history" | "archive" | "addworker" | "customercard" | "parts-requests" | "requests" | "prepare-delivery" | "car-receipts" | "car-status" | "reception" | "workshop";
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<TabType>("dashboard");
@@ -208,9 +209,10 @@ export default function Dashboard() {
             <CarReceiptsList />
           </div>
         );
-        
 
-      
+      case "car-status":
+        return <CarStatusDisplay />;
+        
       case "reception":
         return <Reception />;
       
@@ -304,6 +306,14 @@ export default function Dashboard() {
                 >
                   <Car className="ml-2 h-4 w-4" />
                   استلام السيارة
+                </Button>
+                <Button
+                  variant={activeTab === "car-status" ? "default" : "ghost"}
+                  onClick={() => setActiveTab("car-status")}
+                  className="font-medium"
+                >
+                  <Car className="ml-2 h-4 w-4" />
+                  وضع السيارات
                 </Button>
 
               </>

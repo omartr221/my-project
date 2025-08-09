@@ -1,4 +1,4 @@
-import { workers, tasks, timeEntries, customers, customerCars, users, partsRequests, carReceipts, receptionEntries, type Worker, type InsertWorker, type Task, type InsertTask, type TimeEntry, type InsertTimeEntry, type WorkerWithTasks, type TaskWithWorker, type TaskHistory, type Customer, type InsertCustomer, type CustomerCar, type InsertCustomerCar, type CustomerWithCars, type User, type InsertUser, type PartsRequest, type InsertPartsRequest, type CarReceipt, type InsertCarReceipt, type ReceptionEntry, type InsertReceptionEntry } from "@shared/schema";
+import { workers, tasks, timeEntries, customers, customerCars, users, partsRequests, carReceipts, receptionEntries, carStatus, type Worker, type InsertWorker, type Task, type InsertTask, type TimeEntry, type InsertTimeEntry, type WorkerWithTasks, type TaskWithWorker, type TaskHistory, type Customer, type InsertCustomer, type CustomerCar, type InsertCustomerCar, type CustomerWithCars, type User, type InsertUser, type PartsRequest, type InsertPartsRequest, type CarReceipt, type InsertCarReceipt, type ReceptionEntry, type InsertReceptionEntry, type CarStatus, type InsertCarStatus } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, isNull, or, like, isNotNull, asc, sql } from "drizzle-orm";
 import session from "express-session";
@@ -92,6 +92,14 @@ export interface IStorage {
   getReceptionEntries(): Promise<ReceptionEntry[]>;
   getReceptionEntry(id: number): Promise<ReceptionEntry | undefined>;
   updateReceptionEntry(id: number, updates: Partial<ReceptionEntry>): Promise<ReceptionEntry>;
+
+  // Car status management
+  createCarStatus(carStatusData: InsertCarStatus): Promise<CarStatus>;
+  getCarStatuses(): Promise<CarStatus[]>;
+  getCarStatus(id: number): Promise<CarStatus | undefined>;
+  updateCarStatus(id: number, updates: Partial<CarStatus>): Promise<CarStatus>;
+  updateCarStatusByReceiptId(carReceiptId: number, updates: Partial<CarStatus>): Promise<CarStatus>;
+  deleteCarStatus(id: number): Promise<void>;
   enterReceptionCarToWorkshop(id: number, workshopUserId: number): Promise<ReceptionEntry>;
   getWorkshopNotifications(): Promise<ReceptionEntry[]>;
   
@@ -830,6 +838,26 @@ export class DatabaseStorage implements IStorage {
         engineCode: request.engineCode || null,
       })
       .returning();
+
+    // Update car status parts count if license plate matches
+    if (request.licensePlate) {
+      try {
+        const carStatusResult = await db.select()
+          .from(carStatus)
+          .where(eq(carStatus.licensePlate, request.licensePlate))
+          .limit(1);
+        
+        if (carStatusResult.length > 0) {
+          const currentStatus = carStatusResult[0];
+          await this.updateCarStatus(currentStatus.id, {
+            partsRequestsCount: (currentStatus.partsRequestsCount || 0) + 1,
+            currentStatus: "بانتظار قطع",
+          });
+        }
+      } catch (error) {
+        console.error('Error updating car status for parts request:', error);
+      }
+    }
     
     return newRequest;
   }
@@ -872,6 +900,25 @@ export class DatabaseStorage implements IStorage {
       .set(updateData)
       .where(eq(partsRequests.id, id))
       .returning();
+
+    // Update car status parts count if status changes to delivered
+    if (status === "delivered" && updated.licensePlate) {
+      try {
+        const carStatusResult = await db.select()
+          .from(carStatus)
+          .where(eq(carStatus.licensePlate, updated.licensePlate))
+          .limit(1);
+        
+        if (carStatusResult.length > 0) {
+          const currentStatus = carStatusResult[0];
+          await this.updateCarStatus(currentStatus.id, {
+            completedPartsCount: (currentStatus.completedPartsCount || 0) + 1,
+          });
+        }
+      } catch (error) {
+        console.error('Error updating car status for parts delivery:', error);
+      }
+    }
     
     return updated;
   }
@@ -1011,6 +1058,23 @@ export class DatabaseStorage implements IStorage {
       receivedBy: receiptData.receivedBy || "الاستقبال",
     }).returning();
 
+    // Automatically create car status record
+    await this.createCarStatus({
+      carReceiptId: receipt.id,
+      customerName: receiptData.customerName,
+      licensePlate: receiptData.licensePlate,
+      carBrand: receiptData.carBrand,
+      carModel: receiptData.carModel,
+      currentStatus: "في الاستقبال",
+      receivedAt: new Date(),
+      maintenanceType: receiptData.maintenanceType,
+      kmReading: receiptData.kmReading,
+      fuelLevel: receiptData.fuelLevel,
+      complaints: receiptData.complaints,
+      partsRequestsCount: 0,
+      completedPartsCount: 0,
+    });
+
     return receipt;
   }
 
@@ -1047,16 +1111,30 @@ export class DatabaseStorage implements IStorage {
       .where(eq(carReceipts.id, id))
       .returning();
     
+    // Update car status to "في الورشة"
+    await this.updateCarStatusByReceiptId(id, {
+      currentStatus: "في الورشة",
+      enteredWorkshopAt: new Date(),
+    });
+    
     return receipt;
   }
 
   async enterCarToWorkshop(id: number, enteredBy: string): Promise<CarReceipt> {
     const [receipt] = await db.update(carReceipts)
       .set({
-        status: "in_workshop",
+        status: "completed",
+        sentToWorkshopAt: new Date(),
+        sentToWorkshopBy: enteredBy,
       })
       .where(eq(carReceipts.id, id))
       .returning();
+    
+    // Update car status to "جاهزة للتسليم"
+    await this.updateCarStatusByReceiptId(id, {
+      currentStatus: "جاهزة للتسليم",
+      completedAt: new Date(),
+    });
     
     return receipt;
   }
@@ -1150,6 +1228,67 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(receptionEntries.entryTime));
     
     return entries;
+  }
+
+  // Car status management methods
+  async createCarStatus(carStatusData: InsertCarStatus): Promise<CarStatus> {
+    const [carStatusRecord] = await db
+      .insert(carStatus)
+      .values({
+        ...carStatusData,
+        updatedAt: new Date(),
+      })
+      .returning();
+    
+    return carStatusRecord;
+  }
+
+  async getCarStatuses(): Promise<CarStatus[]> {
+    const statuses = await db
+      .select()
+      .from(carStatus)
+      .orderBy(desc(carStatus.updatedAt));
+    
+    return statuses;
+  }
+
+  async getCarStatus(id: number): Promise<CarStatus | undefined> {
+    const [status] = await db
+      .select()
+      .from(carStatus)
+      .where(eq(carStatus.id, id));
+    
+    return status || undefined;
+  }
+
+  async updateCarStatus(id: number, updates: Partial<CarStatus>): Promise<CarStatus> {
+    const [status] = await db
+      .update(carStatus)
+      .set({
+        ...updates,
+        updatedAt: new Date(),
+      })
+      .where(eq(carStatus.id, id))
+      .returning();
+    
+    return status;
+  }
+
+  async updateCarStatusByReceiptId(carReceiptId: number, updates: Partial<CarStatus>): Promise<CarStatus> {
+    const [status] = await db
+      .update(carStatus)
+      .set({
+        ...updates,
+        updatedAt: new Date(),
+      })
+      .where(eq(carStatus.carReceiptId, carReceiptId))
+      .returning();
+    
+    return status;
+  }
+
+  async deleteCarStatus(id: number): Promise<void> {
+    await db.delete(carStatus).where(eq(carStatus.id, id));
   }
 }
 

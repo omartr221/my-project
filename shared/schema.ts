@@ -438,3 +438,51 @@ export const insertReceptionEntrySchema = createInsertSchema(receptionEntries).o
 
 export type ReceptionEntry = typeof receptionEntries.$inferSelect;
 export type InsertReceptionEntry = z.infer<typeof insertReceptionEntrySchema>;
+
+// Car Status Table - تتبع وضع السيارات بشكل آني
+export const carStatus = pgTable("car_status", {
+  id: serial("id").primaryKey(),
+  carReceiptId: integer("car_receipt_id").references(() => carReceipts.id, { onDelete: "cascade" }),
+  customerName: text("customer_name").notNull(),
+  carBrand: text("car_brand").notNull(),
+  carModel: text("car_model").notNull(),
+  licensePlate: text("license_plate").notNull(),
+  currentStatus: text("current_status").notNull().default("في الاستقبال"), // في الاستقبال، في الورشة، بانتظار قطع، جاهزة للتسليم
+  maintenanceType: text("maintenance_type"), // نوع الصيانة
+  complaints: text("complaints"), // الشكاوي
+  kmReading: integer("km_reading"), // عداد الكيلومترات
+  fuelLevel: text("fuel_level"), // مستوى البنزين
+  partsRequestsCount: integer("parts_requests_count").default(0), // عدد طلبات القطع
+  completedPartsCount: integer("completed_parts_count").default(0), // عدد القطع المكتملة
+  receivedAt: timestamp("received_at").defaultNow(), // وقت الاستقبال
+  enteredWorkshopAt: timestamp("entered_workshop_at"), // وقت دخول الورشة
+  completedAt: timestamp("completed_at"), // وقت الانتهاء
+  updatedAt: timestamp("updated_at").defaultNow(), // آخر تحديث
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const carStatusRelations = relations(carStatus, ({ one }) => ({
+  receipt: one(carReceipts, {
+    fields: [carStatus.carReceiptId],
+    references: [carReceipts.id],
+  }),
+}));
+
+// Insert schema for car status
+export const insertCarStatusSchema = createInsertSchema(carStatus).omit({
+  id: true,
+  receivedAt: true,
+  enteredWorkshopAt: true,
+  completedAt: true,
+  updatedAt: true,
+  createdAt: true,
+}).extend({
+  customerName: z.string().min(1, "يجب إدخال اسم الزبون"),
+  licensePlate: z.string().min(1, "يجب إدخال رقم السيارة"),
+  carBrand: z.string().min(1, "يجب تحديد نوع السيارة"),
+  carModel: z.string().min(1, "يجب تحديد موديل السيارة"),
+  currentStatus: z.enum(["في الاستقبال", "في الورشة", "بانتظار قطع", "جاهزة للتسليم"]),
+});
+
+export type CarStatus = typeof carStatus.$inferSelect;
+export type InsertCarStatus = z.infer<typeof insertCarStatusSchema>;

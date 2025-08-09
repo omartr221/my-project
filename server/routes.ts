@@ -1004,6 +1004,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Car Status Management Routes
+  app.get('/api/car-status', async (req, res) => {
+    try {
+      const carStatuses = await storage.getCarStatuses();
+      res.json(carStatuses);
+    } catch (error) {
+      console.error('Error fetching car statuses:', error);
+      res.status(500).json({ error: 'Failed to fetch car statuses' });
+    }
+  });
+
+  app.post('/api/car-status', async (req, res) => {
+    try {
+      const carStatus = await storage.createCarStatus(req.body);
+      
+      // Send WebSocket notification for new car status
+      broadcastUpdate('CAR_STATUS_CREATED', carStatus);
+      
+      res.json(carStatus);
+    } catch (error) {
+      console.error('Error creating car status:', error);
+      res.status(500).json({ error: 'Failed to create car status' });
+    }
+  });
+
+  app.patch('/api/car-status/:id', async (req, res) => {
+    try {
+      const carStatus = await storage.updateCarStatus(parseInt(req.params.id), req.body);
+      
+      // Send WebSocket notification for status update
+      broadcastUpdate('CAR_STATUS_UPDATED', carStatus);
+      
+      res.json(carStatus);
+    } catch (error) {
+      console.error('Error updating car status:', error);
+      res.status(500).json({ error: 'Failed to update car status' });
+    }
+  });
+
+  app.patch('/api/car-status/receipt/:receiptId', async (req, res) => {
+    try {
+      const carStatus = await storage.updateCarStatusByReceiptId(parseInt(req.params.receiptId), req.body);
+      
+      // Send WebSocket notification for status update
+      broadcastUpdate('CAR_STATUS_UPDATED', carStatus);
+      
+      res.json(carStatus);
+    } catch (error) {
+      console.error('Error updating car status by receipt:', error);
+      res.status(500).json({ error: 'Failed to update car status by receipt' });
+    }
+  });
+
   return httpServer;
 }
 
