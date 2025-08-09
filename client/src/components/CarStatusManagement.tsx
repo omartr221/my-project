@@ -121,14 +121,14 @@ export default function CarStatusManagement() {
     );
   }
 
-  // Filter cars based on user permissions - include completed cars
+  // Filter cars based on user permissions - completed cars only for بدوي
   const carsInReception = carReceipts.filter(receipt => {
     if (user?.username === "بدوي") {
       // بدوي can see all statuses including postponed and completed cars
       return receipt.status === "received" || receipt.status === "workshop_pending" || receipt.status === "postponed" || receipt.status === "completed";
     } else {
-      // Other users (فارس, الاستقبال) cannot see postponed cars but can see completed
-      return receipt.status === "received" || receipt.status === "workshop_pending" || receipt.status === "completed";
+      // Other users (فارس, الاستقبال) cannot see postponed or completed cars
+      return receipt.status === "received" || receipt.status === "workshop_pending";
     }
   });
 

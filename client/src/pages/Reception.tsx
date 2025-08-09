@@ -45,6 +45,11 @@ export default function Reception() {
     queryKey: ["/api/customer-cars"],
   });
 
+  // Fetch parts requests for cars in reception
+  const { data: partsRequests = [] } = useQuery({
+    queryKey: ["/api/parts-requests"],
+  });
+
   // Filter customers based on search term
   const filteredCustomers = customers.filter(customer =>
     customer.name.toLowerCase().includes(customerSearchTerm.toLowerCase()) ||
@@ -376,6 +381,40 @@ export default function Reception() {
                                 الشكاوي: {entry.complaints}
                               </div>
                             )}
+                            
+                            {/* عرض طلبات القطع للسيارة */}
+                            {(() => {
+                              const carPartsRequests = partsRequests.filter((req: any) => 
+                                req.licensePlate === entry.licensePlate
+                              );
+                              if (carPartsRequests.length > 0) {
+                                return (
+                                  <div className="mt-2 p-2 bg-blue-50 rounded border">
+                                    <div className="text-sm font-medium text-blue-800 mb-1">
+                                      طلبات القطع ({carPartsRequests.length}):
+                                    </div>
+                                    <div className="space-y-1">
+                                      {carPartsRequests.slice(0, 3).map((req: any) => (
+                                        <div key={req.id} className="text-xs text-blue-700">
+                                          • {req.partName} - {req.status === 'pending' ? 'قيد المراجعة' : 
+                                            req.status === 'approved' ? 'تم الموافقة' :
+                                            req.status === 'in_preparation' ? 'قيد التحضير' :
+                                            req.status === 'awaiting_pickup' ? 'بانتظار الاستلام' :
+                                            req.status === 'delivered' ? 'تم التسليم' : req.status}
+                                        </div>
+                                      ))}
+                                      {carPartsRequests.length > 3 && (
+                                        <div className="text-xs text-blue-600">
+                                          +{carPartsRequests.length - 3} طلبات أخرى
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                );
+                              }
+                              return null;
+                            })()}
+                            
                             <div className="text-xs text-gray-400">
                               وقت التسجيل: {entry.entryTime ? new Date(entry.entryTime).toLocaleString('ar-SA') : 'غير محدد'}
                             </div>
