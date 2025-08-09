@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
-import { insertWorkerSchema, insertTaskSchema, insertCustomerSchema, insertCustomerCarSchema, insertPartsRequestSchema } from "@shared/schema";
+import { insertWorkerSchema, insertTaskSchema, insertCustomerSchema, insertCustomerCarSchema, insertPartsRequestSchema, insertReceptionEntrySchema } from "@shared/schema";
 import { z } from "zod";
 import { setupAuth } from "./auth";
 // import { createBackup, restoreFromBackup } from "./backup"; // Disabled for memory storage
@@ -919,6 +919,86 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       res.status(204).send();
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Reception workflow routes
+  app.get("/api/reception-entries", async (req, res, next) => {
+    try {
+      const entries = await storage.getReceptionEntries();
+      res.json(entries);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.post("/api/reception-entries", async (req, res, next) => {
+    try {
+      const entryData = insertReceptionEntrySchema.parse({
+        ...req.body,
+        receptionUserId: (req.user as any)?.id
+      });
+      
+      const entry = await storage.createReceptionEntry(entryData);
+      
+      // Send notification to workshop
+      broadcastUpdate("reception_entry_created", {
+        type: "new_car_entry",
+        entry: entry,
+        message: `سيارة جديدة في الاستقبال: ${entry.licensePlate} - ${entry.carOwnerName}`
+      });
+      
+      res.status(201).json(entry);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ message: "بيانات غير صحيحة", errors: error.errors });
+      } else {
+        next(error);
+      }
+    }
+  });
+
+  app.get("/api/workshop-notifications", async (req, res, next) => {
+    try {
+      const notifications = await storage.getWorkshopNotifications();
+      res.json(notifications);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.post("/api/reception-entries/:id/enter-workshop", async (req, res, next) => {
+    try {
+      const entryId = parseInt(req.params.id);
+      const workshopUserId = (req.user as any)?.id;
+      
+      const entry = await storage.enterReceptionCarToWorkshop(entryId, workshopUserId);
+      
+      // Broadcast workshop entry update
+      broadcastUpdate("car_entered_workshop", {
+        type: "car_workshop_entry",
+        entry: entry,
+        message: `تم إدخال السيارة ${entry.licensePlate} إلى الورشة`
+      });
+      
+      res.json(entry);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.get("/api/reception-entries/:id", async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const entry = await storage.getReceptionEntry(parseInt(id));
+      
+      if (!entry) {
+        return res.status(404).json({ message: "لم يتم العثور على السجل" });
+      }
+      
+      res.json(entry);
     } catch (error) {
       next(error);
     }

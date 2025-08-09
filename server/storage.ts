@@ -1,4 +1,4 @@
-import { workers, tasks, timeEntries, customers, customerCars, users, partsRequests, carReceipts, type Worker, type InsertWorker, type Task, type InsertTask, type TimeEntry, type InsertTimeEntry, type WorkerWithTasks, type TaskWithWorker, type TaskHistory, type Customer, type InsertCustomer, type CustomerCar, type InsertCustomerCar, type CustomerWithCars, type User, type InsertUser, type PartsRequest, type InsertPartsRequest, type CarReceipt, type InsertCarReceipt } from "@shared/schema";
+import { workers, tasks, timeEntries, customers, customerCars, users, partsRequests, carReceipts, receptionEntries, type Worker, type InsertWorker, type Task, type InsertTask, type TimeEntry, type InsertTimeEntry, type WorkerWithTasks, type TaskWithWorker, type TaskHistory, type Customer, type InsertCustomer, type CustomerCar, type InsertCustomerCar, type CustomerWithCars, type User, type InsertUser, type PartsRequest, type InsertPartsRequest, type CarReceipt, type InsertCarReceipt, type ReceptionEntry, type InsertReceptionEntry } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, isNull, or, like, isNotNull, asc, sql } from "drizzle-orm";
 import session from "express-session";
@@ -73,12 +73,27 @@ export interface IStorage {
   
   // Car receipts management
   createCarReceipt(receiptData: InsertCarReceipt): Promise<CarReceipt>;
+  
+  // Reception workflow management
+  getReceptionEntries(): Promise<ReceptionEntry[]>;
+  getReceptionEntry(id: number): Promise<ReceptionEntry | undefined>;
+  createReceptionEntry(entry: InsertReceptionEntry): Promise<ReceptionEntry>;
+  getWorkshopNotifications(): Promise<ReceptionEntry[]>;
+  enterReceptionCarToWorkshop(entryId: number, workshopUserId: number): Promise<ReceptionEntry>;
   getCarReceipts(): Promise<CarReceipt[]>;
   getCarReceiptById(id: number): Promise<CarReceipt | undefined>;
   updateCarReceipt(id: number, updates: Partial<CarReceipt>): Promise<CarReceipt>;
   deleteCarReceipt(id: number): Promise<void>;
   sendCarReceiptToWorkshop(id: number, sentBy: string): Promise<CarReceipt>;
   enterCarToWorkshop(id: number, enteredBy: string): Promise<CarReceipt>;
+  
+  // Reception workflow management
+  createReceptionEntry(entry: InsertReceptionEntry): Promise<ReceptionEntry>;
+  getReceptionEntries(): Promise<ReceptionEntry[]>;
+  getReceptionEntry(id: number): Promise<ReceptionEntry | undefined>;
+  updateReceptionEntry(id: number, updates: Partial<ReceptionEntry>): Promise<ReceptionEntry>;
+  enterReceptionCarToWorkshop(id: number, workshopUserId: number): Promise<ReceptionEntry>;
+  getWorkshopNotifications(): Promise<ReceptionEntry[]>;
   
   // Session store
   sessionStore: any;
@@ -1068,6 +1083,73 @@ export class DatabaseStorage implements IStorage {
   private calculateCurrentDuration(task: any): number {
     // TODO: Implement proper duration calculation based on time entries
     return 0;
+  }
+
+  // Reception workflow management implementation
+  async createReceptionEntry(entry: InsertReceptionEntry): Promise<ReceptionEntry> {
+    const [receptionEntry] = await db
+      .insert(receptionEntries)
+      .values({
+        ...entry,
+        status: "reception"
+      })
+      .returning();
+    
+    return receptionEntry;
+  }
+
+  async getReceptionEntries(): Promise<ReceptionEntry[]> {
+    const entries = await db
+      .select()
+      .from(receptionEntries)
+      .orderBy(desc(receptionEntries.entryTime));
+    
+    return entries;
+  }
+
+  async getReceptionEntry(id: number): Promise<ReceptionEntry | undefined> {
+    const [entry] = await db
+      .select()
+      .from(receptionEntries)
+      .where(eq(receptionEntries.id, id));
+    
+    return entry || undefined;
+  }
+
+  async updateReceptionEntry(id: number, updates: Partial<ReceptionEntry>): Promise<ReceptionEntry> {
+    const [entry] = await db
+      .update(receptionEntries)
+      .set(updates)
+      .where(eq(receptionEntries.id, id))
+      .returning();
+    
+    return entry;
+  }
+
+  async enterReceptionCarToWorkshop(id: number, workshopUserId: number): Promise<ReceptionEntry> {
+    const now = new Date();
+    
+    const [entry] = await db
+      .update(receptionEntries)
+      .set({
+        status: "workshop",
+        workshopUserId,
+        workshopEntryTime: now
+      })
+      .where(eq(receptionEntries.id, id))
+      .returning();
+    
+    return entry;
+  }
+
+  async getWorkshopNotifications(): Promise<ReceptionEntry[]> {
+    const entries = await db
+      .select()
+      .from(receptionEntries)
+      .where(eq(receptionEntries.status, "reception"))
+      .orderBy(desc(receptionEntries.entryTime));
+    
+    return entries;
   }
 }
 

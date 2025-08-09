@@ -5,6 +5,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Dashboard from "@/pages/dashboard";
 import PartsRequestsPage from "@/pages/parts-requests-page";
+import Reception from "@/pages/Reception";
+import Workshop from "@/pages/Workshop";
 import AuthPage from "@/pages/auth-page";
 import SimpleLogin from "@/pages/simple-login";
 import NotFound from "@/pages/not-found";
@@ -18,6 +20,8 @@ function Router() {
       <ProtectedRoute path="/" component={Dashboard} />
       <ProtectedRoute path="/dashboard" component={Dashboard} />
       <ProtectedRoute path="/parts-requests" component={PartsRequestsPage} />
+      <ProtectedRoute path="/reception" component={Reception} />
+      <ProtectedRoute path="/workshop" component={Workshop} />
       <Route path="/auth" component={AuthPage} />
       <Route path="/simple" component={SimpleLogin} />
       <Route component={NotFound} />

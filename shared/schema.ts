@@ -378,3 +378,63 @@ export type TaskHistory = Task & {
 export type CustomerWithCars = Customer & {
   cars: CustomerCar[];
 };
+
+// Reception entries table for car intake workflow
+export const receptionEntries = pgTable("reception_entries", {
+  id: serial("id").primaryKey(),
+  carOwnerName: text("car_owner_name").notNull(),
+  licensePlate: text("license_plate").notNull(),
+  serviceType: text("service_type").notNull(), // نوع الصيانة
+  complaints: text("complaints"), // الشكاوي والأعطال
+  odometerReading: integer("odometer_reading"), // عداد الكيلومترات
+  fuelLevel: text("fuel_level"), // مستوى البنزين
+  status: text("status").notNull().default("reception"), // reception, workshop, completed
+  receptionUserId: integer("reception_user_id").references(() => users.id),
+  workshopUserId: integer("workshop_user_id").references(() => users.id),
+  entryTime: timestamp("entry_time").defaultNow(),
+  workshopEntryTime: timestamp("workshop_entry_time"),
+  customerId: integer("customer_id").references(() => customers.id),
+  carId: integer("car_id").references(() => customerCars.id),
+});
+
+// Reception relations
+export const receptionEntriesRelations = relations(receptionEntries, ({ one }) => ({
+  customer: one(customers, {
+    fields: [receptionEntries.customerId],
+    references: [customers.id],
+  }),
+  car: one(customerCars, {
+    fields: [receptionEntries.carId],
+    references: [customerCars.id],
+  }),
+  receptionUser: one(users, {
+    fields: [receptionEntries.receptionUserId],
+    references: [users.id],
+  }),
+  workshopUser: one(users, {
+    fields: [receptionEntries.workshopUserId],
+    references: [users.id],
+  }),
+}));
+
+// Insert schema for reception entries
+export const insertReceptionEntrySchema = createInsertSchema(receptionEntries).omit({
+  id: true,
+  entryTime: true,
+  workshopEntryTime: true,
+}).extend({
+  carOwnerName: z.string().min(1, "يجب إدخال اسم صاحب السيارة"),
+  licensePlate: z.string().min(1, "يجب إدخال رقم السيارة"),
+  serviceType: z.string().min(1, "يجب تحديد نوع الصيانة"),
+  odometerReading: z.number().min(0, "يجب إدخال قراءة العداد"),
+  fuelLevel: z.string().min(1, "يجب تحديد مستوى البنزين"),
+}).partial({
+  complaints: true,
+  customerId: true,
+  carId: true,
+  receptionUserId: true,
+  workshopUserId: true,
+});
+
+export type ReceptionEntry = typeof receptionEntries.$inferSelect;
+export type InsertReceptionEntry = z.infer<typeof insertReceptionEntrySchema>;

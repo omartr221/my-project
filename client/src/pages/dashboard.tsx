@@ -24,9 +24,11 @@ import WorkshopNotificationDialog from "@/components/WorkshopNotificationDialog"
 import CarReceiptForm from "@/components/CarReceiptForm";
 import CarReceiptsList from "@/components/CarReceiptsList";
 import CarStatusManagement from "@/components/CarStatusManagement";
+import Reception from "@/pages/Reception";
+import Workshop from "@/pages/Workshop";
 import { useNotifications } from "@/hooks/useNotifications";
 
-type TabType = "dashboard" | "timers" | "history" | "archive" | "addworker" | "customercard" | "parts-requests" | "requests" | "prepare-delivery" | "car-receipts" | "car-status";
+type TabType = "dashboard" | "timers" | "history" | "archive" | "addworker" | "customercard" | "parts-requests" | "requests" | "prepare-delivery" | "car-receipts" | "car-status" | "reception" | "workshop";
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<TabType>("dashboard");
@@ -209,6 +211,12 @@ export default function Dashboard() {
         
       case "car-status":
         return <CarStatusManagement />;
+      
+      case "reception":
+        return <Reception />;
+      
+      case "workshop":
+        return <Workshop />;
       
       default:
         return null;
@@ -425,6 +433,30 @@ export default function Dashboard() {
               >
                 <Car className="ml-2 h-4 w-4" />
                 استلام السيارة
+              </Button>
+            )}
+
+            {/* الاستقبال - خاص بمستخدمي الاستقبال والورشة */}
+            {(user?.role === "reception" || user?.username === "الاستقبال") && (
+              <Button
+                variant={activeTab === "reception" ? "default" : "ghost"}
+                onClick={() => setActiveTab("reception")}
+                className="font-medium"
+              >
+                <Car className="ml-2 h-4 w-4" />
+                الاستقبال
+              </Button>
+            )}
+
+            {/* الورشة - خاص بمستخدمي الورشة */}
+            {(user?.role === "workshop" || user?.username === "بدوي") && (
+              <Button
+                variant={activeTab === "workshop" ? "default" : "ghost"}
+                onClick={() => setActiveTab("workshop")}
+                className="font-medium"
+              >
+                <Watch className="ml-2 h-4 w-4" />
+                الورشة
               </Button>
             )}
 
