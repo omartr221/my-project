@@ -382,30 +382,85 @@ export default function Reception() {
                               </div>
                             )}
                             
-                            {/* عرض طلبات القطع للسيارة */}
+                            {/* عرض طلبات القطع للسيارة - محسن */}
                             {(() => {
                               const carPartsRequests = partsRequests.filter((req: any) => 
                                 req.licensePlate === entry.licensePlate
                               );
                               if (carPartsRequests.length > 0) {
+                                const pendingCount = carPartsRequests.filter((req: any) => req.status === 'pending').length;
+                                const deliveredCount = carPartsRequests.filter((req: any) => req.status === 'delivered').length;
+                                const inProgressCount = carPartsRequests.filter((req: any) => 
+                                  ['approved', 'in_preparation', 'awaiting_pickup'].includes(req.status)
+                                ).length;
+                                
                                 return (
-                                  <div className="mt-2 p-2 bg-blue-50 rounded border">
-                                    <div className="text-sm font-medium text-blue-800 mb-1">
-                                      طلبات القطع ({carPartsRequests.length}):
+                                  <div className="mt-3 p-3 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-200">
+                                    <div className="flex items-center justify-between mb-2">
+                                      <div className="text-sm font-bold text-blue-900">
+                                        طلبات القطع ({carPartsRequests.length})
+                                      </div>
+                                      <div className="flex gap-2 text-xs">
+                                        {pendingCount > 0 && (
+                                          <span className="bg-yellow-100 text-yellow-700 px-2 py-1 rounded">
+                                            {pendingCount} معلق
+                                          </span>
+                                        )}
+                                        {inProgressCount > 0 && (
+                                          <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                                            {inProgressCount} تحت التنفيذ
+                                          </span>
+                                        )}
+                                        {deliveredCount > 0 && (
+                                          <span className="bg-green-100 text-green-700 px-2 py-1 rounded">
+                                            {deliveredCount} مكتمل
+                                          </span>
+                                        )}
+                                      </div>
                                     </div>
-                                    <div className="space-y-1">
-                                      {carPartsRequests.slice(0, 3).map((req: any) => (
-                                        <div key={req.id} className="text-xs text-blue-700">
-                                          • {req.partName} - {req.status === 'pending' ? 'قيد المراجعة' : 
-                                            req.status === 'approved' ? 'تم الموافقة' :
-                                            req.status === 'in_preparation' ? 'قيد التحضير' :
-                                            req.status === 'awaiting_pickup' ? 'بانتظار الاستلام' :
-                                            req.status === 'delivered' ? 'تم التسليم' : req.status}
-                                        </div>
-                                      ))}
-                                      {carPartsRequests.length > 3 && (
-                                        <div className="text-xs text-blue-600">
-                                          +{carPartsRequests.length - 3} طلبات أخرى
+                                    
+                                    <div className="grid grid-cols-1 gap-2">
+                                      {carPartsRequests
+                                        .sort((a: any, b: any) => {
+                                          const statusOrder = { 'pending': 1, 'approved': 2, 'in_preparation': 3, 'awaiting_pickup': 4, 'delivered': 5 };
+                                          return (statusOrder[a.status as keyof typeof statusOrder] || 6) - (statusOrder[b.status as keyof typeof statusOrder] || 6);
+                                        })
+                                        .slice(0, 4)
+                                        .map((req: any) => {
+                                          const statusColors = {
+                                            'pending': 'bg-yellow-100 border-yellow-300 text-yellow-800',
+                                            'approved': 'bg-green-100 border-green-300 text-green-800',
+                                            'in_preparation': 'bg-blue-100 border-blue-300 text-blue-800',
+                                            'awaiting_pickup': 'bg-purple-100 border-purple-300 text-purple-800',
+                                            'delivered': 'bg-gray-100 border-gray-300 text-gray-700'
+                                          };
+                                          
+                                          const statusLabels = {
+                                            'pending': 'قيد المراجعة',
+                                            'approved': 'تم الموافقة',
+                                            'in_preparation': 'قيد التحضير',
+                                            'awaiting_pickup': 'بانتظار الاستلام',
+                                            'delivered': 'تم التسليم'
+                                          };
+                                          
+                                          return (
+                                            <div key={req.id} className={`p-2 border rounded ${statusColors[req.status as keyof typeof statusColors] || 'bg-gray-100 border-gray-300 text-gray-700'}`}>
+                                              <div className="flex justify-between items-start">
+                                                <div className="font-medium text-sm">{req.partName}</div>
+                                                <div className="text-xs font-medium">
+                                                  {statusLabels[req.status as keyof typeof statusLabels] || req.status}
+                                                </div>
+                                              </div>
+                                              <div className="text-xs mt-1 opacity-80">
+                                                طلب رقم: {req.requestNumber} | المهندس: {req.engineerName}
+                                              </div>
+                                            </div>
+                                          );
+                                        })}
+                                      
+                                      {carPartsRequests.length > 4 && (
+                                        <div className="text-center text-xs text-blue-600 bg-blue-50 p-2 rounded">
+                                          +{carPartsRequests.length - 4} طلبات إضافية أخرى
                                         </div>
                                       )}
                                     </div>
