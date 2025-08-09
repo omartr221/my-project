@@ -157,15 +157,41 @@ export default function PartsRequestsList() {
     },
   });
 
-  const filteredRequests = partsRequests.filter((request) => {
-    const matchesStatus = statusFilter === "all" || request.status === statusFilter;
-    const matchesSearch = searchTerm === "" || 
-      request.partName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      request.engineerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      request.carInfo.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    return matchesStatus && matchesSearch;
-  });
+  const filteredRequests = partsRequests
+    .filter((request) => {
+      const matchesStatus = statusFilter === "all" || request.status === statusFilter;
+      const matchesSearch = searchTerm === "" || 
+        request.partName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        request.engineerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        request.carInfo.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        request.customerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        request.licensePlate?.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      return matchesStatus && matchesSearch;
+    })
+    .sort((a, b) => {
+      // ترتيب حسب الأولوية: pending أولاً، ثم حسب التاريخ
+      const statusPriority = {
+        'pending': 1,
+        'approved': 2,
+        'in_preparation': 3,
+        'awaiting_pickup': 4,
+        'parts_arrived': 5,
+        'delivered': 6,
+        'rejected': 7,
+        'returned': 8
+      };
+      
+      const aPriority = statusPriority[a.status as keyof typeof statusPriority] || 9;
+      const bPriority = statusPriority[b.status as keyof typeof statusPriority] || 9;
+      
+      if (aPriority !== bPriority) {
+        return aPriority - bPriority;
+      }
+      
+      // نفس الأولوية: ترتيب حسب التاريخ (الأحدث أولاً)
+      return new Date(b.requestedAt).getTime() - new Date(a.requestedAt).getTime();
+    });
 
   const handleStatusUpdate = (id: number, newStatus: string) => {
     updateStatusMutation.mutate({ id, status: newStatus });
@@ -211,31 +237,74 @@ export default function PartsRequestsList() {
           </CardTitle>
         </CardHeader>
         <CardContent>
+          {/* إحصائيات سريعة */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <Card className="p-4 bg-yellow-50 border-yellow-200">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-yellow-800">
+                  {partsRequests.filter(r => r.status === 'pending').length}
+                </div>
+                <div className="text-sm text-yellow-600">في الانتظار</div>
+              </div>
+            </Card>
+            <Card className="p-4 bg-blue-50 border-blue-200">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-blue-800">
+                  {partsRequests.filter(r => ['approved', 'in_preparation'].includes(r.status)).length}
+                </div>
+                <div className="text-sm text-blue-600">قيد التحضير</div>
+              </div>
+            </Card>
+            <Card className="p-4 bg-purple-50 border-purple-200">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-purple-800">
+                  {partsRequests.filter(r => ['awaiting_pickup', 'parts_arrived'].includes(r.status)).length}
+                </div>
+                <div className="text-sm text-purple-600">جاهزة للاستلام</div>
+              </div>
+            </Card>
+            <Card className="p-4 bg-green-50 border-green-200">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-green-800">
+                  {partsRequests.filter(r => r.status === 'delivered').length}
+                </div>
+                <div className="text-sm text-green-600">تم التسليم</div>
+              </div>
+            </Card>
+          </div>
+
           {/* الفلاتر */}
-          <div className="flex flex-wrap gap-4 mb-6">
+          <div className="flex flex-wrap gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
             <div className="flex items-center gap-2">
-              <Filter className="h-4 w-4" />
+              <Filter className="h-4 w-4 text-gray-600" />
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="w-[200px]">
                   <SelectValue placeholder="فلتر الحالة" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">جميع الحالات</SelectItem>
-                  <SelectItem value="pending">في الانتظار</SelectItem>
-                  <SelectItem value="approved">موافق عليه</SelectItem>
-                  <SelectItem value="rejected">مرفوض</SelectItem>
-                  <SelectItem value="delivered">تم التسليم</SelectItem>
+                  <SelectItem value="all">جميع الحالات ({partsRequests.length})</SelectItem>
+                  <SelectItem value="pending">في الانتظار ({partsRequests.filter(r => r.status === 'pending').length})</SelectItem>
+                  <SelectItem value="approved">موافق عليه ({partsRequests.filter(r => r.status === 'approved').length})</SelectItem>
+                  <SelectItem value="in_preparation">قيد التحضير ({partsRequests.filter(r => r.status === 'in_preparation').length})</SelectItem>
+                  <SelectItem value="awaiting_pickup">بانتظار الاستلام ({partsRequests.filter(r => r.status === 'awaiting_pickup').length})</SelectItem>
+                  <SelectItem value="delivered">تم التسليم ({partsRequests.filter(r => r.status === 'delivered').length})</SelectItem>
+                  <SelectItem value="rejected">مرفوض ({partsRequests.filter(r => r.status === 'rejected').length})</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             
             <div className="flex items-center gap-2 flex-1 max-w-md">
-              <Search className="h-4 w-4" />
+              <Search className="h-4 w-4 text-gray-600" />
               <Input
-                placeholder="بحث في اسم القطعة، المهندس، أو السيارة..."
+                placeholder="بحث في اسم القطعة، المهندس، الزبون، أو رقم السيارة..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
+                className="bg-white"
               />
+            </div>
+            
+            <div className="text-sm text-gray-600 self-center">
+              عرض {filteredRequests.length} من {partsRequests.length} طلب
             </div>
           </div>
 
@@ -265,14 +334,24 @@ export default function PartsRequestsList() {
                   </TableRow>
                 ) : (
                   filteredRequests.map((request) => (
-                    <TableRow key={request.id}>
+                    <TableRow key={request.id} className="hover:bg-gray-50">
                       <TableCell className="font-medium">
-                        {request.requestNumber || `#${request.id}`}
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="text-xs">
+                            {request.requestNumber || `#${request.id}`}
+                          </Badge>
+                          <div className="text-xs text-gray-500">
+                            {new Date(request.requestedAt).toLocaleDateString('ar-SA')}
+                          </div>
+                        </div>
                       </TableCell>
-                      <TableCell>{request.engineerName}</TableCell>
+                      <TableCell>
+                        <div className="font-medium text-sm">{request.engineerName}</div>
+                      </TableCell>
                       <TableCell>
                         <div className="space-y-1">
-                          <div className="text-sm">{request.carInfo}</div>
+                          <div className="text-sm font-medium">{request.customerName || request.carInfo}</div>
+                          <div className="text-xs text-gray-500">{request.licensePlate}</div>
                           {request.carBrand && (
                             <div className="text-xs text-muted-foreground">
                               {request.carBrand} {request.carModel}
@@ -280,17 +359,38 @@ export default function PartsRequestsList() {
                           )}
                         </div>
                       </TableCell>
-                      <TableCell>{request.partName}</TableCell>
-                      <TableCell>{request.quantity}</TableCell>
+                      <TableCell>
+                        <div className="font-medium text-sm">{request.partName}</div>
+                        {request.notes && (
+                          <div className="text-xs text-gray-500 mt-1">{request.notes}</div>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="secondary" className="text-sm">
+                          {request.quantity}
+                        </Badge>
+                      </TableCell>
                       <TableCell>
                         <Badge variant="outline">
                           {reasonLabels[request.reasonType as keyof typeof reasonLabels]}
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge className={statusColors[request.status as keyof typeof statusColors]}>
-                          {statusLabels[request.status as keyof typeof statusLabels]}
-                        </Badge>
+                        <div className="flex flex-col gap-1">
+                          <Badge className={statusColors[request.status as keyof typeof statusColors]}>
+                            {statusLabels[request.status as keyof typeof statusLabels]}
+                          </Badge>
+                          {request.status === 'delivered' && request.deliveredAt && (
+                            <div className="text-xs text-green-600">
+                              تم في: {new Date(request.deliveredAt).toLocaleDateString('ar-SA')}
+                            </div>
+                          )}
+                          {request.status === 'pending' && (
+                            <div className="text-xs text-yellow-600">
+                              منذ: {Math.floor((Date.now() - new Date(request.requestedAt).getTime()) / (1000 * 60 * 60))} ساعة
+                            </div>
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell>
                         <div className="space-y-2 max-w-xs">
