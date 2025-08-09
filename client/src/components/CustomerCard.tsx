@@ -365,6 +365,7 @@ export default function CustomerCard() {
       phoneNumber: customerForm.phoneNumber || editingCustomer.phoneNumber,
       address: customerForm.address || editingCustomer.address || undefined,
       notes: customerForm.notes || editingCustomer.notes || undefined,
+      customerStatus: customerForm.customerStatus || editingCustomer.customerStatus,
     };
 
     editCustomerMutation.mutate({ id: editingCustomer.id, updates });
@@ -625,6 +626,22 @@ export default function CustomerCard() {
                       />
                     </div>
                     <div>
+                      <Label htmlFor="editCustomerStatus">حالة الزبون *</Label>
+                      <Select 
+                        value={customerForm.customerStatus || editingCustomer.customerStatus} 
+                        onValueChange={(value) => setCustomerForm({...customerForm, customerStatus: value as "A" | "B" | "C"})}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="اختر حالة الزبون" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="A">A - ممتاز</SelectItem>
+                          <SelectItem value="B">B - جيد</SelectItem>
+                          <SelectItem value="C">C - ضعيف</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
                       <Label htmlFor="editCustomerNotes">ملاحظات</Label>
                       <Input
                         id="editCustomerNotes"
@@ -703,7 +720,26 @@ export default function CustomerCard() {
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => setEditingCustomer(customer)}
+                            onClick={() => {
+                              setEditingCustomer(customer);
+                              // Load customer data into form
+                              setCustomerForm({
+                                name: customer.name,
+                                phoneNumber: customer.phoneNumber,
+                                address: customer.address || "",
+                                notes: customer.notes || "",
+                                customerStatus: customer.customerStatus,
+                                carBrand: "",
+                                carModel: "",
+                                year: "",
+                                color: "",
+                                engineCode: "",
+                                chassisNumber: "",
+                                licensePlate: "",
+                                previousLicensePlate: "",
+                                previousOwner: "",
+                              });
+                            }}
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
