@@ -825,26 +825,26 @@ export class DatabaseStorage implements IStorage {
     
     // تسجيل الأوقات حسب الحالة
     if (status === "approved") {
-      updateData.approvedAt = now;
+      updateData.approvedAt = now.toISOString();
     } else if (status === "in_preparation") {
-      updateData.inPreparationAt = now;
-      updateData.approvedAt = now; // تسجيل وقت الموافقة أيضاً
+      updateData.inPreparationAt = now.toISOString();
+      updateData.approvedAt = now.toISOString(); // تسجيل وقت الموافقة أيضاً
     } else if (status === "awaiting_pickup") {
-      updateData.readyForPickupAt = now;
+      updateData.readyForPickupAt = now.toISOString();
     } else if (status === "ordered_externally") {
-      updateData.orderedExternallyAt = now;
+      updateData.orderedExternallyAt = now.toISOString();
       updateData.orderedExternallyBy = "هبة"; // يمكن تحسين هذا لاحقاً
       if (estimatedArrival) {
         updateData.estimatedArrival = estimatedArrival;
       }
     } else if (status === "parts_arrived") {
-      updateData.partsArrivedAt = now;
+      updateData.partsArrivedAt = now.toISOString();
       updateData.partsArrivedBy = "بدوي"; // يمكن تحسين هذا لاحقاً
     } else if (status === "unavailable") {
-      updateData.unavailableAt = now;
+      updateData.unavailableAt = now.toISOString();
       updateData.unavailableBy = "هبة"; // يمكن تحسين هذا لاحقاً
     } else if (status === "delivered") {
-      updateData.deliveredAt = now;
+      updateData.deliveredAt = now.toISOString();
       updateData.deliveredBy = "بدوي"; // يمكن تحسين هذا لاحقاً
     }
     
@@ -929,7 +929,7 @@ export class DatabaseStorage implements IStorage {
       .update(partsRequests)
       .set({
         status: 'returned',
-        returnedAt: new Date(),
+        returnedAt: new Date().toISOString(),
         returnedBy: returnedBy,
         returnReason: returnReason,
       })
@@ -1044,6 +1044,30 @@ export class DatabaseStorage implements IStorage {
       .returning();
     
     return receipt;
+  }
+
+  // Missing methods implementation
+  async getCarDataByLicensePlate(licensePlate: string): Promise<{ carBrand: string; carModel: string; color?: string } | null> {
+    const [car] = await db
+      .select({
+        carBrand: customerCars.carBrand,
+        carModel: customerCars.carModel,
+        color: customerCars.color,
+      })
+      .from(customerCars)
+      .where(eq(customerCars.licensePlate, licensePlate))
+      .limit(1);
+
+    return car ? {
+      carBrand: car.carBrand,
+      carModel: car.carModel,
+      color: car.color || undefined,
+    } : null;
+  }
+
+  private calculateCurrentDuration(task: any): number {
+    // TODO: Implement proper duration calculation based on time entries
+    return 0;
   }
 }
 

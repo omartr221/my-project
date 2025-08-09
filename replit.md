@@ -24,10 +24,11 @@ Preferred communication style: Simple, everyday language.
 - **Error Handling**: Comprehensive error middleware
 
 ### Data Storage
-- **Database**: PostgreSQL (Neon serverless)
-- **ORM**: Drizzle ORM
+- **Database**: PostgreSQL (Production - Permanent storage)
+- **ORM**: Drizzle ORM with DatabaseStorage implementation
 - **Connection**: Connection pooling (@neondatabase/serverless)
 - **Migrations**: Drizzle Kit
+- **Migration Status**: Successfully migrated from Memory Storage to PostgreSQL
 
 ### Key Features and Design Patterns
 - **Database Schema**: Workers, Tasks, Time Entries tables with proper relationships.

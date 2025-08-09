@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
-import { memoryStorage as storage } from "./memory-storage";
+import { storage } from "./storage";
 import { insertWorkerSchema, insertTaskSchema, insertCustomerSchema, insertCustomerCarSchema, insertPartsRequestSchema } from "@shared/schema";
 import { z } from "zod";
 import { setupAuth } from "./auth";
@@ -534,7 +534,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (foundCustomer) {
         // إذا وُجد الزبون، ابحث عن سياراته
-        foundCar = customerCars.find(car => car.customerId === foundCustomer.id);
+        foundCar = customerCars.find(car => car.customerId === foundCustomer!.id);
         console.log(`✅ تم العثور على الزبون: ${foundCustomer.name}`);
       } else {
         // البحث في بيانات السيارات (رقم اللوحة، رقم الشاسيه)
@@ -545,7 +545,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         );
         
         if (foundCar) {
-          foundCustomer = customers.find(customer => customer.id === foundCar.customerId);
+          foundCustomer = customers.find(customer => customer.id === foundCar!.customerId);
           console.log(`✅ تم العثور على السيارة للزبون: ${foundCustomer?.name}`);
         }
       }
