@@ -387,7 +387,7 @@ export const receptionEntries = pgTable("reception_entries", {
   serviceType: text("service_type").notNull(), // نوع الصيانة
   complaints: text("complaints"), // الشكاوي والأعطال
   odometerReading: integer("odometer_reading"), // عداد الكيلومترات
-  fuelLevel: text("fuel_level"), // مستوى البنزين
+  fuelLevel: text("fuel_level").notNull(), // مستوى البنزين كنص يدوي
   status: text("status").notNull().default("reception"), // reception, workshop, completed
   receptionUserId: integer("reception_user_id").references(() => users.id),
   workshopUserId: integer("workshop_user_id").references(() => users.id),
@@ -427,7 +427,7 @@ export const insertReceptionEntrySchema = createInsertSchema(receptionEntries).o
   licensePlate: z.string().min(1, "يجب إدخال رقم السيارة"),
   serviceType: z.string().min(1, "يجب تحديد نوع الصيانة"),
   odometerReading: z.number().min(0, "يجب إدخال قراءة العداد"),
-  fuelLevel: z.string().min(1, "يجب تحديد مستوى البنزين"),
+  fuelLevel: z.string().min(1, "يجب إدخال مستوى البنزين"),
 }).partial({
   complaints: true,
   customerId: true,

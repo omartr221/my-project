@@ -9,8 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Car, Clock, User, Phone, MapPin, Fuel, Gauge } from "lucide-react";
-import type { ReceptionEntry, InsertReceptionEntry } from "@shared/schema";
+import { Plus, Car, Clock, User, Phone, MapPin, Fuel, Gauge, Search } from "lucide-react";
+import type { ReceptionEntry, InsertReceptionEntry, Customer, CustomerCar } from "@shared/schema";
 
 export default function Reception() {
   const { toast } = useToast();
@@ -24,19 +24,48 @@ export default function Reception() {
     odometerReading: 0,
     fuelLevel: "",
   });
+  
+  const [customerSearchTerm, setCustomerSearchTerm] = useState("");
+  const [showCustomerSuggestions, setShowCustomerSuggestions] = useState(false);
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  const [selectedCar, setSelectedCar] = useState<CustomerCar | null>(null);
 
   // Fetch reception entries
   const { data: entries = [], isLoading } = useQuery({
     queryKey: ["/api/reception-entries"],
   });
 
+  // Fetch customers for autofill
+  const { data: customers = [] } = useQuery<Customer[]>({
+    queryKey: ["/api/customers"],
+  });
+
+  // Fetch customer cars for autofill
+  const { data: customerCars = [] } = useQuery<CustomerCar[]>({
+    queryKey: ["/api/customer-cars"],
+  });
+
+  // Filter customers based on search term
+  const filteredCustomers = customers.filter(customer =>
+    customer.name.toLowerCase().includes(customerSearchTerm.toLowerCase()) ||
+    customer.phoneNumber?.toLowerCase().includes(customerSearchTerm.toLowerCase())
+  );
+
   // Create reception entry mutation
   const createEntryMutation = useMutation({
-    mutationFn: (data: Omit<InsertReceptionEntry, 'receptionUserId'>) => 
-      apiRequest("/api/reception-entries", {
+    mutationFn: async (data: Omit<InsertReceptionEntry, 'receptionUserId'>) => {
+      const response = await fetch("/api/reception-entries", {
         method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify(data),
-      }),
+      });
+      if (!response.ok) {
+        throw new Error("Failed to create reception entry");
+      }
+      return response.json();
+    },
     onSuccess: () => {
       toast({
         title: "تم تسجيل السيارة بنجاح",
@@ -64,6 +93,36 @@ export default function Reception() {
       odometerReading: 0,
       fuelLevel: "",
     });
+    setCustomerSearchTerm("");
+    setSelectedCustomer(null);
+    setSelectedCar(null);
+    setShowCustomerSuggestions(false);
+  };
+
+  // Handle customer selection
+  const handleCustomerSelect = (customer: Customer) => {
+    setSelectedCustomer(customer);
+    setFormData(prev => ({ ...prev, carOwnerName: customer.name }));
+    setCustomerSearchTerm(customer.name);
+    setShowCustomerSuggestions(false);
+    
+    // Show cars for this customer
+    const customerCarsForSelected = customerCars.filter(car => car.customerId === customer.id);
+    if (customerCarsForSelected.length === 1) {
+      // Auto-select if only one car
+      handleCarSelect(customerCarsForSelected[0]);
+    }
+  };
+
+  // Handle car selection
+  const handleCarSelect = (car: CustomerCar) => {
+    setSelectedCar(car);
+    setFormData(prev => ({ 
+      ...prev, 
+      licensePlate: car.licensePlate,
+      customerId: car.customerId,
+      carId: car.id
+    }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -78,7 +137,14 @@ export default function Reception() {
       return;
     }
 
-    createEntryMutation.mutate(formData);
+    // Include customer and car IDs if selected
+    const submitData: Omit<InsertReceptionEntry, 'receptionUserId'> = {
+      ...formData,
+      customerId: selectedCustomer?.id,
+      carId: selectedCar?.id,
+    };
+
+    createEntryMutation.mutate(submitData);
   };
 
   const getStatusBadge = (status: string) => {
@@ -130,27 +196,85 @@ export default function Reception() {
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-4">
+                  {/* Customer and Car Selection - Combined in one row */}
+                  <div className="border-2 border-blue-300 rounded-lg p-4 bg-blue-50">
+                    <h4 className="font-medium mb-3 text-blue-800">بيانات الزبون والسيارة</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="relative">
+                        <Label htmlFor="customerSearch">اسم صاحب السيارة *</Label>
+                        <div className="relative">
+                          <Input
+                            id="customerSearch"
+                            value={customerSearchTerm}
+                            onChange={(e) => {
+                              setCustomerSearchTerm(e.target.value);
+                              setFormData({ ...formData, carOwnerName: e.target.value });
+                              setShowCustomerSuggestions(e.target.value.length > 0);
+                            }}
+                            placeholder="ابحث باسم الزبون أو رقم الجوال"
+                            required
+                          />
+                          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        </div>
+                        
+                        {/* Customer suggestions dropdown */}
+                        {showCustomerSuggestions && filteredCustomers.length > 0 && (
+                          <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-40 overflow-y-auto">
+                            {filteredCustomers.slice(0, 5).map((customer) => (
+                              <div
+                                key={customer.id}
+                                className="px-3 py-2 hover:bg-blue-100 cursor-pointer"
+                                onClick={() => handleCustomerSelect(customer)}
+                              >
+                                <div className="font-medium">{customer.name}</div>
+                                {customer.phoneNumber && (
+                                  <div className="text-sm text-gray-500">{customer.phoneNumber}</div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="licensePlate">رقم السيارة *</Label>
+                        <div className="space-y-2">
+                          <Input
+                            id="licensePlate"
+                            value={formData.licensePlate}
+                            onChange={(e) => setFormData({ ...formData, licensePlate: e.target.value })}
+                            placeholder="أدخل رقم السيارة"
+                            required
+                          />
+                          
+                          {/* Show customer cars if customer is selected */}
+                          {selectedCustomer && (
+                            <div className="space-y-1">
+                              <Label className="text-sm text-gray-600">سيارات الزبون:</Label>
+                              {customerCars
+                                .filter(car => car.customerId === selectedCustomer.id)
+                                .map((car) => (
+                                  <div
+                                    key={car.id}
+                                    className={`p-2 border rounded cursor-pointer text-sm ${
+                                      selectedCar?.id === car.id 
+                                        ? 'border-blue-500 bg-blue-100' 
+                                        : 'border-gray-200 hover:border-blue-300'
+                                    }`}
+                                    onClick={() => handleCarSelect(car)}
+                                  >
+                                    <div className="font-medium">{car.licensePlate}</div>
+                                    <div className="text-gray-500">{car.carBrand} {car.carModel}</div>
+                                  </div>
+                                ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="carOwnerName">اسم صاحب السيارة *</Label>
-                      <Input
-                        id="carOwnerName"
-                        value={formData.carOwnerName}
-                        onChange={(e) => setFormData({ ...formData, carOwnerName: e.target.value })}
-                        placeholder="أدخل اسم صاحب السيارة"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="licensePlate">رقم السيارة *</Label>
-                      <Input
-                        id="licensePlate"
-                        value={formData.licensePlate}
-                        onChange={(e) => setFormData({ ...formData, licensePlate: e.target.value })}
-                        placeholder="أدخل رقم السيارة"
-                        required
-                      />
-                    </div>
                     <div>
                       <Label htmlFor="serviceType">نوع الصيانة المطلوبة *</Label>
                       <Select 
@@ -174,21 +298,13 @@ export default function Reception() {
                     </div>
                     <div>
                       <Label htmlFor="fuelLevel">مستوى البنزين *</Label>
-                      <Select 
-                        value={formData.fuelLevel} 
-                        onValueChange={(value) => setFormData({ ...formData, fuelLevel: value })}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="اختر مستوى البنزين" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="ممتلئ">ممتلئ</SelectItem>
-                          <SelectItem value="ثلاثة أرباع">ثلاثة أرباع</SelectItem>
-                          <SelectItem value="نصف">نصف</SelectItem>
-                          <SelectItem value="ربع">ربع</SelectItem>
-                          <SelectItem value="فارغ تقريباً">فارغ تقريباً</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <Input
+                        id="fuelLevel"
+                        value={formData.fuelLevel}
+                        onChange={(e) => setFormData({ ...formData, fuelLevel: e.target.value })}
+                        placeholder="أدخل مستوى البنزين (مثال: 1/4، نصف، ممتلئ)"
+                        required
+                      />
                     </div>
                     <div>
                       <Label htmlFor="odometerReading">عداد الكيلومترات *</Label>
@@ -241,7 +357,7 @@ export default function Reception() {
               </div>
             ) : (
               <div className="space-y-3">
-                {entries.map((entry: ReceptionEntry) => (
+                {(entries as ReceptionEntry[]).map((entry: ReceptionEntry) => (
                   <Card key={entry.id} className="border-gray-200">
                     <CardContent className="p-4">
                       <div className="flex justify-between items-start">
@@ -273,7 +389,7 @@ export default function Reception() {
                               </div>
                             )}
                             <div className="text-xs text-gray-400">
-                              وقت التسجيل: {new Date(entry.entryTime).toLocaleString('ar-SA')}
+                              وقت التسجيل: {entry.entryTime ? new Date(entry.entryTime).toLocaleString('ar-SA') : 'غير محدد'}
                             </div>
                           </div>
                         </div>
