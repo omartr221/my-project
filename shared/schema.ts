@@ -76,7 +76,7 @@ export const customers = pgTable("customers", {
   address: text("address"),
   notes: text("notes"),
   customerStatus: text("customer_status").default("A"), // A, B, C
-  isFavorite: integer("is_favorite", { mode: "boolean" }).default(false),
+  isFavorite: boolean("is_favorite").default(false),
   createdAt: text("created_at").default("CURRENT_TIMESTAMP"),
 });
 
@@ -157,7 +157,7 @@ export const carReceipts = pgTable("car_receipts", {
   receivedBy: text("received_by").notNull(),
   receivedAt: text("received_at").default("CURRENT_TIMESTAMP"),
   status: text("status").notNull().default("received"), // received, workshop_pending, postponed, in_workshop, completed
-  workshopNotificationSent: integer("workshop_notification_sent", { mode: "boolean" }).default(false),
+  workshopNotificationSent: boolean("workshop_notification_sent").default(false),
   sentToWorkshopAt: text("sent_to_workshop_at"),
   sentToWorkshopBy: text("sent_to_workshop_by"),
   postponedAt: text("postponed_at"),
