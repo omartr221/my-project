@@ -789,6 +789,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const entry = await storage.createReceptionEntry(entryData);
       
+      // إنشاء سجل في car_status تلقائياً
+      await storage.createCarStatus({
+        customerName: entry.carOwnerName,
+        licensePlate: entry.licensePlate,
+        carBrand: entryData.carBrand || "غير محدد",
+        carModel: entryData.carModel || "غير محدد",
+        currentStatus: "في الاستقبال",
+        maintenanceType: entry.serviceType,
+        kmReading: entry.odometerReading,
+        fuelLevel: entry.fuelLevel,
+        complaints: entry.complaints,
+        partsRequestsCount: 0,
+        completedPartsCount: 0,
+        receivedAt: entry.entryTime,
+      });
+      
       // Send notification to workshop
       broadcastUpdate("reception_entry_created", {
         type: "new_car_entry",
