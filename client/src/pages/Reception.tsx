@@ -147,18 +147,7 @@ export default function Reception() {
     createEntryMutation.mutate(submitData);
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "reception":
-        return <Badge variant="secondary">في الاستقبال</Badge>;
-      case "workshop":
-        return <Badge variant="default">في الورشة</Badge>;
-      case "completed":
-        return <Badge variant="outline">مكتمل</Badge>;
-      default:
-        return <Badge variant="secondary">{status}</Badge>;
-    }
-  };
+
 
   if (isLoading) {
     return (
@@ -351,7 +340,7 @@ export default function Reception() {
           {/* Reception entries list */}
           <div className="space-y-4">
             <h3 className="text-lg font-medium">السيارات المسجلة</h3>
-            {entries.length === 0 ? (
+            {(entries as ReceptionEntry[]).length === 0 ? (
               <div className="text-center text-gray-500 py-8">
                 لا توجد سيارات مسجلة حالياً
               </div>
@@ -364,7 +353,6 @@ export default function Reception() {
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-2">
                             <h4 className="font-semibold">{entry.carOwnerName}</h4>
-                            {getStatusBadge(entry.status)}
                           </div>
                           <div className="space-y-1 text-sm text-gray-600">
                             <div className="flex items-center gap-2">

@@ -111,18 +111,7 @@ export default function Workshop() {
     }
   }, [workshopNotifications]);
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "reception":
-        return <Badge variant="secondary">في الاستقبال</Badge>;
-      case "workshop":
-        return <Badge variant="default">في الورشة</Badge>;
-      case "completed":
-        return <Badge variant="outline">مكتمل</Badge>;
-      default:
-        return <Badge variant="secondary">{status}</Badge>;
-    }
-  };
+
 
   const handleEnterWorkshop = (entryId: number) => {
     enterWorkshopMutation.mutate(entryId);
@@ -168,7 +157,6 @@ export default function Workshop() {
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-2">
                             <h4 className="font-semibold">{entry.carOwnerName}</h4>
-                            {getStatusBadge(entry.status)}
                             <Badge variant="destructive" className="text-xs">جديد</Badge>
                           </div>
                           <div className="space-y-1 text-sm text-gray-600">
@@ -230,7 +218,6 @@ export default function Workshop() {
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-2">
                             <h4 className="font-semibold">{entry.carOwnerName}</h4>
-                            {getStatusBadge(entry.status)}
                           </div>
                           <div className="space-y-1 text-sm text-gray-600">
                             <div className="flex items-center gap-2">
@@ -274,7 +261,6 @@ export default function Workshop() {
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-2">
                             <h4 className="font-semibold">{entry.carOwnerName}</h4>
-                            {getStatusBadge(entry.status)}
                           </div>
                           <div className="space-y-1 text-sm text-gray-600">
                             <div className="flex items-center gap-2">

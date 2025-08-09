@@ -101,27 +101,9 @@ export default function CarStatusManagement() {
     },
   });
 
-  const getStatusColor = (status: string) => {
-    const colors = {
-      "received": "bg-blue-100 text-blue-800",
-      "workshop_pending": "bg-orange-100 text-orange-800", 
-      "postponed": "bg-yellow-100 text-yellow-800",
-      "in_workshop": "bg-green-100 text-green-800",
-      "completed": "bg-gray-100 text-gray-800",
-    };
-    return colors[status as keyof typeof colors] || "bg-gray-100 text-gray-800";
-  };
 
-  const getStatusText = (status: string) => {
-    const statusTexts = {
-      "received": "مستلمة",
-      "workshop_pending": "بانتظار دخول الورشة",
-      "postponed": "بانتظار التسليم للورشة",
-      "in_workshop": "في الورشة", 
-      "completed": "مستلمة - تم إدخالها للورشة",
-    };
-    return statusTexts[status as keyof typeof statusTexts] || "غير محدد";
-  };
+
+
 
   if (isLoading) {
     return (
@@ -231,9 +213,7 @@ export default function CarStatusManagement() {
                     </div>
                   </div>
                 </div>
-                <Badge className={getStatusColor(receipt.status)}>
-                  {getStatusText(receipt.status)}
-                </Badge>
+
               </div>
             </CardHeader>
             
@@ -295,7 +275,7 @@ export default function CarStatusManagement() {
                   request.licensePlate === receipt.licensePlate
                 );
                 
-                const carActiveTasks = activeTasks.filter((task: any) => 
+                const carActiveTasks = (activeTasks as any[]).filter((task: any) => 
                   task.licensePlate === receipt.licensePlate
                 );
                 
