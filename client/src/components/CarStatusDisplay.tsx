@@ -36,6 +36,12 @@ export default function CarStatusDisplay() {
     refetchInterval: 5000, // Refresh every 5 seconds for real-time updates
   });
 
+  // Fetch parts requests to show with car status
+  const { data: partsRequests = [] } = useQuery({
+    queryKey: ["/api/parts-requests"],
+    refetchInterval: 5000,
+  });
+
   // Handle WebSocket updates
   useEffect(() => {
     if (lastMessage) {
@@ -212,6 +218,39 @@ export default function CarStatusDisplay() {
                           <strong>الشكاوي:</strong> {car.complaints}
                         </div>
                       )}
+
+                      {/* عرض طلبات القطع للسيارة */}
+                      {(() => {
+                        const carPartsRequests = partsRequests.filter((req: any) => 
+                          req.licensePlate === car.licensePlate
+                        );
+                        if (carPartsRequests.length > 0) {
+                          return (
+                            <div className="mt-2 p-2 bg-blue-50 rounded border">
+                              <div className="text-sm font-medium text-blue-800 mb-1">
+                                طلبات القطع ({carPartsRequests.length}):
+                              </div>
+                              <div className="space-y-1">
+                                {carPartsRequests.slice(0, 3).map((req: any) => (
+                                  <div key={req.id} className="text-xs text-blue-700">
+                                    • {req.partName} - {req.status === 'pending' ? 'قيد المراجعة' : 
+                                      req.status === 'approved' ? 'تم الموافقة' :
+                                      req.status === 'in_preparation' ? 'قيد التحضير' :
+                                      req.status === 'awaiting_pickup' ? 'بانتظار الاستلام' :
+                                      req.status === 'delivered' ? 'تم التسليم' : req.status}
+                                  </div>
+                                ))}
+                                {carPartsRequests.length > 3 && (
+                                  <div className="text-xs text-blue-600">
+                                    +{carPartsRequests.length - 3} طلبات أخرى
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        }
+                        return null;
+                      })()}
 
                       <div className="flex items-center space-x-reverse space-x-4 text-xs text-gray-500">
                         <div className="flex items-center">
