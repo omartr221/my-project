@@ -140,30 +140,7 @@ export const users = pgTable("users", {
   updatedAt: text("updated_at").notNull().default("CURRENT_TIMESTAMP"),
 });
 
-export const carReceipts = pgTable("car_receipts", {
-  id: serial("id").primaryKey(),
-  receiptNumber: text("receipt_number").unique().notNull(),
-  licensePlate: text("license_plate").notNull(),
-  customerName: text("customer_name").notNull(),
-  carBrand: text("car_brand").notNull(),
-  carModel: text("car_model").notNull(),
-  carColor: text("car_color"),
-  chassisNumber: text("chassis_number"),
-  engineCode: text("engine_code"),
-  entryMileage: text("entry_mileage").notNull(), // عداد الدخول
-  fuelLevel: text("fuel_level").notNull(), // نسبة البنزين
-  entryNotes: text("entry_notes"), // ملاحظات عند الدخول
-  repairType: text("repair_type").notNull(), // طلبات الإصلاح المتعددة
-  receivedBy: text("received_by").notNull(),
-  receivedAt: text("received_at").default("CURRENT_TIMESTAMP"),
-  status: text("status").notNull().default("received"), // received, workshop_pending, postponed, in_workshop, completed
-  workshopNotificationSent: boolean("workshop_notification_sent").default(false),
-  sentToWorkshopAt: text("sent_to_workshop_at"),
-  sentToWorkshopBy: text("sent_to_workshop_by"),
-  postponedAt: text("postponed_at"),
-  postponedBy: text("postponed_by"),
-  createdAt: text("created_at").default("CURRENT_TIMESTAMP"),
-});
+
 
 
 
@@ -327,35 +304,9 @@ export type InsertCustomerCar = z.infer<typeof insertCustomerCarSchema>;
 export type PartsRequest = typeof partsRequests.$inferSelect;
 export type InsertPartsRequest = z.infer<typeof insertPartsRequestSchema>;
 
-export const insertCarReceiptSchema = createInsertSchema(carReceipts).omit({
-  id: true,
-  receiptNumber: true,
-  receivedAt: true,
-  createdAt: true,
-  status: true,
-  workshopNotificationSent: true,
-  sentToWorkshopAt: true,
-  sentToWorkshopBy: true,
-  postponedAt: true,
-  postponedBy: true,
-}).extend({
-  licensePlate: z.string().min(1, "يجب إدخال رقم السيارة"),
-  customerName: z.string().min(1, "يجب إدخال اسم الزبون"),
-  carBrand: z.string().min(1, "يجب إدخال ماركة السيارة"),
-  carModel: z.string().min(1, "يجب إدخال موديل السيارة"),
-  entryMileage: z.string().min(1, "يجب إدخال قراءة العداد"),
-  fuelLevel: z.string().min(1, "يجب اختيار نسبة البنزين"),
-  repairType: z.string().min(1, "يجب إدخال طلبات الإصلاح"),
-}).partial({
-  carColor: true,
-  chassisNumber: true,
-  engineCode: true,
-  entryNotes: true,
-  receivedBy: true,
-});
 
-export type CarReceipt = typeof carReceipts.$inferSelect;
-export type InsertCarReceipt = z.infer<typeof insertCarReceiptSchema>;
+
+
 
 // Extended types for API responses
 export type WorkerWithTasks = Worker & {
@@ -442,7 +393,7 @@ export type InsertReceptionEntry = z.infer<typeof insertReceptionEntrySchema>;
 // Car Status Table - تتبع وضع السيارات بشكل آني
 export const carStatus = pgTable("car_status", {
   id: serial("id").primaryKey(),
-  carReceiptId: integer("car_receipt_id").references(() => carReceipts.id, { onDelete: "cascade" }),
+
   customerName: text("customer_name").notNull(),
   carBrand: text("car_brand").notNull(),
   carModel: text("car_model").notNull(),
@@ -461,21 +412,12 @@ export const carStatus = pgTable("car_status", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-export const carStatusRelations = relations(carStatus, ({ one }) => ({
-  receipt: one(carReceipts, {
-    fields: [carStatus.carReceiptId],
-    references: [carReceipts.id],
-  }),
-}));
+
 
 // Insert schema for car status
 export const insertCarStatusSchema = createInsertSchema(carStatus).omit({
   id: true,
-  receivedAt: true,
-  enteredWorkshopAt: true,
-  completedAt: true,
   updatedAt: true,
-  createdAt: true,
 }).extend({
   customerName: z.string().min(1, "يجب إدخال اسم الزبون"),
   licensePlate: z.string().min(1, "يجب إدخال رقم السيارة"),

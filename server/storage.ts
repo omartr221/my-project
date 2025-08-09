@@ -1,4 +1,4 @@
-import { workers, tasks, timeEntries, customers, customerCars, users, partsRequests, carReceipts, receptionEntries, carStatus, type Worker, type InsertWorker, type Task, type InsertTask, type TimeEntry, type InsertTimeEntry, type WorkerWithTasks, type TaskWithWorker, type TaskHistory, type Customer, type InsertCustomer, type CustomerCar, type InsertCustomerCar, type CustomerWithCars, type User, type InsertUser, type PartsRequest, type InsertPartsRequest, type CarReceipt, type InsertCarReceipt, type ReceptionEntry, type InsertReceptionEntry, type CarStatus, type InsertCarStatus } from "@shared/schema";
+import { workers, tasks, timeEntries, customers, customerCars, users, partsRequests, receptionEntries, carStatus, type Worker, type InsertWorker, type Task, type InsertTask, type TimeEntry, type InsertTimeEntry, type WorkerWithTasks, type TaskWithWorker, type TaskHistory, type Customer, type InsertCustomer, type CustomerCar, type InsertCustomerCar, type CustomerWithCars, type User, type InsertUser, type PartsRequest, type InsertPartsRequest, type ReceptionEntry, type InsertReceptionEntry, type CarStatus, type InsertCarStatus } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, isNull, or, like, isNotNull, asc, sql } from "drizzle-orm";
 import session from "express-session";
@@ -71,8 +71,7 @@ export interface IStorage {
   getPartsRequestsByLicensePlate(licensePlate: string): Promise<PartsRequest[]>;
   getTasksByLicensePlate(licensePlate: string): Promise<Task[]>;
   
-  // Car receipts management
-  createCarReceipt(receiptData: InsertCarReceipt): Promise<CarReceipt>;
+
   
   // Reception workflow management
   getReceptionEntries(): Promise<ReceptionEntry[]>;
@@ -80,12 +79,7 @@ export interface IStorage {
   createReceptionEntry(entry: InsertReceptionEntry): Promise<ReceptionEntry>;
   getWorkshopNotifications(): Promise<ReceptionEntry[]>;
   enterReceptionCarToWorkshop(entryId: number, workshopUserId: number): Promise<ReceptionEntry>;
-  getCarReceipts(): Promise<CarReceipt[]>;
-  getCarReceiptById(id: number): Promise<CarReceipt | undefined>;
-  updateCarReceipt(id: number, updates: Partial<CarReceipt>): Promise<CarReceipt>;
-  deleteCarReceipt(id: number): Promise<void>;
-  sendCarReceiptToWorkshop(id: number, sentBy: string): Promise<CarReceipt>;
-  enterCarToWorkshop(id: number, enteredBy: string): Promise<CarReceipt>;
+
   
   // Reception workflow management
   createReceptionEntry(entry: InsertReceptionEntry): Promise<ReceptionEntry>;
@@ -98,7 +92,7 @@ export interface IStorage {
   getCarStatuses(): Promise<CarStatus[]>;
   getCarStatus(id: number): Promise<CarStatus | undefined>;
   updateCarStatus(id: number, updates: Partial<CarStatus>): Promise<CarStatus>;
-  updateCarStatusByReceiptId(carReceiptId: number, updates: Partial<CarStatus>): Promise<CarStatus>;
+
   deleteCarStatus(id: number): Promise<void>;
   enterReceptionCarToWorkshop(id: number, workshopUserId: number): Promise<ReceptionEntry>;
   getWorkshopNotifications(): Promise<ReceptionEntry[]>;
@@ -1042,102 +1036,7 @@ export class DatabaseStorage implements IStorage {
     return taskList;
   }
 
-  // Car receipts methods
-  async createCarReceipt(receiptData: InsertCarReceipt): Promise<CarReceipt> {
-    // Generate receipt number - use simple sequential numbering
-    const result = await db.execute(sql`
-      SELECT COALESCE(MAX(CAST(SUBSTRING(receipt_number FROM 'استلام-(.+)') AS INTEGER)), 0) + 1 as next_number 
-      FROM car_receipts
-    `);
-    const nextNumber = result.rows[0]?.next_number || 1;
-    const receiptNumber = `استلام-${nextNumber}`;
 
-    const [receipt] = await db.insert(carReceipts).values({
-      ...receiptData,
-      receiptNumber,
-      receivedBy: receiptData.receivedBy || "الاستقبال",
-    }).returning();
-
-    // Automatically create car status record
-    await this.createCarStatus({
-      carReceiptId: receipt.id,
-      customerName: receiptData.customerName,
-      licensePlate: receiptData.licensePlate,
-      carBrand: receiptData.carBrand,
-      carModel: receiptData.carModel,
-      currentStatus: "في الاستقبال",
-      receivedAt: new Date(),
-      maintenanceType: receiptData.maintenanceType,
-      kmReading: receiptData.kmReading,
-      fuelLevel: receiptData.fuelLevel,
-      complaints: receiptData.complaints,
-      partsRequestsCount: 0,
-      completedPartsCount: 0,
-    });
-
-    return receipt;
-  }
-
-  async getCarReceipts(): Promise<CarReceipt[]> {
-    return await db.select().from(carReceipts).orderBy(desc(carReceipts.receivedAt));
-  }
-
-  async getCarReceiptById(id: number): Promise<CarReceipt | undefined> {
-    const [receipt] = await db.select().from(carReceipts).where(eq(carReceipts.id, id));
-    return receipt;
-  }
-
-  async updateCarReceipt(id: number, updates: Partial<CarReceipt>): Promise<CarReceipt> {
-    const [receipt] = await db.update(carReceipts)
-      .set(updates)
-      .where(eq(carReceipts.id, id))
-      .returning();
-    
-    return receipt;
-  }
-
-  async deleteCarReceipt(id: number): Promise<void> {
-    await db.delete(carReceipts).where(eq(carReceipts.id, id));
-  }
-
-  async sendCarReceiptToWorkshop(id: number, sentBy: string): Promise<CarReceipt> {
-    const [receipt] = await db.update(carReceipts)
-      .set({
-        status: "workshop_pending",
-        workshopNotificationSent: true,
-        sentToWorkshopAt: new Date(),
-        sentToWorkshopBy: sentBy,
-      })
-      .where(eq(carReceipts.id, id))
-      .returning();
-    
-    // Update car status to "في الورشة"
-    await this.updateCarStatusByReceiptId(id, {
-      currentStatus: "في الورشة",
-      enteredWorkshopAt: new Date(),
-    });
-    
-    return receipt;
-  }
-
-  async enterCarToWorkshop(id: number, enteredBy: string): Promise<CarReceipt> {
-    const [receipt] = await db.update(carReceipts)
-      .set({
-        status: "completed",
-        sentToWorkshopAt: new Date(),
-        sentToWorkshopBy: enteredBy,
-      })
-      .where(eq(carReceipts.id, id))
-      .returning();
-    
-    // Update car status to "جاهزة للتسليم"
-    await this.updateCarStatusByReceiptId(id, {
-      currentStatus: "جاهزة للتسليم",
-      completedAt: new Date(),
-    });
-    
-    return receipt;
-  }
 
   // Missing methods implementation
   async getCarDataByLicensePlate(licensePlate: string): Promise<{ carBrand: string; carModel: string; color?: string } | null> {
@@ -1274,18 +1173,7 @@ export class DatabaseStorage implements IStorage {
     return status;
   }
 
-  async updateCarStatusByReceiptId(carReceiptId: number, updates: Partial<CarStatus>): Promise<CarStatus> {
-    const [status] = await db
-      .update(carStatus)
-      .set({
-        ...updates,
-        updatedAt: new Date(),
-      })
-      .where(eq(carStatus.carReceiptId, carReceiptId))
-      .returning();
-    
-    return status;
-  }
+
 
   async deleteCarStatus(id: number): Promise<void> {
     await db.delete(carStatus).where(eq(carStatus.id, id));

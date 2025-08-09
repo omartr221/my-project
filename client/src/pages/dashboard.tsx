@@ -21,15 +21,14 @@ import RequestsList from "@/components/RequestsList";
 import PrepareDelivery from "@/components/PrepareDelivery";
 import HabaNotificationDialog from "@/components/HabaNotificationDialog";
 import WorkshopNotificationDialog from "@/components/WorkshopNotificationDialog";
-import CarReceiptForm from "@/components/CarReceiptForm";
-import CarReceiptsList from "@/components/CarReceiptsList";
+
 import CarStatusDisplay from "@/components/CarStatusDisplay";
 
 import Reception from "@/pages/Reception";
 import Workshop from "@/pages/Workshop";
 import { useNotifications } from "@/hooks/useNotifications";
 
-type TabType = "dashboard" | "timers" | "history" | "archive" | "addworker" | "customercard" | "parts-requests" | "requests" | "prepare-delivery" | "car-receipts" | "car-status" | "reception" | "workshop";
+type TabType = "dashboard" | "timers" | "history" | "archive" | "addworker" | "customercard" | "parts-requests" | "requests" | "prepare-delivery" | "car-status" | "reception" | "workshop";
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<TabType>("dashboard");
@@ -202,14 +201,6 @@ export default function Dashboard() {
 
       case "prepare-delivery":
         return <PrepareDelivery />;
-      case "car-receipts":
-        return (
-          <div className="space-y-6">
-            <CarReceiptForm />
-            <CarReceiptsList />
-          </div>
-        );
-
       case "car-status":
         return <CarStatusDisplay />;
         
@@ -299,14 +290,7 @@ export default function Dashboard() {
                   <Users className="ml-2 h-4 w-4" />
                   بطاقة زبون
                 </Button>
-                <Button
-                  variant={activeTab === "car-receipts" ? "default" : "ghost"}
-                  onClick={() => setActiveTab("car-receipts")}
-                  className="font-medium"
-                >
-                  <Car className="ml-2 h-4 w-4" />
-                  استلام السيارة
-                </Button>
+
                 <Button
                   variant={activeTab === "car-status" ? "default" : "ghost"}
                   onClick={() => setActiveTab("car-status")}
