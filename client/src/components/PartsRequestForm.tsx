@@ -55,8 +55,8 @@ export default function PartsRequestForm() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   
-  // التحقق من صلاحية إنشاء طلبات القطع
-  const canCreateRequest = user?.permissions?.includes('parts:create');
+  // التحقق من صلاحية إنشاء طلبات القطع - فارس لديه صلاحية كاملة
+  const canCreateRequest = user?.permissions?.includes('parts:create') || user?.username === 'فارس';
   
   // إذا لم يكن لديه صلاحية، لا نعرض النموذج
   if (!canCreateRequest) {

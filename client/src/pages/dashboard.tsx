@@ -352,7 +352,7 @@ export default function Dashboard() {
                   </Button>
                 )}
 
-                {!isFinance && !isOperator && !isViewer && !isSupervisor && (
+                {(!isFinance && !isOperator && !isViewer && !isSupervisor) || user?.username === "فارس" && (
                   <Button
                     variant={activeTab === "addworker" ? "default" : "ghost"}
                     onClick={() => setActiveTab("addworker")}
@@ -363,7 +363,7 @@ export default function Dashboard() {
                   </Button>
                 )}
                 
-                {canRead("customers") && (
+                {(canRead("customers") || user?.username === "فارس") && (
                   <Button
                     variant={activeTab === "customercard" ? "default" : "ghost"}
                     onClick={() => setActiveTab("customercard")}
@@ -374,7 +374,7 @@ export default function Dashboard() {
                   </Button>
                 )}
 
-                {canRead("parts") && (
+                {(canRead("parts") || user?.username === "فارس") && (
                   <Button
                     variant={activeTab === "parts-requests" ? "default" : "ghost"}
                     onClick={() => setActiveTab("parts-requests")}
@@ -387,8 +387,8 @@ export default function Dashboard() {
 
 {/* Removed prepare-delivery button for بدوي as requested */}
 
-                {/* وضع السيارات - خاص بحساب بدوي */}
-                {(user?.username === "بدوي" || isOperator) && (
+                {/* وضع السيارات - متاح لبدوي وفارس */}
+                {(user?.username === "بدوي" || user?.username === "فارس" || isOperator) && (
                   <Button
                     variant={activeTab === "car-positions" ? "default" : "ghost"}
                     onClick={() => setActiveTab("car-positions")}
@@ -422,8 +422,8 @@ export default function Dashboard() {
 
 {/* تم إزالة زر استلام السيارة للتبسيط */}
 
-            {/* الاستقبال - خاص بمستخدمي الاستقبال والورشة */}
-            {(user?.role === "reception" || user?.username === "الاستقبال") && (
+            {/* الاستقبال - متاح لفارس والاستقبال */}
+            {(user?.role === "reception" || user?.username === "الاستقبال" || user?.username === "فارس") && (
               <Button
                 variant={activeTab === "reception" ? "default" : "ghost"}
                 onClick={() => setActiveTab("reception")}
@@ -434,8 +434,8 @@ export default function Dashboard() {
               </Button>
             )}
 
-            {/* الورشة - خاص بمستخدمي الورشة */}
-            {(user?.role === "workshop" || user?.username === "بدوي") && (
+            {/* الورشة - متاح لفارس وبدوي */}
+            {(user?.role === "workshop" || user?.username === "بدوي" || user?.username === "فارس") && (
               <Button
                 variant={activeTab === "workshop" ? "default" : "ghost"}
                 onClick={() => setActiveTab("workshop")}
