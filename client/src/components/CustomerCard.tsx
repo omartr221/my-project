@@ -411,7 +411,7 @@ export default function CustomerCard() {
               <div className="relative flex-1">
                 <Search className="absolute right-3 top-3 h-4 w-4 text-gray-400" />
                 <Input
-                  placeholder="ابحث عن زبون (الاسم، رقم اللوحة، رقم الشاسيه)"
+                  placeholder="ابحث عن سيارة (اسم صاحب السيارة، رقم اللوحة، رقم الشاسيه)"
                   value={searchTerm}
                   onChange={(e) => handleSearchChange(e.target.value)}
                   className="pr-10"
