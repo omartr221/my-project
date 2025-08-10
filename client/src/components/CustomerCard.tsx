@@ -25,7 +25,7 @@ const getModelsByBrand = (brand: string): string[] => {
       return ["Fabia", "Octavia", "Superb", "Kamiq", "Karoq", "Kodiaq", "Scala", "Rapid", "Yeti", "Citigo", "Enyaq"];
     case "SEAT":
       return ["Ibiza", "Leon", "Ateca", "Tarraco", "Arona", "Mii", "Alhambra", "Toledo", "Altea", "Cupra"];
-    case "porsche":
+    case "PORSCHE":
       return ["911", "Cayenne", "Macan", "Panamera", "Taycan", "718 Boxster", "718 Cayman", "Carrera", "Turbo", "GT3"];
     default:
       return [];
@@ -469,7 +469,7 @@ export default function CustomerCard() {
                           <SelectItem value="VOLKSWAGEN">VOLKSWAGEN</SelectItem>
                           <SelectItem value="SKODA">SKODA</SelectItem>
                           <SelectItem value="SEAT">SEAT</SelectItem>
-                          <SelectItem value="porsche">porsche</SelectItem>
+                          <SelectItem value="PORSCHE">PORSCHE</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -793,7 +793,7 @@ export default function CustomerCard() {
                                       <SelectItem value="VOLKSWAGEN">VOLKSWAGEN</SelectItem>
                                       <SelectItem value="SKODA">SKODA</SelectItem>
                                       <SelectItem value="SEAT">SEAT</SelectItem>
-                                      <SelectItem value="porsche">porsche</SelectItem>
+                                      <SelectItem value="PORSCHE">PORSCHE</SelectItem>
                                     </SelectContent>
                                   </Select>
                                 </div>
@@ -957,7 +957,7 @@ export default function CustomerCard() {
                                       <SelectItem value="VOLKSWAGEN">VOLKSWAGEN</SelectItem>
                                       <SelectItem value="SKODA">SKODA</SelectItem>
                                       <SelectItem value="SEAT">SEAT</SelectItem>
-                                      <SelectItem value="porsche">porsche</SelectItem>
+                                      <SelectItem value="PORSCHE">PORSCHE</SelectItem>
                                     </SelectContent>
                                   </Select>
                                 </div>
