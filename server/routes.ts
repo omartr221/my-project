@@ -890,6 +890,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Complete reception entry and deliver car (for بدوي)
+  app.post("/api/reception-entries/:id/complete", async (req, res, next) => {
+    try {
+      const entryId = parseInt(req.params.id);
+      const { status, completedBy } = req.body;
+      
+      // Update the reception entry status to completed
+      const updatedEntry = await storage.updateReceptionEntry(entryId, { 
+        status: status || "مكتمل",
+        completedAt: new Date(),
+        completedBy: completedBy
+      });
+      
+      // Update car status to delivered
+      const carStatuses = await storage.getCarStatuses();
+      const carStatus = carStatuses.find(status => 
+        status.licensePlate === updatedEntry.licensePlate
+      );
+      
+      if (carStatus) {
+        await storage.updateCarStatus(carStatus.id, {
+          currentStatus: "مكتمل",
+          deliveredAt: new Date(),
+        });
+      }
+      
+      // Broadcast car delivery update
+      broadcastUpdate("car_delivered", {
+        type: "car_delivery",
+        entry: updatedEntry,
+        message: `تم تسليم السيارة ${updatedEntry.licensePlate} بواسطة ${completedBy}`
+      });
+      
+      res.json(updatedEntry);
+    } catch (error) {
+      next(error);
+    }
+  });
+
   // Car Status Management Routes
   app.get('/api/car-status', async (req, res) => {
     try {

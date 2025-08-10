@@ -29,7 +29,7 @@ export default function Reception() {
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
   
   // Timer state for automatic timer on car reception
-  const [receptionTimer, setReceptionTimer] = useState<{[key: number]: {startTime: Date, elapsed: number, isRunning: boolean}}>({});
+  const [receptionTimer, setReceptionTimer] = useState<{[key: number]: {startTime: Date, elapsed: number, isRunning: boolean, pausedAt5PM?: boolean}}>({});
   
   // Function to start reception timer
   const startReceptionTimer = (entryId: number) => {
@@ -44,29 +44,92 @@ export default function Reception() {
     }));
   };
   
-  // Function to stop reception timer
-  const stopReceptionTimer = (entryId: number) => {
+  // Function to stop reception timer (pause)
+  const pauseReceptionTimer = (entryId: number) => {
+    setReceptionTimer(prev => {
+      if (!prev[entryId]) return prev;
+      const now = new Date();
+      const additionalElapsed = prev[entryId].isRunning 
+        ? Math.floor((now.getTime() - prev[entryId].startTime.getTime()) / 1000)
+        : 0;
+      
+      return {
+        ...prev,
+        [entryId]: {
+          ...prev[entryId],
+          elapsed: prev[entryId].elapsed + additionalElapsed,
+          isRunning: false
+        }
+      };
+    });
+  };
+
+  // Function to resume reception timer
+  const resumeReceptionTimer = (entryId: number) => {
     setReceptionTimer(prev => ({
       ...prev,
       [entryId]: {
         ...prev[entryId],
-        isRunning: false
+        startTime: new Date(),
+        isRunning: true
       }
     }));
   };
+
+  // Function to finish timer and deliver car (for بدوي)
+  const finishTimerAndDeliver = async (entryId: number, licensePlate: string) => {
+    // Stop the timer first
+    pauseReceptionTimer(entryId);
+    
+    // Update car status to delivered
+    try {
+      await fetch(`/api/reception-entries/${entryId}/complete`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          status: "مكتمل",
+          completedBy: "بدوي"
+        }),
+      });
+      
+      toast({
+        title: "تم تسليم السيارة",
+        description: `تم انهاء المؤقت وتسليم السيارة ${licensePlate} بنجاح`,
+      });
+      
+      queryClient.invalidateQueries({ queryKey: ["/api/reception-entries"] });
+      
+    } catch (error) {
+      toast({
+        title: "خطأ",
+        description: "حدث خطأ أثناء تسليم السيارة",
+        variant: "destructive",
+      });
+    }
+  };
   
-  // Function to check if it's 5 PM Syria time and stop timers
-  const checkAndStopTimers = useCallback(() => {
+  // Function to check if it's 5 PM Syria time and pause timers (but don't stop completely)
+  const checkAndPauseTimers = useCallback(() => {
     const now = new Date();
     const syriaTime = new Date(now.toLocaleString("en-US", {timeZone: "Asia/Damascus"}));
     const currentHour = syriaTime.getHours();
     
-    if (currentHour >= 17) { // 5 PM or later
+    if (currentHour >= 17) { // 5 PM or later - pause but keep elapsed time
       setReceptionTimer(prev => {
         const updated = { ...prev };
         Object.keys(updated).forEach(key => {
-          if (updated[parseInt(key)].isRunning) {
-            updated[parseInt(key)].isRunning = false;
+          const entryId = parseInt(key);
+          if (updated[entryId].isRunning) {
+            const now = new Date();
+            const additionalElapsed = Math.floor((now.getTime() - updated[entryId].startTime.getTime()) / 1000);
+            updated[entryId] = {
+              ...updated[entryId],
+              elapsed: updated[entryId].elapsed + additionalElapsed,
+              isRunning: false,
+              pausedAt5PM: true
+            };
           }
         });
         return updated;
@@ -162,12 +225,12 @@ export default function Reception() {
       // Update timer display by forcing re-render
       setReceptionTimer(prev => ({ ...prev }));
       
-      // Check if it's past 5 PM Syria time and stop timers
-      checkAndStopTimers();
+      // Check if it's past 5 PM Syria time and pause timers
+      checkAndPauseTimers();
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [checkAndStopTimers]);
+  }, [checkAndPauseTimers]);
 
   // Initialize timers for existing entries
   useEffect(() => {
@@ -542,6 +605,15 @@ export default function Reception() {
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-2">
                             <h4 className="font-semibold">{entry.carOwnerName}</h4>
+                            <Badge 
+                              variant={
+                                entry.status === "في الاستقبال" ? "default" : 
+                                entry.status === "في الورشة" ? "secondary" : 
+                                entry.status === "مكتمل" ? "outline" : "destructive"
+                              }
+                            >
+                              {entry.status}
+                            </Badge>
                           </div>
                           <div className="space-y-1 text-sm text-gray-600">
                             <div className="flex items-center gap-2">
@@ -673,6 +745,62 @@ export default function Reception() {
                               وقت التسجيل: {entry.entryTime ? new Date(entry.entryTime).toLocaleString('ar-SA') : 'غير محدد'}
                             </div>
                           </div>
+                        </div>
+                        
+                        {/* Timer controls and action buttons */}
+                        <div className="flex flex-col gap-2 min-w-[200px]">
+                          {/* Timer control buttons */}
+                          {entry.status === "في الاستقبال" && (
+                            <div className="flex flex-col gap-1">
+                              <Button
+                                size="sm"
+                                variant={receptionTimer[entry.id]?.isRunning ? "destructive" : "default"}
+                                onClick={() => {
+                                  if (receptionTimer[entry.id]?.isRunning) {
+                                    pauseReceptionTimer(entry.id);
+                                  } else {
+                                    resumeReceptionTimer(entry.id);
+                                  }
+                                }}
+                              >
+                                {receptionTimer[entry.id]?.isRunning ? "إيقاف المؤقت مؤقتاً" : "استئناف المؤقت"}
+                              </Button>
+                              
+                              {/* Finish and deliver button - main action for بدوي */}
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="bg-green-50 text-green-700 border-green-300 hover:bg-green-100 font-medium"
+                                onClick={() => finishTimerAndDeliver(entry.id, entry.licensePlate)}
+                              >
+                                انهاء المؤقت وتسليم السيارة
+                              </Button>
+                            </div>
+                          )}
+                          
+                          {/* Show completed status */}
+                          {entry.status === "مكتمل" && (
+                            <div className="text-center p-2 bg-green-50 rounded">
+                              <div className="text-sm text-green-600 font-medium">
+                                تم التسليم ✓
+                              </div>
+                              <div className="text-xs text-gray-500">
+                                الوقت الإجمالي: {formatTimerDisplay(entry.id)}
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* Show in workshop status */}
+                          {entry.status === "في الورشة" && (
+                            <div className="text-center p-2 bg-blue-50 rounded">
+                              <div className="text-sm text-blue-600 font-medium">
+                                في الورشة
+                              </div>
+                              <div className="text-xs text-gray-500">
+                                الوقت المنقضي: {formatTimerDisplay(entry.id)}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </CardContent>
