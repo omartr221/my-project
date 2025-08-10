@@ -38,12 +38,13 @@ Preferred communication style: Simple, everyday language.
 - **Task Management**: Create, update, pause, resume, complete, edit, cancel tasks. Includes estimated time, repair operations, and various task types (e.g., mechanical, electrical, programming).
 - **Team Management**: Support for multiple technicians and assistants per task.
 - **Delivery System**: 3-star rating for task completion, work efficiency calculation.
-- **Car Management**: Car receipt system with sequential numbering, car status management workflow (reception, workshop entry, postponement). Includes customer and car data auto-fill.
+- **Car Management**: Car receipt system with sequential numbering, car status management workflow (reception, workshop entry, postponement). Includes customer and car data auto-fill. Enhanced with flexible car model selection (includes "أخرى" option for custom models) and automatic uppercase conversion for engine codes.
 - **Authentication & Authorization**: Role-based access control (finance, operator, viewer, supervisor, reception, workshop). Protected routes and permission-based component rendering.
 - **Parts Request System**: Multi-stage approval workflow (in preparation, awaiting pickup, parts arrived, delivered), sequential numbering, real-time notifications for approver.
 - **Notifications**: Sound alerts, browser push notifications, visual badges for new requests.
 - **Data Management**: Automatic hourly backups (customers, cars, parts requests), manual backup/restore.
 - **Desktop Application**: Electron-based desktop application functionality.
+- **Search Functionality**: Customer search limited to name, license plate number, and chassis number (phone number excluded for reception users for privacy).
 
 ## External Dependencies
 
