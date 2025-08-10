@@ -249,7 +249,7 @@ export default function Reception() {
             </CardTitle>
             <Button onClick={() => setShowForm(true)}>
               <Plus className="h-4 w-4 ml-1" />
-              تسجيل سيارة جديدة
+              استقبال سيارة
             </Button>
           </div>
         </CardHeader>
@@ -258,7 +258,7 @@ export default function Reception() {
           {showForm && (
             <Card className="border-blue-200 bg-blue-50 mb-6">
               <CardHeader>
-                <CardTitle className="text-lg">تسجيل سيارة جديدة</CardTitle>
+                <CardTitle className="text-lg">استقبال سيارة جديدة</CardTitle>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-4">
@@ -405,7 +405,7 @@ export default function Reception() {
                   </div>
                   <div className="flex gap-2">
                     <Button type="submit" disabled={createEntryMutation.isPending}>
-                      {createEntryMutation.isPending ? "جاري التسجيل..." : "تسجيل السيارة"}
+                      {createEntryMutation.isPending ? "جاري الاستقبال..." : "استقبال السيارة"}
                     </Button>
                     <Button 
                       type="button" 
