@@ -52,6 +52,37 @@ export default function Reception() {
     });
   };
   
+  // Function to check odometer reading against previous entries
+  const checkOdometerReading = async (newOdometer: number, customerId: number) => {
+    try {
+      // Get previous reception entries for this customer
+      const response = await fetch(`/api/reception-entries?customerId=${customerId}`);
+      if (!response.ok) return;
+      
+      const customerEntries = await response.json();
+      if (customerEntries.length === 0) return;
+      
+      // Find the most recent entry with higher odometer
+      const sortedEntries = customerEntries
+        .filter((entry: ReceptionEntry) => (entry.odometerReading || 0) > newOdometer)
+        .sort((a: ReceptionEntry, b: ReceptionEntry) => 
+          new Date(b.updatedAt || b.id || 0).getTime() - new Date(a.updatedAt || a.id || 0).getTime()
+        );
+      
+      if (sortedEntries.length > 0) {
+        const lastHigherEntry = sortedEntries[0];
+        toast({
+          title: "تنبيه: عداد الدخول",
+          description: `عداد الدخول المدخل (${newOdometer}) أقل من آخر زيارة (${lastHigherEntry.odometerReading || 0}). يرجى التحقق من القراءة.`,
+          variant: "destructive",
+          duration: 8000,
+        });
+      }
+    } catch (error) {
+      console.error('Error checking odometer reading:', error);
+    }
+  };
+  
   const [customerSearchTerm, setCustomerSearchTerm] = useState("");
   const [showCustomerSuggestions, setShowCustomerSuggestions] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
@@ -343,13 +374,21 @@ export default function Reception() {
                       />
                     </div>
                     <div>
-                      <Label htmlFor="odometerReading">عداد الكيلومترات *</Label>
+                      <Label htmlFor="odometerReading">عداد الدخول *</Label>
                       <Input
                         id="odometerReading"
                         type="number"
                         value={formData.odometerReading}
-                        onChange={(e) => setFormData({ ...formData, odometerReading: parseInt(e.target.value) || 0 })}
-                        placeholder="أدخل قراءة العداد"
+                        onChange={(e) => {
+                          const newOdometer = parseInt(e.target.value) || 0;
+                          setFormData({ ...formData, odometerReading: newOdometer });
+                          
+                          // Check if customer is selected and has previous entries
+                          if (selectedCustomer && newOdometer > 0) {
+                            checkOdometerReading(newOdometer, selectedCustomer.id);
+                          }
+                        }}
+                        placeholder="أدخل قراءة عداد الدخول"
                         required
                       />
                     </div>

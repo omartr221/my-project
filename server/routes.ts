@@ -773,8 +773,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Reception workflow routes
   app.get("/api/reception-entries", async (req, res, next) => {
     try {
-      const entries = await storage.getReceptionEntries();
-      res.json(entries);
+      const customerId = req.query.customerId ? parseInt(req.query.customerId as string) : undefined;
+      
+      if (customerId) {
+        // Filter entries by customer ID
+        const allEntries = await storage.getReceptionEntries();
+        const customerEntries = allEntries.filter(entry => entry.customerId === customerId);
+        res.json(customerEntries);
+      } else {
+        // Return all entries
+        const entries = await storage.getReceptionEntries();
+        res.json(entries);
+      }
     } catch (error) {
       next(error);
     }
