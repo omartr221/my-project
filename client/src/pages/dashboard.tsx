@@ -28,7 +28,7 @@ import Reception from "@/pages/Reception";
 import Workshop from "@/pages/Workshop";
 import { useNotifications } from "@/hooks/useNotifications";
 
-type TabType = "dashboard" | "timers" | "history" | "archive" | "addworker" | "customercard" | "parts-requests" | "requests" | "prepare-delivery" | "car-status" | "reception" | "workshop";
+type TabType = "dashboard" | "timers" | "history" | "archive" | "addworker" | "customercard" | "parts-requests" | "requests" | "car-status" | "reception" | "workshop";
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<TabType>("dashboard");
@@ -199,8 +199,7 @@ export default function Dashboard() {
           </div>
         );
 
-      case "prepare-delivery":
-        return <PrepareDelivery />;
+{/* Removed prepare-delivery case as requested */}
       case "car-status":
         return <CarStatusDisplay />;
         
@@ -343,7 +342,7 @@ export default function Dashboard() {
                     className="font-medium"
                   >
                     <Archive className="ml-2 h-4 w-4" />
-                    استلام نهائي
+                    الأرشيف
                   </Button>
                 )}
 
@@ -380,16 +379,7 @@ export default function Dashboard() {
                   </Button>
                 )}
 
-                {(isOperator || canWrite("parts")) && (
-                  <Button
-                    variant={activeTab === "prepare-delivery" ? "default" : "ghost"}
-                    onClick={() => setActiveTab("prepare-delivery")}
-                    className="font-medium"
-                  >
-                    <Package2 className="ml-2 h-4 w-4" />
-                    تجهيز للتسليم
-                  </Button>
-                )}
+{/* Removed prepare-delivery button for بدوي as requested */}
 
                 {/* الطلبات - خاص بحساب هبة */}
                 {(user?.username === "هبة" || user?.role === "viewer") && (
