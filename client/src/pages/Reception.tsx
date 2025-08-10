@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Car, Clock, User, Phone, MapPin, Fuel, Gauge, Search } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import type { ReceptionEntry, InsertReceptionEntry, Customer, CustomerCar } from "@shared/schema";
 
 export default function Reception() {
@@ -24,6 +25,32 @@ export default function Reception() {
     odometerReading: 0,
     fuelLevel: "",
   });
+  
+  const [selectedServices, setSelectedServices] = useState<string[]>([]);
+  
+  const serviceOptions = [
+    "صيانة دورية",
+    "إصلاح عطل", 
+    "فحص شامل",
+    "تغيير زيت",
+    "برمجة"
+  ];
+  
+  const handleServiceToggle = (service: string) => {
+    setSelectedServices(prev => {
+      const updated = prev.includes(service)
+        ? prev.filter(s => s !== service)
+        : [...prev, service];
+      
+      // Update form data with concatenated services
+      setFormData(prevData => ({
+        ...prevData,
+        serviceType: updated.join(", ")
+      }));
+      
+      return updated;
+    });
+  };
   
   const [customerSearchTerm, setCustomerSearchTerm] = useState("");
   const [showCustomerSuggestions, setShowCustomerSuggestions] = useState(false);
@@ -115,6 +142,7 @@ export default function Reception() {
     setSelectedCustomer(null);
     setSelectedCar(null);
     setShowCustomerSuggestions(false);
+    setSelectedServices([]);
   };
 
   // Handle customer selection
@@ -146,10 +174,10 @@ export default function Reception() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.carOwnerName || !formData.licensePlate || !formData.serviceType || !formData.fuelLevel) {
+    if (!formData.carOwnerName || !formData.licensePlate || selectedServices.length === 0 || !formData.fuelLevel) {
       toast({
         title: "بيانات ناقصة",
-        description: "يرجى ملء جميع الحقول المطلوبة",
+        description: "يرجى ملء جميع الحقول المطلوبة وتحديد نوع الصيانة",
         variant: "destructive",
       });
       return;
@@ -283,22 +311,26 @@ export default function Reception() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="serviceType">نوع الصيانة المطلوبة *</Label>
-                      <Select 
-                        value={formData.serviceType} 
-                        onValueChange={(value) => setFormData({ ...formData, serviceType: value })}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="اختر نوع الصيانة" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="صيانة دورية">صيانة دورية</SelectItem>
-                          <SelectItem value="إصلاح عطل">إصلاح عطل</SelectItem>
-                          <SelectItem value="فحص شامل">فحص شامل</SelectItem>
-                          <SelectItem value="تغيير زيت">تغيير زيت</SelectItem>
-                          <SelectItem value="برمجة">برمجة</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <Label>نوع الصيانة المطلوبة * (يمكن اختيار أكثر من خيار)</Label>
+                      <div className="space-y-2 mt-2 p-3 border rounded-md bg-gray-50">
+                        {serviceOptions.map((service) => (
+                          <div key={service} className="flex items-center space-x-2 space-x-reverse">
+                            <Checkbox
+                              id={service}
+                              checked={selectedServices.includes(service)}
+                              onCheckedChange={() => handleServiceToggle(service)}
+                            />
+                            <Label htmlFor={service} className="text-sm font-normal cursor-pointer">
+                              {service}
+                            </Label>
+                          </div>
+                        ))}
+                        {selectedServices.length > 0 && (
+                          <div className="mt-2 p-2 bg-blue-100 rounded text-xs">
+                            <strong>المحدد:</strong> {selectedServices.join(", ")}
+                          </div>
+                        )}
+                      </div>
                     </div>
                     <div>
                       <Label htmlFor="fuelLevel">مستوى البنزين *</Label>
