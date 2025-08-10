@@ -247,7 +247,7 @@ export default function Reception() {
             [entry.id]: {
               startTime: entryTime,
               elapsed: Math.max(0, elapsed),
-              isRunning: entry.status === "في الاستقبال"
+              isRunning: true // المؤقت يعمل دائماً إلا إذا تم إيقافه يدوياً
             }
           }));
         }
@@ -641,7 +641,7 @@ export default function Reception() {
                                   ? 'bg-green-100 text-green-800' 
                                   : 'bg-gray-100 text-gray-600'
                               }`}>
-                                مؤقت الاستقبال: {formatTimerDisplay(entry.id)}
+                                المؤقت: {formatTimerDisplay(entry.id)}
                                 {receptionTimer[entry.id]?.isRunning && (
                                   <span className="ml-1 text-green-600">●</span>
                                 )}
@@ -749,8 +749,8 @@ export default function Reception() {
                         
                         {/* Timer controls and action buttons */}
                         <div className="flex flex-col gap-2 min-w-[200px]">
-                          {/* Timer control buttons */}
-                          {entry.status === "في الاستقبال" && (
+                          {/* Timer control buttons for all users */}
+                          {entry.status !== "مكتمل" && (
                             <div className="flex flex-col gap-1">
                               <Button
                                 size="sm"
@@ -764,16 +764,6 @@ export default function Reception() {
                                 }}
                               >
                                 {receptionTimer[entry.id]?.isRunning ? "إيقاف المؤقت مؤقتاً" : "استئناف المؤقت"}
-                              </Button>
-                              
-                              {/* Finish and deliver button - main action for بدوي */}
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="bg-green-50 text-green-700 border-green-300 hover:bg-green-100 font-medium"
-                                onClick={() => finishTimerAndDeliver(entry.id, entry.licensePlate)}
-                              >
-                                انهاء المؤقت وتسليم السيارة
                               </Button>
                             </div>
                           )}
