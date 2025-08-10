@@ -24,13 +24,12 @@ import WorkshopNotificationDialog from "@/components/WorkshopNotificationDialog"
 
 import CarStatusDisplay from "@/components/CarStatusDisplay";
 import CarPositionsView from "@/components/CarPositionsView";
-{/* تم حذف استيراد FinishDeliveryView */}
 
 import Reception from "@/pages/Reception";
 import Workshop from "@/pages/Workshop";
 import { useNotifications } from "@/hooks/useNotifications";
 
-type TabType = "dashboard" | "timers" | "history" | "archive" | "addworker" | "customercard" | "parts-requests" | "requests" | "car-status" | "car-positions" | "reception" | "workshop";
+type TabType = "dashboard" | "timers" | "history" | "archive" | "addworker" | "customercard" | "parts-requests" | "requests" | "car-status" | "car-positions" | "car-receipts" | "reception" | "workshop";
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<TabType>("dashboard");
@@ -91,13 +90,13 @@ export default function Dashboard() {
                     <div>
                       <p className="text-gray-600 text-sm">إجمالي العمال</p>
                       <p className="text-2xl font-bold text-primary">
-                        {stats?.totalWorkers || 0}
+                        {Array.isArray(workers) ? workers.length : 0}
                       </p>
-                      {workers && workers.length > 0 && (
+                      {Array.isArray(workers) && workers.length > 0 && (
                         <div className="mt-2">
                           <p className="text-xs text-gray-500">الأسماء:</p>
                           <p className="text-xs text-gray-600">
-                            {workers.map(w => w.name).join('، ')}
+                            {workers.map((w: any) => w.name).join('، ')}
                           </p>
                         </div>
                       )}
@@ -113,7 +112,7 @@ export default function Dashboard() {
                     <div>
                       <p className="text-gray-600 text-sm">العمال المتاحين</p>
                       <p className="text-2xl font-bold success">
-                        {stats?.availableWorkers || 0}
+                        {Array.isArray(workers) ? workers.filter((w: any) => w.status === "available").length : 0}
                       </p>
                     </div>
                     <UserCheck className="h-8 w-8 success opacity-20" />
@@ -127,7 +126,7 @@ export default function Dashboard() {
                     <div>
                       <p className="text-gray-600 text-sm">العمال المشغولين</p>
                       <p className="text-2xl font-bold error">
-                        {stats?.busyWorkers || 0}
+                        {Array.isArray(workers) ? workers.filter((w: any) => w.status === "busy").length : 0}
                       </p>
                     </div>
                     <Watch className="h-8 w-8 error opacity-20" />
@@ -141,7 +140,7 @@ export default function Dashboard() {
                     <div>
                       <p className="text-gray-600 text-sm">المهام النشطة</p>
                       <p className="text-2xl font-bold warning">
-                        {stats?.activeTasks || 0}
+                        {Array.isArray(activeTasks) ? activeTasks.length : 0}
                       </p>
                     </div>
                     <ListTodo className="h-8 w-8 warning opacity-20" />
@@ -421,17 +420,7 @@ export default function Dashboard() {
               </>
             )}
 
-            {/* استلام السيارة - خاص بفارس فقط (الاستقبال له تبويبات منفصلة) */}
-            {user?.username === "فارس" && (
-              <Button
-                variant={activeTab === "car-receipts" ? "default" : "ghost"}
-                onClick={() => setActiveTab("car-receipts")}
-                className="font-medium"
-              >
-                <Car className="ml-2 h-4 w-4" />
-                استلام السيارة
-              </Button>
-            )}
+{/* تم إزالة زر استلام السيارة للتبسيط */}
 
             {/* الاستقبال - خاص بمستخدمي الاستقبال والورشة */}
             {(user?.role === "reception" || user?.username === "الاستقبال") && (
