@@ -296,10 +296,7 @@ export default function Reception() {
                           <SelectItem value="إصلاح عطل">إصلاح عطل</SelectItem>
                           <SelectItem value="فحص شامل">فحص شامل</SelectItem>
                           <SelectItem value="تغيير زيت">تغيير زيت</SelectItem>
-                          <SelectItem value="إصلاح كهربائي">إصلاح كهربائي</SelectItem>
-                          <SelectItem value="إصلاح ميكانيكي">إصلاح ميكانيكي</SelectItem>
                           <SelectItem value="برمجة">برمجة</SelectItem>
-                          <SelectItem value="أخرى">أخرى</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
