@@ -540,8 +540,9 @@ export default function CustomerCard() {
                       <Input
                         id="engineCode"
                         value={customerForm.engineCode}
-                        onChange={(e) => setCustomerForm({...customerForm, engineCode: e.target.value})}
+                        onChange={(e) => setCustomerForm({...customerForm, engineCode: e.target.value.toUpperCase()})}
                         placeholder="أدخل رمز المحرك"
+                        style={{ textTransform: 'uppercase' }}
                       />
                     </div>
                     <div>
@@ -893,8 +894,9 @@ export default function CustomerCard() {
                                   <Input
                                     id="engineCode"
                                     value={carForm.engineCode}
-                                    onChange={(e) => setCarForm({...carForm, engineCode: e.target.value})}
+                                    onChange={(e) => setCarForm({...carForm, engineCode: e.target.value.toUpperCase()})}
                                     placeholder="أدخل رمز المحرك"
+                                    style={{ textTransform: 'uppercase' }}
                                   />
                                 </div>
                                 <div>
@@ -1074,8 +1076,9 @@ export default function CustomerCard() {
                                   <Input
                                     id="editEngineCode"
                                     value={carForm.engineCode || editingCar.engineCode || ""}
-                                    onChange={(e) => setCarForm({...carForm, engineCode: e.target.value})}
+                                    onChange={(e) => setCarForm({...carForm, engineCode: e.target.value.toUpperCase()})}
                                     placeholder="أدخل رمز المحرك"
+                                    style={{ textTransform: 'uppercase' }}
                                   />
                                 </div>
                                 <div>
