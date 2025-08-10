@@ -18,15 +18,15 @@ import { type Customer, type CustomerCar, type InsertCustomer, type InsertCustom
 const getModelsByBrand = (brand: string): string[] => {
   switch (brand) {
     case "AUDI":
-      return ["A1", "A3", "A4", "A5", "A6", "A7", "A8", "Q2", "Q3", "Q5", "Q7", "Q8", "TT", "R8", "e-tron", "e-tron GT", "RS3", "RS4", "RS5", "RS6", "RS7", "RS Q3", "RS Q8"];
+      return ["A1", "A3", "A4", "A5", "A6", "A7", "A8", "Q2", "Q3", "Q5", "Q7", "Q8", "TT", "R8", "e-tron", "e-tron GT", "RS3", "RS4", "RS5", "RS6", "RS7", "RS Q3", "RS Q8", "أخرى"];
     case "VOLKSWAGEN":
-      return ["Golf", "Jetta", "Passat", "Passat cc", "Polo", "Tiguan", "Touareg", "Arteon", "T-Cross", "T-Roc", "Sharan", "Touran", "Caddy", "Crafter", "Amarok", "ID.3", "ID.4"];
+      return ["Golf", "Jetta", "Passat", "Passat cc", "Polo", "Tiguan", "Touareg", "Arteon", "T-Cross", "T-Roc", "Sharan", "Touran", "Caddy", "Crafter", "Amarok", "ID.3", "ID.4", "أخرى"];
     case "SKODA":
-      return ["Fabia", "Octavia", "Superb", "Kamiq", "Karoq", "Kodiaq", "Scala", "Rapid", "Yeti", "Citigo", "Enyaq"];
+      return ["Fabia", "Octavia", "Superb", "Kamiq", "Karoq", "Kodiaq", "Scala", "Rapid", "Yeti", "Citigo", "Enyaq", "أخرى"];
     case "SEAT":
-      return ["Ibiza", "Leon", "Ateca", "Tarraco", "Arona", "Mii", "Alhambra", "Toledo", "Altea", "Cupra"];
+      return ["Ibiza", "Leon", "Ateca", "Tarraco", "Arona", "Mii", "Alhambra", "Toledo", "Altea", "Cupra", "أخرى"];
     case "PORSCHE":
-      return ["911", "Cayenne", "Macan", "Panamera", "Taycan", "718 Boxster", "718 Cayman", "Carrera", "Turbo", "GT3"];
+      return ["911", "Cayenne", "Macan", "Panamera", "Taycan", "718 Boxster", "718 Cayman", "Carrera", "Turbo", "GT3", "أخرى"];
     default:
       return [];
   }
@@ -52,6 +52,7 @@ export default function CustomerCard() {
     customerStatus: "A" as "A" | "B" | "C",
     carBrand: "",
     carModel: "",
+    customModel: "",
     year: "",
     color: "",
     engineCode: "",
@@ -64,6 +65,7 @@ export default function CustomerCard() {
   const [carForm, setCarForm] = useState({
     carBrand: "",
     carModel: "",
+    customModel: "",
     licensePlate: "",
     previousLicensePlate: "",
     color: "",
@@ -131,6 +133,7 @@ export default function CustomerCard() {
       customerStatus: "A" as "A" | "B" | "C",
       carBrand: "",
       carModel: "",
+      customModel: "",
       year: "",
       color: "",
       engineCode: "",
@@ -145,6 +148,7 @@ export default function CustomerCard() {
     setCarForm({
       carBrand: "",
       carModel: "",
+      customModel: "",
       licensePlate: "",
       previousLicensePlate: "",
       color: "",
@@ -166,7 +170,7 @@ export default function CustomerCard() {
       const carData: InsertCustomerCar = {
         customerId: customer.id,
         carBrand: customerForm.carBrand,
-        carModel: customerForm.carModel,
+        carModel: customerForm.carModel === "أخرى" ? customerForm.customModel : customerForm.carModel,
         licensePlate: customerForm.licensePlate,
         previousLicensePlate: customerForm.previousLicensePlate || undefined,
         color: customerForm.color || undefined,
@@ -200,8 +204,9 @@ export default function CustomerCard() {
 
   const handleAddCustomer = () => {
     // Validate required fields
+    const effectiveCarModel = customerForm.carModel === "أخرى" ? customerForm.customModel : customerForm.carModel;
     if (!customerForm.name || !customerForm.phoneNumber || !customerForm.carBrand || 
-        !customerForm.carModel || !customerForm.year || !customerForm.color || 
+        !effectiveCarModel || !customerForm.year || !customerForm.color || 
         !customerForm.engineCode || !customerForm.chassisNumber || !customerForm.licensePlate) {
       toast({
         title: "خطأ في البيانات",
@@ -258,7 +263,8 @@ export default function CustomerCard() {
   });
 
   const handleAddCar = () => {
-    if (!selectedCustomer || !carForm.carBrand || !carForm.carModel || !carForm.licensePlate) {
+    const effectiveCarModel = carForm.carModel === "أخرى" ? carForm.customModel : carForm.carModel;
+    if (!selectedCustomer || !carForm.carBrand || !effectiveCarModel || !carForm.licensePlate) {
       toast({
         title: "خطأ في البيانات",
         description: "يرجى إدخال جميع البيانات المطلوبة للسيارة",
@@ -280,7 +286,7 @@ export default function CustomerCard() {
     const carData: InsertCustomerCar = {
       customerId: selectedCustomer.id,
       carBrand: carForm.carBrand,
-      carModel: carForm.carModel,
+      carModel: carForm.carModel === "أخرى" ? carForm.customModel : carForm.carModel,
       licensePlate: carForm.licensePlate,
       previousLicensePlate: carForm.previousLicensePlate || undefined,
       color: carForm.color || undefined,
@@ -334,7 +340,7 @@ export default function CustomerCard() {
 
     const updates: Partial<InsertCustomerCar> = {
       carBrand: carForm.carBrand || editingCar.carBrand,
-      carModel: carForm.carModel || editingCar.carModel,
+      carModel: (carForm.carModel === "أخرى" ? carForm.customModel : carForm.carModel) || editingCar.carModel,
       licensePlate: carForm.licensePlate || editingCar.licensePlate,
       previousLicensePlate: carForm.previousLicensePlate || editingCar.previousLicensePlate || undefined,
       color: carForm.color || editingCar.color || undefined,
@@ -475,7 +481,7 @@ export default function CustomerCard() {
                     </div>
                     <div>
                       <Label htmlFor="carModel">الطراز *</Label>
-                      <Select value={customerForm.carModel} onValueChange={(value) => setCustomerForm({...customerForm, carModel: value})}>
+                      <Select value={customerForm.carModel} onValueChange={(value) => setCustomerForm({...customerForm, carModel: value, customModel: ""})}>
                         <SelectTrigger>
                           <SelectValue placeholder="اختر الطراز" />
                         </SelectTrigger>
@@ -486,6 +492,17 @@ export default function CustomerCard() {
                         </SelectContent>
                       </Select>
                     </div>
+                    {customerForm.carModel === "أخرى" && (
+                      <div>
+                        <Label htmlFor="customModel">اكتب الطراز *</Label>
+                        <Input
+                          id="customModel"
+                          value={customerForm.customModel}
+                          onChange={(e) => setCustomerForm({...customerForm, customModel: e.target.value})}
+                          placeholder="أدخل اسم الطراز"
+                        />
+                      </div>
+                    )}
                     <div>
                       <Label htmlFor="carYear">سنة الصنع *</Label>
                       <Input
@@ -799,7 +816,7 @@ export default function CustomerCard() {
                                 </div>
                                 <div>
                                   <Label htmlFor="carModel">الطراز *</Label>
-                                  <Select value={carForm.carModel} onValueChange={(value) => setCarForm({...carForm, carModel: value})}>
+                                  <Select value={carForm.carModel} onValueChange={(value) => setCarForm({...carForm, carModel: value, customModel: ""})}>
                                     <SelectTrigger>
                                       <SelectValue placeholder="اختر الطراز" />
                                     </SelectTrigger>
@@ -810,6 +827,17 @@ export default function CustomerCard() {
                                     </SelectContent>
                                   </Select>
                                 </div>
+                                {carForm.carModel === "أخرى" && (
+                                  <div>
+                                    <Label htmlFor="customCarModel">اكتب الطراز *</Label>
+                                    <Input
+                                      id="customCarModel"
+                                      value={carForm.customModel}
+                                      onChange={(e) => setCarForm({...carForm, customModel: e.target.value})}
+                                      placeholder="أدخل اسم الطراز"
+                                    />
+                                  </div>
+                                )}
                                 <div>
                                   <Label htmlFor="licensePlate">رقم اللوحة *</Label>
                                   <Input
@@ -965,7 +993,7 @@ export default function CustomerCard() {
                                   <Label htmlFor="editCarModel">الطراز *</Label>
                                   <Select 
                                     value={carForm.carModel || editingCar.carModel} 
-                                    onValueChange={(value) => setCarForm({...carForm, carModel: value})}
+                                    onValueChange={(value) => setCarForm({...carForm, carModel: value, customModel: ""})}
                                   >
                                     <SelectTrigger>
                                       <SelectValue placeholder="اختر الطراز" />
@@ -977,6 +1005,17 @@ export default function CustomerCard() {
                                     </SelectContent>
                                   </Select>
                                 </div>
+                                {(carForm.carModel === "أخرى" || editingCar.carModel === "أخرى") && (
+                                  <div>
+                                    <Label htmlFor="editCustomCarModel">اكتب الطراز *</Label>
+                                    <Input
+                                      id="editCustomCarModel"
+                                      value={carForm.customModel || (editingCar.carModel === "أخرى" ? editingCar.carModel : "")}
+                                      onChange={(e) => setCarForm({...carForm, customModel: e.target.value})}
+                                      placeholder="أدخل اسم الطراز"
+                                    />
+                                  </div>
+                                )}
                                 <div>
                                   <Label htmlFor="editLicensePlate">رقم اللوحة *</Label>
                                   <Input
