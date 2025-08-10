@@ -51,10 +51,23 @@ export default function Reception() {
   });
 
   // Filter customers based on search term
-  const filteredCustomers = customers.filter(customer =>
-    customer.name.toLowerCase().includes(customerSearchTerm.toLowerCase()) ||
-    customer.phoneNumber?.toLowerCase().includes(customerSearchTerm.toLowerCase())
-  );
+  const filteredCustomers = customers.filter(customer => {
+    const searchLower = customerSearchTerm.toLowerCase();
+    
+    // البحث في اسم الزبون
+    const nameMatch = customer.name.toLowerCase().includes(searchLower);
+    
+    // البحث في رقم الهاتف (إذا لم يكن فارغاً)
+    const phoneMatch = customer.phoneNumber?.toLowerCase().includes(searchLower);
+    
+    // البحث في أرقام الشاسيه لسيارات هذا الزبون
+    const customerCarData = customerCars.filter(car => car.customerId === customer.id);
+    const chassisMatch = customerCarData.some(car => 
+      car.chassisNumber?.toLowerCase().includes(searchLower)
+    );
+    
+    return nameMatch || phoneMatch || chassisMatch;
+  });
 
   // Create reception entry mutation
   const createEntryMutation = useMutation({
@@ -205,7 +218,7 @@ export default function Reception() {
                               setFormData({ ...formData, carOwnerName: e.target.value });
                               setShowCustomerSuggestions(e.target.value.length > 0);
                             }}
-                            placeholder="ابحث باسم الزبون أو رقم الجوال"
+                            placeholder="ابحث باسم الزبون أو رقم الجوال أو رقم الشاسيه"
                             required
                           />
                           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
