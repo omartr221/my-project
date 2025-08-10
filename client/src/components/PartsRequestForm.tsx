@@ -48,6 +48,9 @@ const engineerNames = [
 
 export default function PartsRequestForm() {
   const [isSearching, setIsSearching] = useState(false);
+  const [customerSuggestions, setCustomerSuggestions] = useState<any[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { user } = useAuth();
@@ -137,6 +140,65 @@ export default function PartsRequestForm() {
     },
   });
 
+  // دالة البحث المحسنة للزبائن والسيارات
+  const searchCustomerCars = async (searchTerm: string) => {
+    if (!searchTerm || searchTerm.trim().length < 2) {
+      setCustomerSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+
+    setIsSearching(true);
+    
+    try {
+      const response = await fetch(`/api/search-customer-cars?query=${encodeURIComponent(searchTerm.trim())}`);
+      
+      if (response.ok) {
+        const results = await response.json();
+        console.log("Customer cars found:", results);
+        
+        if (results && results.length > 0) {
+          setCustomerSuggestions(results);
+          setShowSuggestions(true);
+        } else {
+          setCustomerSuggestions([]);
+          setShowSuggestions(false);
+        }
+      } else {
+        setCustomerSuggestions([]);
+        setShowSuggestions(false);
+      }
+    } catch (error) {
+      console.error("خطأ في البحث:", error);
+      setCustomerSuggestions([]);
+      setShowSuggestions(false);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  // دالة اختيار زبون وسيارة
+  const selectCustomerCar = (customerCar: any) => {
+    setSelectedCustomer(customerCar);
+    setShowSuggestions(false);
+    
+    // تعبئة جميع الحقول
+    form.setValue("carInfo", `${customerCar.customerName} - ${customerCar.carBrand} ${customerCar.carModel} - ${customerCar.licensePlate}`);
+    form.setValue("carBrand", customerCar.carBrand || "");
+    form.setValue("carModel", customerCar.carModel || "");
+    form.setValue("licensePlate", customerCar.licensePlate || "");
+    form.setValue("chassisNumber", customerCar.chassisNumber || "");
+    form.setValue("engineCode", customerCar.engineCode || "");
+    
+    // حفظ اسم الزبون للاستخدام عند الإرسال
+    (window as any).lastFoundCustomerName = customerCar.customerName || "";
+    
+    toast({
+      title: "✅ تم اختيار السيارة",
+      description: `${customerCar.customerName} - ${customerCar.carBrand} ${customerCar.carModel} - ${customerCar.licensePlate}`,
+    });
+  };
+
   // البحث التلقائي عن معلومات السيارة من بطاقة الزبون
   const searchCarInfo = async (searchTerm?: string) => {
     const term = searchTerm || form.getValues("carInfo");
@@ -220,14 +282,17 @@ export default function PartsRequestForm() {
   const handleCarInfoChange = async (value: string) => {
     form.setValue("carInfo", value);
     
-    // إذا كان النص يحتوي على أكثر من 3 أحرف، قم بالبحث التلقائي
-    if (value.trim().length >= 3) {
+    // إذا كان النص يحتوي على أكثر من 2 أحرف، قم بالبحث عن السيارات المتعددة
+    if (value.trim().length >= 2) {
       // تأخير البحث لتجنب الطلبات المتكررة
       setTimeout(() => {
         if (form.getValues("carInfo") === value) {
-          searchCarInfo(value);
+          searchCustomerCars(value);
         }
-      }, 800);
+      }, 500);
+    } else {
+      setShowSuggestions(false);
+      setCustomerSuggestions([]);
     }
   };
 
@@ -282,43 +347,74 @@ export default function PartsRequestForm() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>معلومات السيارة</FormLabel>
-                  <div className="flex gap-2">
-                    <FormControl>
-                      <div className="relative">
-                        <Input
-                          placeholder="اسم الزبون، رقم الشاسيه، أو رقم اللوحة (بحث تلقائي)"
-                          {...field}
-                          className={`flex-1 ${isSearching ? 'pr-10' : ''}`}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              e.preventDefault();
-                              searchCarInfo();
-                            }
-                          }}
-                          onBlur={() => {
-                            // البحث التلقائي عند إدخال البيانات وتغيير المجال
-                            if (field.value.trim()) {
-                              searchCarInfo();
-                            }
-                          }}
-                        />
-                        {isSearching && (
-                          <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                  <div className="relative">
+                    <div className="flex gap-2">
+                      <FormControl>
+                        <div className="relative">
+                          <Input
+                            placeholder="اسم الزبون، رقم الشاسيه، أو رقم اللوحة (بحث تلقائي)"
+                            {...field}
+                            className={`flex-1 ${isSearching ? 'pr-10' : ''}`}
+                            onChange={(e) => {
+                              field.onChange(e);
+                              handleCarInfoChange(e.target.value);
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                searchCarInfo();
+                              }
+                              if (e.key === 'Escape') {
+                                setShowSuggestions(false);
+                              }
+                            }}
+                          />
+                          {isSearching && (
+                            <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                            </div>
+                          )}
+                        </div>
+                      </FormControl>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => searchCarInfo()}
+                        disabled={isSearching || !field.value.trim()}
+                      >
+                        <Search className="h-4 w-4" />
+                        بحث
+                      </Button>
+                    </div>
+                    
+                    {/* قائمة الاقتراحات للسيارات المتعددة */}
+                    {showSuggestions && customerSuggestions.length > 0 && (
+                      <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                        <div className="p-2 bg-gray-50 border-b text-sm text-gray-600">
+                          تم العثور على {customerSuggestions.length} سيارة - اختر واحدة:
+                        </div>
+                        {customerSuggestions.map((suggestion, index) => (
+                          <div
+                            key={index}
+                            className="p-3 hover:bg-blue-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                            onClick={() => selectCustomerCar(suggestion)}
+                          >
+                            <div className="font-medium text-gray-900">
+                              {suggestion.customerName}
+                            </div>
+                            <div className="text-sm text-gray-600">
+                              {suggestion.carBrand} {suggestion.carModel} - لوحة: {suggestion.licensePlate}
+                            </div>
+                            {suggestion.chassisNumber && (
+                              <div className="text-xs text-gray-500">
+                                شاسيه: {suggestion.chassisNumber}
+                              </div>
+                            )}
                           </div>
-                        )}
+                        ))}
                       </div>
-                    </FormControl>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => searchCarInfo()}
-                      disabled={isSearching || !field.value.trim()}
-                    >
-                      <Search className="h-4 w-4" />
-                      بحث
-                    </Button>
+                    )}
                   </div>
                   <FormMessage />
                 </FormItem>

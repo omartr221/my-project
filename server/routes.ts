@@ -982,6 +982,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // API endpoint للبحث عن السيارات المتعددة للزبون الواحد
+  app.get("/api/search-customer-cars", async (req, res) => {
+    try {
+      const query = req.query.query as string;
+      
+      if (!query || query.trim().length < 2) {
+        return res.json([]);
+      }
+
+      const searchTerm = query.trim();
+      console.log(`البحث عن سيارات الزبون: ${searchTerm}`);
+      
+      // البحث في قاعدة البيانات عن جميع السيارات المطابقة
+      const customerCars = await storage.searchCustomerCars(searchTerm);
+      
+      console.log(`تم العثور على ${customerCars.length} سيارة`);
+      res.json(customerCars);
+      
+    } catch (error) {
+      console.error("خطأ في البحث عن سيارات الزبون:", error);
+      res.status(500).json({ message: "فشل البحث عن سيارات الزبون" });
+    }
+  });
+
   return httpServer;
 }
 

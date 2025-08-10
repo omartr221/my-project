@@ -68,6 +68,7 @@ export interface IStorage {
   createPartsRequest(request: InsertPartsRequest): Promise<PartsRequest>;
   updatePartsRequestStatus(id: number, status: string, notes?: string): Promise<PartsRequest>;
   searchCarInfoForParts(searchTerm: string): Promise<{ carBrand: string; carModel: string; color?: string; licensePlate?: string; chassisNumber?: string; engineCode?: string; customerName?: string } | null>;
+  searchCustomerCars(searchTerm: string): Promise<{ customerName: string; carBrand: string; carModel: string; licensePlate?: string; chassisNumber?: string; engineCode?: string; color?: string }[]>;
   getPartsRequestsByLicensePlate(licensePlate: string): Promise<PartsRequest[]>;
   getTasksByLicensePlate(licensePlate: string): Promise<Task[]>;
   
@@ -1177,6 +1178,59 @@ export class DatabaseStorage implements IStorage {
 
   async deleteCarStatus(id: number): Promise<void> {
     await db.delete(carStatus).where(eq(carStatus.id, id));
+  }
+
+  async updateCarStatusByReceiptId(receiptId: number, updates: Partial<CarStatus>): Promise<CarStatus> {
+    const [status] = await db
+      .update(carStatus)
+      .set({
+        ...updates,
+        updatedAt: new Date(),
+      })
+      .where(eq(carStatus.receiptId, receiptId))
+      .returning();
+    
+    if (!status) {
+      throw new Error(`Car status with receiptId ${receiptId} not found`);
+    }
+    
+    return status;
+  }
+
+  async searchCustomerCars(searchTerm: string): Promise<{ customerName: string; carBrand: string; carModel: string; licensePlate?: string; chassisNumber?: string; engineCode?: string; color?: string }[]> {
+    const searchPattern = `%${searchTerm}%`;
+    
+    // البحث في جدول العملاء والسيارات
+    const results = await db
+      .select({
+        customerName: customers.name,
+        carBrand: customerCars.carBrand,
+        carModel: customerCars.carModel,
+        licensePlate: customerCars.licensePlate,
+        chassisNumber: customerCars.chassisNumber,
+        engineCode: customerCars.engineCode,
+        color: customerCars.color,
+      })
+      .from(customerCars)
+      .leftJoin(customers, eq(customers.id, customerCars.customerId))
+      .where(
+        or(
+          like(customers.name, searchPattern),
+          like(customerCars.licensePlate, searchPattern),
+          like(customerCars.chassisNumber, searchPattern)
+        )
+      )
+      .orderBy(customers.name, customerCars.carBrand);
+
+    return results.map(result => ({
+      customerName: result.customerName || '',
+      carBrand: result.carBrand,
+      carModel: result.carModel || '',
+      licensePlate: result.licensePlate || undefined,
+      chassisNumber: result.chassisNumber || undefined,
+      engineCode: result.engineCode || undefined,
+      color: result.color || undefined,
+    }));
   }
 }
 
