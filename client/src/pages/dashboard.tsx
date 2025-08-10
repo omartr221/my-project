@@ -24,13 +24,13 @@ import WorkshopNotificationDialog from "@/components/WorkshopNotificationDialog"
 
 import CarStatusDisplay from "@/components/CarStatusDisplay";
 import CarPositionsView from "@/components/CarPositionsView";
-import FinishDeliveryView from "@/components/FinishDeliveryView";
+{/* تم حذف استيراد FinishDeliveryView */}
 
 import Reception from "@/pages/Reception";
 import Workshop from "@/pages/Workshop";
 import { useNotifications } from "@/hooks/useNotifications";
 
-type TabType = "dashboard" | "timers" | "history" | "archive" | "addworker" | "customercard" | "parts-requests" | "requests" | "car-status" | "car-positions" | "finish-delivery" | "reception" | "workshop";
+type TabType = "dashboard" | "timers" | "history" | "archive" | "addworker" | "customercard" | "parts-requests" | "requests" | "car-status" | "car-positions" | "reception" | "workshop";
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<TabType>("dashboard");
@@ -208,8 +208,7 @@ export default function Dashboard() {
       case "car-positions":
         return <CarPositionsView />;
       
-      case "finish-delivery":
-        return <FinishDeliveryView />;
+{/* تم حذف case "finish-delivery" */}
         
       case "reception":
         return <Reception />;
@@ -401,17 +400,7 @@ export default function Dashboard() {
                   </Button>
                 )}
 
-                {/* انهاء المؤقت والتسليم - خاص بحساب بدوي فقط */}
-                {user?.username === "بدوي" && (
-                  <Button
-                    variant={activeTab === "finish-delivery" ? "default" : "ghost"}
-                    onClick={() => setActiveTab("finish-delivery")}
-                    className="font-medium bg-green-50 text-green-700 hover:bg-green-100"
-                  >
-                    <Car className="ml-2 h-4 w-4" />
-                    انهاء المؤقت والتسليم
-                  </Button>
-                )}
+{/* تم حذف خانة "انهاء المؤقت والتسليم" كما طلب المستخدم */}
 
                 {/* الطلبات - خاص بحساب هبة */}
                 {(user?.username === "هبة" || user?.role === "viewer") && (
