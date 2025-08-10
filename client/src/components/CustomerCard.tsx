@@ -446,10 +446,10 @@ export default function CustomerCard() {
                       />
                     </div>
                     <div>
-                      <Label htmlFor="customerStatus">حالة الزبون *</Label>
+                      <Label htmlFor="customerStatus">تصنيف الزبون *</Label>
                       <Select value={customerForm.customerStatus} onValueChange={(value) => setCustomerForm({...customerForm, customerStatus: value})}>
                         <SelectTrigger>
-                          <SelectValue placeholder="اختر حالة الزبون" />
+                          <SelectValue placeholder="اختر تصنيف الزبون" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="A">A - ممتاز</SelectItem>
@@ -640,13 +640,13 @@ export default function CustomerCard() {
                       />
                     </div>
                     <div>
-                      <Label htmlFor="editCustomerStatus">حالة الزبون *</Label>
+                      <Label htmlFor="editCustomerStatus">تصنيف الزبون *</Label>
                       <Select 
                         value={customerForm.customerStatus || editingCustomer.customerStatus} 
                         onValueChange={(value) => setCustomerForm({...customerForm, customerStatus: value as "A" | "B" | "C"})}
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder="اختر حالة الزبون" />
+                          <SelectValue placeholder="اختر تصنيف الزبون" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="A">A - ممتاز</SelectItem>
