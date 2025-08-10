@@ -31,15 +31,15 @@ export default function Reception() {
   // Timer state for automatic timer on car reception
   const [receptionTimer, setReceptionTimer] = useState<{[key: number]: {startTime: Date, elapsed: number, isRunning: boolean, pausedAt5PM?: boolean}}>({});
   
-  // Function to start reception timer
-  const startReceptionTimer = (entryId: number) => {
-    const now = new Date();
+  // Function to start reception timer with precise timing
+  const startReceptionTimer = (entryId: number, entryTime?: Date) => {
+    const startTime = entryTime || new Date(); // Use provided entry time or current time
     setReceptionTimer(prev => ({
       ...prev,
       [entryId]: {
-        startTime: now,
+        startTime: startTime, // Store the exact start time
         elapsed: 0,
-        isRunning: true
+        isRunning: true // Timer starts immediately upon car reception
       }
     }));
   };
@@ -232,28 +232,29 @@ export default function Reception() {
     return () => clearInterval(interval);
   }, [checkAndPauseTimers]);
 
-  // Initialize timers for existing entries
+  // Initialize timers for existing entries with accurate timing
   useEffect(() => {
     if (Array.isArray(entries) && entries.length > 0) {
       (entries as ReceptionEntry[]).forEach((entry: ReceptionEntry) => {
-        if (!receptionTimer[entry.id]) {
-          // Start timer for entries that don't have one yet
-          const entryTime = new Date(entry.entryTime || Date.now());
+        if (!receptionTimer[entry.id] && entry.status !== "مكتمل") {
+          // Use the exact entry time from database for accurate timing
+          const entryTime = entry.entryTime ? new Date(entry.entryTime) : new Date();
           const now = new Date();
-          const elapsed = Math.floor((now.getTime() - entryTime.getTime()) / 1000);
+          // Calculate precise elapsed time in seconds
+          const preciseElapsed = Math.floor((now.getTime() - entryTime.getTime()) / 1000);
           
           setReceptionTimer(prev => ({
             ...prev,
             [entry.id]: {
-              startTime: entryTime,
-              elapsed: Math.max(0, elapsed),
-              isRunning: true // المؤقت يعمل دائماً إلا إذا تم إيقافه يدوياً
+              startTime: entryTime, // Store the exact entry time
+              elapsed: Math.max(0, preciseElapsed),
+              isRunning: true // المؤقت يعمل من لحظة استقبال السيارة
             }
           }));
         }
       });
     }
-  }, [entries, receptionTimer]);
+  }, [entries]);
 
   // Fetch customers for autofill
   const { data: customers = [] } = useQuery<Customer[]>({
@@ -310,8 +311,9 @@ export default function Reception() {
         description: "تم بدء المؤقت التلقائي وإرسال إشعار إلى قسم الورشة",
       });
       
-      // Start automatic timer for the new reception entry
-      startReceptionTimer(newEntry.id);
+      // Start automatic timer for the new reception entry with exact entry time
+      const entryTime = newEntry.entryTime ? new Date(newEntry.entryTime) : new Date();
+      startReceptionTimer(newEntry.id, entryTime);
       
       queryClient.invalidateQueries({ queryKey: ["/api/reception-entries"] });
       setShowForm(false);
@@ -763,7 +765,7 @@ export default function Reception() {
                                   }
                                 }}
                               >
-                                {receptionTimer[entry.id]?.isRunning ? "إيقاف المؤقت مؤقتاً" : "استئناف المؤقت"}
+                                {receptionTimer[entry.id]?.isRunning ? "إيقاف المؤقت" : "استئناف المؤقت"}
                               </Button>
                             </div>
                           )}
