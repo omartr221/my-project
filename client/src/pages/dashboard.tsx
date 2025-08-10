@@ -23,12 +23,13 @@ import HabaNotificationDialog from "@/components/HabaNotificationDialog";
 import WorkshopNotificationDialog from "@/components/WorkshopNotificationDialog";
 
 import CarStatusDisplay from "@/components/CarStatusDisplay";
+import CarPositionsView from "@/components/CarPositionsView";
 
 import Reception from "@/pages/Reception";
 import Workshop from "@/pages/Workshop";
 import { useNotifications } from "@/hooks/useNotifications";
 
-type TabType = "dashboard" | "timers" | "history" | "archive" | "addworker" | "customercard" | "parts-requests" | "requests" | "car-status" | "reception" | "workshop";
+type TabType = "dashboard" | "timers" | "history" | "archive" | "addworker" | "customercard" | "parts-requests" | "requests" | "car-status" | "car-positions" | "reception" | "workshop";
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<TabType>("dashboard");
@@ -202,6 +203,9 @@ export default function Dashboard() {
 {/* Removed prepare-delivery case as requested */}
       case "car-status":
         return <CarStatusDisplay />;
+      
+      case "car-positions":
+        return <CarPositionsView />;
         
       case "reception":
         return <Reception />;
@@ -380,6 +384,18 @@ export default function Dashboard() {
                 )}
 
 {/* Removed prepare-delivery button for بدوي as requested */}
+
+                {/* وضع السيارات - خاص بحساب بدوي */}
+                {(user?.username === "بدوي" || isOperator) && (
+                  <Button
+                    variant={activeTab === "car-positions" ? "default" : "ghost"}
+                    onClick={() => setActiveTab("car-positions")}
+                    className="font-medium"
+                  >
+                    <Car className="ml-2 h-4 w-4" />
+                    وضع السيارات
+                  </Button>
+                )}
 
                 {/* الطلبات - خاص بحساب هبة */}
                 {(user?.username === "هبة" || user?.role === "viewer") && (
