@@ -84,11 +84,25 @@ export default function CustomerCard() {
     queryKey: ['/api/customer-cars'],
   });
 
-  const filteredCustomers = customers.filter((customer: Customer) =>
-    customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    customer.phoneNumber.includes(searchTerm) ||
-    customer.address?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredCustomers = customers.filter((customer: Customer) => {
+    const searchLower = searchTerm.toLowerCase();
+    
+    // البحث في اسم الزبون
+    const nameMatch = customer.name.toLowerCase().includes(searchLower);
+    
+    // البحث في أرقام اللوحات لسيارات هذا الزبون
+    const customerCarData = customerCars.filter(car => car.customerId === customer.id);
+    const licensePlateMatch = customerCarData.some(car => 
+      car.licensePlate.toLowerCase().includes(searchLower)
+    );
+    
+    // البحث في أرقام الشاسيه لسيارات هذا الزبون
+    const chassisMatch = customerCarData.some(car => 
+      car.chassisNumber?.toLowerCase().includes(searchLower)
+    );
+    
+    return nameMatch || licensePlateMatch || chassisMatch;
+  });
 
   // Calculate pagination
   const totalPages = Math.ceil(filteredCustomers.length / itemsPerPage);
@@ -391,7 +405,7 @@ export default function CustomerCard() {
               <div className="relative flex-1">
                 <Search className="absolute right-3 top-3 h-4 w-4 text-gray-400" />
                 <Input
-                  placeholder="ابحث عن زبون (الاسم، رقم الهاتف، العنوان)"
+                  placeholder="ابحث عن زبون (الاسم، رقم اللوحة، رقم الشاسيه)"
                   value={searchTerm}
                   onChange={(e) => handleSearchChange(e.target.value)}
                   className="pr-10"
