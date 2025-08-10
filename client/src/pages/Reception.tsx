@@ -56,7 +56,7 @@ export default function Reception() {
   };
   
   // Function to check if it's 5 PM Syria time and stop timers
-  const checkAndStopTimers = () => {
+  const checkAndStopTimers = useCallback(() => {
     const now = new Date();
     const syriaTime = new Date(now.toLocaleString("en-US", {timeZone: "Asia/Damascus"}));
     const currentHour = syriaTime.getHours();
@@ -72,7 +72,7 @@ export default function Reception() {
         return updated;
       });
     }
-  };
+  }, []);
   
   // Function to format timer display
   const formatTimerDisplay = (entryId: number) => {
@@ -129,7 +129,7 @@ export default function Reception() {
       const sortedEntries = customerEntries
         .filter((entry: ReceptionEntry) => (entry.odometerReading || 0) > newOdometer)
         .sort((a: ReceptionEntry, b: ReceptionEntry) => 
-          new Date(b.updatedAt || b.id || 0).getTime() - new Date(a.updatedAt || a.id || 0).getTime()
+          (b.id || 0) - (a.id || 0)
         );
       
       if (sortedEntries.length > 0) {
@@ -151,6 +151,11 @@ export default function Reception() {
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [selectedCar, setSelectedCar] = useState<CustomerCar | null>(null);
 
+  // Fetch reception entries
+  const { data: entries = [], isLoading } = useQuery({
+    queryKey: ["/api/reception-entries"],
+  });
+
   // Timer effect for updating display and checking 5 PM cutoff
   useEffect(() => {
     const interval = setInterval(() => {
@@ -162,12 +167,12 @@ export default function Reception() {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [checkAndStopTimers]);
 
   // Initialize timers for existing entries
   useEffect(() => {
-    if (entries.length > 0) {
-      entries.forEach((entry: ReceptionEntry) => {
+    if (Array.isArray(entries) && entries.length > 0) {
+      (entries as ReceptionEntry[]).forEach((entry: ReceptionEntry) => {
         if (!receptionTimer[entry.id]) {
           // Start timer for entries that don't have one yet
           const entryTime = new Date(entry.entryTime || Date.now());
@@ -185,12 +190,7 @@ export default function Reception() {
         }
       });
     }
-  }, [entries]);
-
-  // Fetch reception entries
-  const { data: entries = [], isLoading } = useQuery({
-    queryKey: ["/api/reception-entries"],
-  });
+  }, [entries, receptionTimer]);
 
   // Fetch customers for autofill
   const { data: customers = [] } = useQuery<Customer[]>({
@@ -583,9 +583,9 @@ export default function Reception() {
                             
                             {/* عرض طلبات القطع للسيارة - محسن */}
                             {(() => {
-                              const carPartsRequests = partsRequests.filter((req: any) => 
+                              const carPartsRequests = Array.isArray(partsRequests) ? (partsRequests as any[]).filter((req: any) => 
                                 req.licensePlate === entry.licensePlate
-                              );
+                              ) : [];
                               if (carPartsRequests.length > 0) {
                                 const pendingCount = carPartsRequests.filter((req: any) => req.status === 'pending').length;
                                 const deliveredCount = carPartsRequests.filter((req: any) => req.status === 'delivered').length;
