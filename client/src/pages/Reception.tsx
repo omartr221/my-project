@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,6 +27,69 @@ export default function Reception() {
   });
   
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
+  
+  // Timer state for automatic timer on car reception
+  const [receptionTimer, setReceptionTimer] = useState<{[key: number]: {startTime: Date, elapsed: number, isRunning: boolean}}>({});
+  
+  // Function to start reception timer
+  const startReceptionTimer = (entryId: number) => {
+    const now = new Date();
+    setReceptionTimer(prev => ({
+      ...prev,
+      [entryId]: {
+        startTime: now,
+        elapsed: 0,
+        isRunning: true
+      }
+    }));
+  };
+  
+  // Function to stop reception timer
+  const stopReceptionTimer = (entryId: number) => {
+    setReceptionTimer(prev => ({
+      ...prev,
+      [entryId]: {
+        ...prev[entryId],
+        isRunning: false
+      }
+    }));
+  };
+  
+  // Function to check if it's 5 PM Syria time and stop timers
+  const checkAndStopTimers = () => {
+    const now = new Date();
+    const syriaTime = new Date(now.toLocaleString("en-US", {timeZone: "Asia/Damascus"}));
+    const currentHour = syriaTime.getHours();
+    
+    if (currentHour >= 17) { // 5 PM or later
+      setReceptionTimer(prev => {
+        const updated = { ...prev };
+        Object.keys(updated).forEach(key => {
+          if (updated[parseInt(key)].isRunning) {
+            updated[parseInt(key)].isRunning = false;
+          }
+        });
+        return updated;
+      });
+    }
+  };
+  
+  // Function to format timer display
+  const formatTimerDisplay = (entryId: number) => {
+    const timer = receptionTimer[entryId];
+    if (!timer) return "00:00:00";
+    
+    const now = new Date();
+    const elapsed = timer.isRunning 
+      ? Math.floor((now.getTime() - timer.startTime.getTime()) / 1000) + timer.elapsed
+      : timer.elapsed;
+      
+    const hours = Math.floor(elapsed / 3600);
+    const minutes = Math.floor((elapsed % 3600) / 60);
+    const seconds = elapsed % 60;
+    
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  };
   
   const serviceOptions = [
     "صيانة دورية",
@@ -88,6 +151,42 @@ export default function Reception() {
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [selectedCar, setSelectedCar] = useState<CustomerCar | null>(null);
 
+  // Timer effect for updating display and checking 5 PM cutoff
+  useEffect(() => {
+    const interval = setInterval(() => {
+      // Update timer display by forcing re-render
+      setReceptionTimer(prev => ({ ...prev }));
+      
+      // Check if it's past 5 PM Syria time and stop timers
+      checkAndStopTimers();
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // Initialize timers for existing entries
+  useEffect(() => {
+    if (entries.length > 0) {
+      entries.forEach((entry: ReceptionEntry) => {
+        if (!receptionTimer[entry.id]) {
+          // Start timer for entries that don't have one yet
+          const entryTime = new Date(entry.entryTime || Date.now());
+          const now = new Date();
+          const elapsed = Math.floor((now.getTime() - entryTime.getTime()) / 1000);
+          
+          setReceptionTimer(prev => ({
+            ...prev,
+            [entry.id]: {
+              startTime: entryTime,
+              elapsed: Math.max(0, elapsed),
+              isRunning: entry.status === "في الاستقبال"
+            }
+          }));
+        }
+      });
+    }
+  }, [entries]);
+
   // Fetch reception entries
   const { data: entries = [], isLoading } = useQuery({
     queryKey: ["/api/reception-entries"],
@@ -142,11 +241,15 @@ export default function Reception() {
       }
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (newEntry) => {
       toast({
-        title: "تم تسجيل السيارة بنجاح",
-        description: "تم إرسال إشعار إلى قسم الورشة",
+        title: "تم استقبال السيارة بنجاح",
+        description: "تم بدء المؤقت التلقائي وإرسال إشعار إلى قسم الورشة",
       });
+      
+      // Start automatic timer for the new reception entry
+      startReceptionTimer(newEntry.id);
+      
       queryClient.invalidateQueries({ queryKey: ["/api/reception-entries"] });
       setShowForm(false);
       resetForm();
@@ -455,7 +558,22 @@ export default function Reception() {
                             </div>
                             <div className="flex items-center gap-2">
                               <Gauge className="h-4 w-4" />
-                              العداد: {entry.odometerReading?.toLocaleString()} كم
+                              عداد الدخول: {entry.odometerReading?.toLocaleString()} كم
+                            </div>
+                            
+                            {/* Timer display */}
+                            <div className="flex items-center gap-2">
+                              <Clock className="h-4 w-4" />
+                              <span className={`font-mono text-sm px-2 py-1 rounded ${
+                                receptionTimer[entry.id]?.isRunning 
+                                  ? 'bg-green-100 text-green-800' 
+                                  : 'bg-gray-100 text-gray-600'
+                              }`}>
+                                مؤقت الاستقبال: {formatTimerDisplay(entry.id)}
+                                {receptionTimer[entry.id]?.isRunning && (
+                                  <span className="ml-1 text-green-600">●</span>
+                                )}
+                              </span>
                             </div>
                             {entry.complaints && (
                               <div className="text-gray-500 italic">
