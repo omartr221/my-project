@@ -37,7 +37,7 @@ export default function Dashboard() {
   const { isConnected } = useWebSocket();
   const { user, logoutMutation } = useAuth();
   const { canRead, canWrite, canCreate, isFinance, isOperator, isViewer, isSupervisor } = usePermissions();
-  const { newRequestsCount } = useNotifications();
+  const { newRequestsCount, newPartsRequestsCount, markPartsRequestsAsViewed } = useNotifications();
 
   const handleLogout = async () => {
     await logoutMutation.mutateAsync();
@@ -377,11 +377,22 @@ export default function Dashboard() {
                 {(canRead("parts") || user?.username === "فارس") && (
                   <Button
                     variant={activeTab === "parts-requests" ? "default" : "ghost"}
-                    onClick={() => setActiveTab("parts-requests")}
-                    className="font-medium"
+                    onClick={() => {
+                      setActiveTab("parts-requests");
+                      // تحديد الطلبات كمقروءة عند النقر على الخانة (فقط لهبة)
+                      if (user?.username === "هبة") {
+                        markPartsRequestsAsViewed();
+                      }
+                    }}
+                    className="font-medium relative"
                   >
                     <Package2 className="ml-2 h-4 w-4" />
                     طلبات القطع
+                    {user?.username === "هبة" && newPartsRequestsCount > 0 && (
+                      <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-pulse">
+                        {newPartsRequestsCount}
+                      </span>
+                    )}
                   </Button>
                 )}
 

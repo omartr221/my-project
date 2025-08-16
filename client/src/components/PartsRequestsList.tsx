@@ -13,6 +13,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { CheckCircle, XCircle, Clock, Package2, Search, Filter, Check, Undo2, MessageSquare } from "lucide-react";
 import { type PartsRequest } from "@shared/schema";
 import { useAuth } from "@/hooks/use-auth";
+import { useNotifications } from "@/hooks/useNotifications";
 
 const statusColors = {
   pending: "bg-yellow-100 text-yellow-800",
@@ -54,9 +55,16 @@ export default function PartsRequestsList() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const { markPartsRequestsAsViewed } = useNotifications();
 
   const { data: partsRequests = [], isLoading } = useQuery<PartsRequest[]>({
     queryKey: ["/api/parts-requests"],
+    onSuccess: () => {
+      // تحديد الطلبات كمقروءة عند تحميل البيانات (فقط لهبة)
+      if (user?.username === "هبة") {
+        markPartsRequestsAsViewed();
+      }
+    }
   });
 
   const updateStatusMutation = useMutation({

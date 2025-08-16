@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useAuth } from './use-auth';
+import { useQuery } from '@tanstack/react-query';
 
 export function useNotifications() {
   const { user } = useAuth();
@@ -10,6 +11,8 @@ export function useNotifications() {
   const [isAlertActive, setIsAlertActive] = useState(false);
   const alertIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const [currentAlert, setCurrentAlert] = useState<{title: string, body: string} | null>(null);
+  const [newPartsRequestsCount, setNewPartsRequestsCount] = useState(0);
+  const [lastViewedPartsRequests, setLastViewedPartsRequests] = useState<number>(0);
 
   // إنشاء الصوت التلقائي للإشعار
   useEffect(() => {
@@ -233,11 +236,40 @@ export function useNotifications() {
     };
   }, [user]);
 
+  // استرجاع طلبات القطع
+  const { data: partsRequests = [] } = useQuery({
+    queryKey: ["/api/parts-requests"],
+    enabled: user?.username === 'هبة', // فقط لهبة
+    refetchInterval: 5000, // تحديث كل 5 ثوان
+  });
+
+  // مراقبة طلبات القطع الجديدة
+  useEffect(() => {
+    if (user?.username === 'هبة' && partsRequests.length > 0) {
+      // حساب الطلبات الجديدة منذ آخر مشاهدة
+      const newRequests = partsRequests.filter((request: any) => 
+        new Date(request.requestedAt).getTime() > lastViewedPartsRequests
+      );
+      
+      setNewPartsRequestsCount(newRequests.length);
+    }
+  }, [partsRequests, lastViewedPartsRequests, user]);
+
+  // دالة تحديد وقت آخر مشاهدة للطلبات
+  const markPartsRequestsAsViewed = () => {
+    if (user?.username === 'هبة') {
+      setLastViewedPartsRequests(Date.now());
+      setNewPartsRequestsCount(0);
+    }
+  };
+
   return {
     sendNotification,
     checkForNewRequests,
     hasPermission,
     newRequestsCount,
+    newPartsRequestsCount,
+    markPartsRequestsAsViewed,
     startRepeatingAlert,
     stopRepeatingAlert,
     isAlertActive,
