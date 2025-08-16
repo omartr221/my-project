@@ -714,16 +714,20 @@ export class DatabaseStorage implements IStorage {
     }
     
     try {
-      const startTime = new Date(task.startTime);
+      // تعامل مع startTime كـ UTC دائماً
+      const startTimeStr = task.startTime.includes('Z') ? task.startTime : task.startTime + 'Z';
+      const startTime = new Date(startTimeStr);
       let endTime: Date;
       
       // Determine end time based on status
       if (task.status === 'completed' && task.endTime) {
-        endTime = new Date(task.endTime);
-        console.log(`Completed task, using endTime: ${task.endTime}`);
+        const endTimeStr = task.endTime.includes('Z') ? task.endTime : task.endTime + 'Z';
+        endTime = new Date(endTimeStr);
+        console.log(`Completed task, using endTime: ${endTimeStr}`);
       } else if (task.status === 'paused' && task.pausedAt) {
-        endTime = new Date(task.pausedAt);
-        console.log(`Paused task, using pausedAt: ${task.pausedAt}`);
+        const pausedTimeStr = task.pausedAt.includes('Z') ? task.pausedAt : task.pausedAt + 'Z';
+        endTime = new Date(pausedTimeStr);
+        console.log(`Paused task, using pausedAt: ${pausedTimeStr}`);
       } else {
         endTime = new Date();
         console.log(`Active task, using current time: ${endTime.toISOString()}`);
@@ -735,7 +739,7 @@ export class DatabaseStorage implements IStorage {
       const pausedSeconds = task.totalPausedDuration || 0;
       const finalDuration = Math.max(0, durationSeconds - pausedSeconds);
       
-      console.log(`Duration calc: ${durationSeconds}s - ${pausedSeconds}s = ${finalDuration}s`);
+      console.log(`Duration calc: startTime=${startTimeStr}, durationSeconds=${durationSeconds}s, pausedSeconds=${pausedSeconds}s, final=${finalDuration}s`);
       return finalDuration;
       
     } catch (error) {

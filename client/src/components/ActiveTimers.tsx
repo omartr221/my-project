@@ -113,8 +113,6 @@ export default function ActiveTimers({
     // This avoids timezone issues and ensures consistency
     const serverDuration = (task as any).currentDuration || 0;
     
-    console.log(`Task ${task.id}: using server duration ${serverDuration}s`);
-    
     return serverDuration;
   };
 

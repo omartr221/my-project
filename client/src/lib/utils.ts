@@ -13,8 +13,6 @@ export function formatDuration(seconds: number): string {
   const minutes = Math.floor((totalSeconds % 3600) / 60);
   const secs = totalSeconds % 60;
   
-  console.log(`formatDuration: ${seconds}s → ${totalSeconds}s → ${hours}:${minutes}:${secs}`);
-  
   return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 }
 
