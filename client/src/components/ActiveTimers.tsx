@@ -6,7 +6,7 @@ import { Clock, Pause, Play, CheckCircle, User, UserCheck, Wrench, Edit, Package
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { usePermissions } from "@/hooks/use-auth";
+import { usePermissions, useAuth } from "@/hooks/use-auth";
 import { formatDuration, formatTime, getCarBrandInArabic, getWorkerCategoryInArabic, getTaskStatusInArabic, getTaskStatusColor } from "@/lib/utils";
 import { type TaskWithWorker } from "@shared/schema";
 import { useState, useEffect } from "react";
@@ -25,6 +25,8 @@ export default function ActiveTimers({
 }: ActiveTimersProps) {
   const { toast } = useToast();
   const { canWrite, canCreate, isSupervisor } = usePermissions();
+  const { user } = useAuth();
+  const isBadawi = user?.username === 'بدوي'; // التحقق من أن المستخدم هو بدوي
   const [currentTime, setCurrentTime] = useState(Date.now());
 
   // Update timer every second for real-time display
@@ -293,7 +295,7 @@ export default function ActiveTimers({
                   
                   {showControls && (canWrite("tasks") || canCreate("tasks")) && (
                     <div className="flex space-x-reverse space-x-2">
-                      {/* إزالة زر الإيقاف وإضافة زر التسليم للاستقبال لحساب بدوي */}
+                      {/* زر الاستئناف للمهام المتوقفة */}
                       {!isActive && (
                         <Button
                           size="sm"
@@ -305,6 +307,14 @@ export default function ActiveTimers({
                           <Play className="ml-1 h-3 w-3" />
                           استئناف
                         </Button>
+                      )}
+
+                      {/* زر الإيقاف للمهام النشطة - إخفاء عن بدوي */}
+                      {isActive && !isBadawi && (
+                        <PauseTaskDialog 
+                          taskId={task.id} 
+                          disabled={pauseTaskMutation.isPending}
+                        />
                       )}
                       
                       <EditTaskDialog 
@@ -340,15 +350,17 @@ export default function ActiveTimers({
                       </Button>
 
                       {/* زر تسليم السيارة للاستقبال - لحساب بدوي فقط */}
-                      <Button
-                        size="sm"
-                        onClick={() => returnToReceptionMutation.mutate(task.id)}
-                        disabled={returnToReceptionMutation.isPending}
-                        className="bg-blue-600 hover:bg-blue-700 text-white"
-                      >
-                        <ArrowLeft className="ml-1 h-3 w-3" />
-                        تسليم للاستقبال
-                      </Button>
+                      {isBadawi && (
+                        <Button
+                          size="sm"
+                          onClick={() => returnToReceptionMutation.mutate(task.id)}
+                          disabled={returnToReceptionMutation.isPending}
+                          className="bg-blue-600 hover:bg-blue-700 text-white"
+                        >
+                          <ArrowLeft className="ml-1 h-3 w-3" />
+                          تسليم للاستقبال
+                        </Button>
+                      )}
                     </div>
                   )}
                 </div>
