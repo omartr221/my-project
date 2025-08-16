@@ -674,66 +674,23 @@ export class DatabaseStorage implements IStorage {
   }
 
   private calculateCurrentDuration(task: Task): number {
-    console.log(`========== CALCULATING DURATION ==========`);
-    console.log(`Task ID: ${task.id}`);
-    console.log(`startTime: ${task.startTime}`);
-    console.log(`status: ${task.status}`);
-    console.log(`timerType: ${task.timerType}`);
-    console.log(`===========================================`);
-    
     // For manual timer tasks, use the consumed time directly
     if (task.timerType === 'manual' && task.consumedTime) {
-      const duration = task.consumedTime * 60;
-      console.log(`Manual task duration: ${duration}`);
-      return duration;
+      return task.consumedTime * 60; // Convert minutes to seconds
     }
     
-    // For automatic timer tasks, check start and end times
-    let startTime: Date;
-    let endTime: Date;
-    
-    // Determine start time - only use startTime for accurate calculation
-    if (task.startTime) {
-      startTime = new Date(task.startTime);
-      console.log(`Using startTime: ${startTime.toISOString()}`);
-    } else {
-      console.log(`No startTime, returning 0`);
-      return 0;
+    // For automatic tasks, calculate based on startTime
+    if (!task.startTime) {
+      return 0; // Task hasn't started yet
     }
     
-    // Determine end time based on task status
-    if (task.status === 'completed' || task.status === 'archived') {
-      if (task.endTime) {
-        endTime = new Date(task.endTime);
-      } else {
-        // If task is completed but no end time, use reasonable duration
-        // This might happen for old tasks that weren't properly tracked
-        endTime = new Date(startTime.getTime() + (30 * 60 * 1000)); // Default 30 minutes
-      }
-    } else if (task.status === 'paused' && task.pausedAt) {
-      endTime = new Date(task.pausedAt);
-    } else if (task.status === 'active') {
-      endTime = new Date(); // Current time for active tasks
-    } else {
-      endTime = new Date();
-    }
-    
-    // Calculate duration in seconds
-    const totalDurationMs = endTime.getTime() - startTime.getTime();
-    const totalDuration = totalDurationMs / 1000;
+    const startTime = new Date(task.startTime).getTime();
+    const currentTime = Date.now();
+    const totalElapsed = (currentTime - startTime) / 1000; // Convert to seconds
     const pausedTime = task.totalPausedDuration || 0;
     
-    // Ensure minimum reasonable duration for completed tasks
-    const calculatedDuration = Math.max(0, totalDuration - pausedTime);
-    
-    console.log(`Task ${task.id}: totalDuration=${totalDuration}, pausedTime=${pausedTime}, calculatedDuration=${calculatedDuration}`);
-    
-    // For completed tasks with very small duration, return a minimum of 1 minute
-    if ((task.status === 'completed' || task.status === 'archived') && calculatedDuration < 60) {
-      return 60; // Minimum 1 minute for completed tasks
-    }
-    
-    return calculatedDuration;
+    return Math.max(0, totalElapsed - pausedTime);
+
   }
 
   async getCarDataByLicensePlate(licensePlate: string): Promise<{ carBrand: string; carModel: string; color?: string } | null> {
