@@ -317,9 +317,23 @@ export default function TaskHistoryTable() {
                       {task.endTime ? formatTime(task.endTime) : '--'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {(task as any).timerType === 'manual' && (task as any).consumedTime 
-                        ? formatDuration((task as any).consumedTime * 60) 
-                        : formatDuration(task.totalDuration)}
+                      {(() => {
+                        // حساب المدة بناءً على النوع
+                        if ((task as any).timerType === 'manual' && (task as any).consumedTime) {
+                          return formatDuration((task as any).consumedTime * 60);
+                        }
+                        
+                        // للمهام التلقائية، احسب من الأوقات إذا كانت متوفرة
+                        if (task.startTime && task.endTime) {
+                          const startTime = new Date(task.startTime);
+                          const endTime = new Date(task.endTime);
+                          const durationSeconds = (endTime.getTime() - startTime.getTime()) / 1000;
+                          return formatDuration(Math.max(0, durationSeconds));
+                        }
+                        
+                        // استخدم المدة المحفوظة كخيار أخير
+                        return formatDuration(task.totalDuration || 0);
+                      })()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {task.estimatedDuration ? (
@@ -328,15 +342,32 @@ export default function TaskHistoryTable() {
                             مقدر: {formatDuration(task.estimatedDuration * 60)}
                           </span>
                           <span className={`font-medium ${
-                            ((task as any).timerType === 'manual' && (task as any).consumedTime 
-                              ? (task as any).consumedTime * 60 > (task.estimatedDuration * 60)
-                              : task.totalDuration > (task.estimatedDuration * 60))
-                              ? 'text-red-600' 
-                              : 'text-green-600'
+                            (() => {
+                              let actualDuration = 0;
+                              if ((task as any).timerType === 'manual' && (task as any).consumedTime) {
+                                actualDuration = (task as any).consumedTime * 60;
+                              } else if (task.startTime && task.endTime) {
+                                const startTime = new Date(task.startTime);
+                                const endTime = new Date(task.endTime);
+                                actualDuration = Math.max(0, (endTime.getTime() - startTime.getTime()) / 1000);
+                              } else {
+                                actualDuration = task.totalDuration || 0;
+                              }
+                              return actualDuration > (task.estimatedDuration * 60) ? 'text-red-600' : 'text-green-600';
+                            })()
                           }`}>
-                            فعلي: {(task as any).timerType === 'manual' && (task as any).consumedTime 
-                              ? formatDuration((task as any).consumedTime * 60) 
-                              : formatDuration(task.totalDuration)}
+                            فعلي: {(() => {
+                              if ((task as any).timerType === 'manual' && (task as any).consumedTime) {
+                                return formatDuration((task as any).consumedTime * 60);
+                              }
+                              if (task.startTime && task.endTime) {
+                                const startTime = new Date(task.startTime);
+                                const endTime = new Date(task.endTime);
+                                const durationSeconds = (endTime.getTime() - startTime.getTime()) / 1000;
+                                return formatDuration(Math.max(0, durationSeconds));
+                              }
+                              return formatDuration(task.totalDuration || 0);
+                            })()}
                           </span>
                         </div>
                       ) : (
