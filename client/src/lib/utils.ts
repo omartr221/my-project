@@ -34,8 +34,8 @@ function toSyrianTime(date: Date | string): Date {
 export function formatTime(date: Date | string): string {
   const syrianTime = toSyrianTime(date);
   return syrianTime.toLocaleTimeString('en-US', {
-    hour12: false,
-    hour: '2-digit',
+    hour12: true,
+    hour: 'numeric',
     minute: '2-digit',
     second: '2-digit'
   });
@@ -101,10 +101,10 @@ export function formatDateTime(date: Date | string): string {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
-    hour: '2-digit',
+    hour: 'numeric',
     minute: '2-digit',
     second: '2-digit',
-    hour12: false
+    hour12: true
   });
 }
 
