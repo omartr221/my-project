@@ -677,13 +677,11 @@ export class DatabaseStorage implements IStorage {
     let startTime: Date;
     let endTime: Date;
     
-    // Determine start time
+    // Determine start time - only use startTime for accurate calculation
     if (task.startTime) {
       startTime = new Date(task.startTime);
-    } else if (task.createdAt) {
-      // Use creation time as fallback for automatic tasks
-      startTime = new Date(task.createdAt);
     } else {
+      // If no startTime, task hasn't been started yet
       return 0;
     }
     
