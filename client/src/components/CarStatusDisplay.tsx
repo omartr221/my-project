@@ -279,21 +279,29 @@ export default function CarStatusDisplay() {
                             </Button>
                           )}
                           
-                          {/* زر كبير واضح للجميع */}
-                          <Button
-                            size="lg"
-                            onClick={() => {
-                              console.log('🔴 BIG BLUE BUTTON clicked for car:', car.id, car.licensePlate);
-                              if (car.currentStatus === "في الورشة") {
+                          {/* زر تسليم السيارة للاستقبال - لحساب بدوي فقط */}
+                          {isBadawi && car.currentStatus === "في الورشة" && (
+                            <Button
+                              size="lg"
+                              onClick={() => {
+                                console.log('🔴 بدوي clicked return to reception for car:', car.id, car.licensePlate);
                                 returnToReceptionMutation.mutate(car.id);
-                              } else {
-                                alert(`حالة السيارة: ${car.currentStatus} - الزر يعمل فقط للسيارات في الورشة`);
-                              }
-                            }}
-                            className="bg-blue-600 hover:bg-blue-700 text-white w-full text-lg font-bold"
+                              }}
+                              disabled={returnToReceptionMutation.isPending}
+                              className="bg-blue-600 hover:bg-blue-700 text-white w-full text-lg font-bold"
+                            >
+                              <ArrowLeft className="ml-2 h-5 w-5" />
+                              🚗 تسليم السيارة للاستقبال 🚗
+                            </Button>
+                          )}
+                          
+                          {/* زر اختبار لعرض معلومات المستخدم */}
+                          <Button
+                            size="sm"
+                            onClick={() => console.log('المستخدم الحالي:', user?.username, 'هل هو بدوي؟', isBadawi)}
+                            className="bg-gray-500 hover:bg-gray-600 text-white mt-2"
                           >
-                            <ArrowLeft className="ml-2 h-5 w-5" />
-                            {car.currentStatus === "في الورشة" ? "🚗 تسليم للاستقبال 🚗" : `حالة السيارة: ${car.currentStatus}`}
+                            اختبار المستخدم: {user?.username || 'غير مسجل'}
                           </Button>
                         </div>
                       </div>
