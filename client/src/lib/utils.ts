@@ -6,11 +6,14 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function formatDuration(seconds: number): string {
-  // Handle decimal seconds with proper rounding
-  const totalSeconds = Math.floor(seconds);
+  // Ensure we have a positive number and handle decimals properly
+  const totalSeconds = Math.max(0, Math.floor(seconds));
+  
   const hours = Math.floor(totalSeconds / 3600);
   const minutes = Math.floor((totalSeconds % 3600) / 60);
   const secs = totalSeconds % 60;
+  
+  console.log(`formatDuration: input=${seconds}, totalSeconds=${totalSeconds}, formatted=${hours}:${minutes}:${secs}`);
   
   return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 }

@@ -111,25 +111,9 @@ export default function ActiveTimers({
   });
 
   const calculateCurrentDuration = (task: TaskWithWorker) => {
-    if (!task.startTime) return 0;
-    
-    // If task is paused, return the duration at the time it was paused (frozen)
-    if (task.status === "paused") {
-      return task.currentDuration || 0;
-    }
-    
-    // For active tasks, calculate from start time minus any paused time
-    // Both times should be in same timezone for accurate calculation
-    const startTime = new Date(task.startTime).getTime();
-    const currentUTC = Date.now(); // Use Date.now() for current UTC time
-    
-    // Use precise millisecond calculation and convert to seconds
-    const totalElapsedMs = currentUTC - startTime;
-    const totalElapsed = totalElapsedMs / 1000;
-    const pausedTime = task.totalPausedDuration || 0;
-    
-    // Return exact duration without rounding for display accuracy
-    return Math.max(0, totalElapsed - pausedTime);
+    // Use the currentDuration from the server API directly
+    // This ensures consistency with server calculations and avoids timezone issues
+    return (task as any).currentDuration || 0;
   };
 
   return (
