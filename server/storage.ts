@@ -220,8 +220,30 @@ export class DatabaseStorage implements IStorage {
     console.log(`getActiveTasks: Found ${tasksData.length} tasks`);
     
     return tasksData.map(task => {
-      const duration = this.calculateCurrentDuration(task);
-      console.log(`Task ${task.id} - startTime: ${task.startTime} - mapped with duration: ${duration}`);
+      // Calculate duration directly here
+      let duration = 0;
+      
+      if (task.timerType === 'manual' && task.consumedTime) {
+        duration = task.consumedTime * 60;
+      } else if (task.startTime) {
+        const startTime = new Date(task.startTime).getTime();
+        let endTime: number;
+        
+        if (task.status === 'completed' && task.endTime) {
+          endTime = new Date(task.endTime).getTime();
+        } else if (task.status === 'paused' && task.pausedAt) {
+          endTime = new Date(task.pausedAt).getTime();
+        } else {
+          endTime = Date.now();
+        }
+        
+        const totalSeconds = (endTime - startTime) / 1000;
+        const pausedSeconds = task.totalPausedDuration || 0;
+        duration = Math.max(0, totalSeconds - pausedSeconds);
+      }
+      
+      console.log(`Task ${task.id} - startTime: ${task.startTime} - calculated duration: ${duration}s`);
+      
       return {
         ...task,
         currentDuration: duration,
@@ -674,36 +696,52 @@ export class DatabaseStorage implements IStorage {
   }
 
   private calculateCurrentDuration(task: Task): number {
-    // For manual timer tasks, use the consumed time directly
+    console.log(`=== CALCULATING DURATION FOR TASK ${task.id} ===`);
+    console.log(`Status: ${task.status}, TimerType: ${task.timerType}`);
+    console.log(`StartTime: ${task.startTime}, EndTime: ${task.endTime}`);
+    
+    // For manual timer tasks
     if (task.timerType === 'manual' && task.consumedTime) {
-      return task.consumedTime * 60; // Convert minutes to seconds
+      const duration = task.consumedTime * 60;
+      console.log(`Manual timer: ${duration} seconds`);
+      return duration;
     }
     
-    // For automatic tasks, calculate based on startTime
+    // For automatic tasks - must have startTime
     if (!task.startTime) {
-      console.log(`Task ${task.id} has no startTime, returning 0`);
-      return 0; // Task hasn't started yet
+      console.log(`No startTime, returning 0`);
+      return 0;
     }
     
-    const startTime = new Date(task.startTime).getTime();
-    const currentTime = Date.now();
-    const totalElapsed = (currentTime - startTime) / 1000; // Convert to seconds
-    const pausedTime = task.totalPausedDuration || 0;
-    const result = Math.max(0, totalElapsed - pausedTime);
-    
-    // Force return actual elapsed time for testing
-    if (task.status === 'active' && task.startTime) {
-      const now = new Date();
-      const start = new Date(task.startTime);
-      const elapsedMs = now.getTime() - start.getTime();
-      const elapsedSeconds = elapsedMs / 1000;
-      console.log(`FORCE CALCULATION: Task ${task.id} elapsed ${elapsedSeconds} seconds`);
-      return Math.max(0, elapsedSeconds);
+    try {
+      const startTime = new Date(task.startTime);
+      let endTime: Date;
+      
+      // Determine end time based on status
+      if (task.status === 'completed' && task.endTime) {
+        endTime = new Date(task.endTime);
+        console.log(`Completed task, using endTime: ${task.endTime}`);
+      } else if (task.status === 'paused' && task.pausedAt) {
+        endTime = new Date(task.pausedAt);
+        console.log(`Paused task, using pausedAt: ${task.pausedAt}`);
+      } else {
+        endTime = new Date();
+        console.log(`Active task, using current time: ${endTime.toISOString()}`);
+      }
+      
+      // Calculate duration in seconds
+      const durationMs = endTime.getTime() - startTime.getTime();
+      const durationSeconds = durationMs / 1000;
+      const pausedSeconds = task.totalPausedDuration || 0;
+      const finalDuration = Math.max(0, durationSeconds - pausedSeconds);
+      
+      console.log(`Duration calc: ${durationSeconds}s - ${pausedSeconds}s = ${finalDuration}s`);
+      return finalDuration;
+      
+    } catch (error) {
+      console.error(`Error calculating duration for task ${task.id}:`, error);
+      return 0;
     }
-    
-    console.log(`Task ${task.id}: startTime=${task.startTime}, currentTime=${new Date(currentTime).toISOString()}, elapsed=${totalElapsed}, paused=${pausedTime}, result=${result}`);
-    
-    return result;
 
   }
 
