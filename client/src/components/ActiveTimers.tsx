@@ -109,17 +109,13 @@ export default function ActiveTimers({
   });
 
   const calculateCurrentDuration = (task: TaskWithWorker) => {
-    // For active tasks, calculate real-time duration
-    if (task.status === 'active' && task.startTime) {
-      const startTime = new Date(task.startTime).getTime();
-      const currentMs = Date.now();
-      const elapsedSeconds = (currentMs - startTime) / 1000;
-      const pausedSeconds = task.totalPausedDuration || 0;
-      return Math.max(0, elapsedSeconds - pausedSeconds);
-    }
+    // Always use the server-calculated currentDuration
+    // This avoids timezone issues and ensures consistency
+    const serverDuration = (task as any).currentDuration || 0;
     
-    // For paused/completed tasks, use server value
-    return (task as any).currentDuration || 0;
+    console.log(`Task ${task.id}: using server duration ${serverDuration}s`);
+    
+    return serverDuration;
   };
 
   return (
