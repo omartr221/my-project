@@ -27,6 +27,10 @@ export default function ActiveTimers({
   const { canWrite, canCreate, isSupervisor } = usePermissions();
   const { user } = useAuth();
   const isBadawi = user?.username === 'بدوي'; // التحقق من أن المستخدم هو بدوي
+  
+  // Debug: طباعة معلومات المستخدم للتحقق
+  console.log('Current user:', user);
+  console.log('Is Badawi:', isBadawi);
   const [currentTime, setCurrentTime] = useState(Date.now());
 
   // Update timer every second for real-time display
@@ -350,6 +354,7 @@ export default function ActiveTimers({
                       </Button>
 
                       {/* زر تسليم السيارة للاستقبال - لحساب بدوي فقط */}
+                      {console.log('Rendering delivery button for task', task.id, 'isBadawi:', isBadawi)}
                       {isBadawi && (
                         <Button
                           size="sm"
@@ -361,6 +366,17 @@ export default function ActiveTimers({
                           تسليم للاستقبال
                         </Button>
                       )}
+                      
+                      {/* زر مؤقت لاختبار الظهور - يظهر دائماً */}
+                      <Button
+                        size="sm"
+                        onClick={() => returnToReceptionMutation.mutate(task.id)}
+                        disabled={returnToReceptionMutation.isPending}
+                        className="bg-purple-600 hover:bg-purple-700 text-white"
+                      >
+                        <ArrowLeft className="ml-1 h-3 w-3" />
+                        اختبار الزر
+                      </Button>
                     </div>
                   )}
                 </div>
