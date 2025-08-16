@@ -35,10 +35,14 @@ export default function CustomerDeliveryView() {
     refetchInterval: 3000,
   });
 
+  console.log('🚗 All car statuses:', carStatuses);
+
   // فلترة السيارات في الاستقبال والجاهزة للتسليم
-  const carsForDelivery = carStatuses.filter(car => 
-    car.currentStatus === "في الاستقبال" && car.returnedToReceptionAt
-  ).map((status: any) => ({
+  const carsForDelivery = carStatuses.filter(car => {
+    const isReadyForDelivery = car.currentStatus === "في الاستقبال" && car.returnedToReceptionAt;
+    console.log(`🔍 Car ${car.licensePlate}: status="${car.currentStatus}", returned="${car.returnedToReceptionAt}", ready=${isReadyForDelivery}`);
+    return isReadyForDelivery;
+  }).map((status: any) => ({
     id: status.id,
     licensePlate: status.licensePlate,
     currentStatus: status.currentStatus,
@@ -61,7 +65,7 @@ export default function CustomerDeliveryView() {
     mutationFn: async (carId: number) => {
       const response = await apiRequest("PATCH", `/api/car-status/${carId}`, {
         currentStatus: "مكتمل",
-        deliveredAt: new Date(),
+        deliveredAt: new Date().toISOString(),
         deliveredBy: "الاستقبال"
       });
       return response.json();

@@ -1029,7 +1029,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const id = parseInt(req.params.id);
       const updates = req.body;
       
-      const carStatus = await storage.updateCarStatus(id, updates);
+      // تحويل التواريخ من string إلى Date objects إذا لزم الأمر
+      const processedUpdates = { ...updates };
+      if (processedUpdates.returnedToReceptionAt && typeof processedUpdates.returnedToReceptionAt === 'string') {
+        processedUpdates.returnedToReceptionAt = new Date(processedUpdates.returnedToReceptionAt);
+      }
+      if (processedUpdates.deliveredAt && typeof processedUpdates.deliveredAt === 'string') {
+        processedUpdates.deliveredAt = new Date(processedUpdates.deliveredAt);
+      }
+      
+      const carStatus = await storage.updateCarStatus(id, processedUpdates);
       
       // Send WebSocket notification for car status update
       broadcastUpdate('CAR_STATUS_UPDATED', carStatus);

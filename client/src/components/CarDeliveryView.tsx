@@ -55,7 +55,7 @@ export default function CarDeliveryView() {
       console.log('🔄 Returning car to reception:', carId);
       const response = await apiRequest("PATCH", `/api/car-status/${carId}`, {
         currentStatus: "في الاستقبال",
-        returnedToReceptionAt: new Date(),
+        returnedToReceptionAt: new Date().toISOString(),
         returnedBy: "بدوي"
       });
       return response.json();
