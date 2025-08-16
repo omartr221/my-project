@@ -165,6 +165,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Deliver task (تسليم المهمة للأرشيف مع حساب النسبة المئوية)
+  app.post("/api/tasks/:id/deliver", async (req, res) => {
+    try {
+      const taskId = parseInt(req.params.id);
+      const { rating = 3, notes } = req.body;
+      const deliveredBy = 'بدوي'; // المستخدم الذي قام بالتسليم
+      
+      const task = await storage.deliverTask(taskId, deliveredBy, rating, notes);
+      
+      broadcastUpdate("task_delivered", task);
+      
+      res.json(task);
+    } catch (error) {
+      console.error("Error delivering task:", error);
+      res.status(500).json({ message: "Failed to deliver task" });
+    }
+  });
+
   app.post("/api/tasks/:id/cancel", async (req, res) => {
     try {
       const taskId = parseInt(req.params.id);

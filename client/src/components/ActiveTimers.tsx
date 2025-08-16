@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Clock, Pause, Play, CheckCircle, User, UserCheck, Wrench, Edit } from "lucide-react";
+import { Clock, Pause, Play, CheckCircle, User, UserCheck, Wrench, Edit, Package } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -103,6 +103,33 @@ export default function ActiveTimers({
       toast({
         title: "خطأ في إنهاء المهمة",
         description: "حاول مرة أخرى",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deliverTaskMutation = useMutation({
+    mutationFn: async ({ taskId, rating = 3, notes }: { taskId: number; rating?: number; notes?: string }) => {
+      const response = await apiRequest("POST", `/api/tasks/${taskId}/deliver`, {
+        rating,
+        notes
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/tasks/active'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/tasks/archived'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/workers'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/stats'] });
+      toast({
+        title: "تم تسليم المهمة ✓",
+        description: "تم تسليم المهمة للأرشيف مع رقم تسليم جديد",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "خطأ",
+        description: "فشل في تسليم المهمة",
         variant: "destructive",
       });
     },
@@ -281,6 +308,16 @@ export default function ActiveTimers({
                       >
                         <CheckCircle className="ml-1 h-3 w-3" />
                         إنهاء
+                      </Button>
+                      
+                      <Button
+                        size="sm"
+                        onClick={() => deliverTaskMutation.mutate({ taskId: task.id, rating: 3 })}
+                        disabled={deliverTaskMutation.isPending}
+                        className="bg-green-600 hover:bg-green-700 text-white"
+                      >
+                        <Package className="ml-1 h-3 w-3" />
+                        تسليم
                       </Button>
                     </div>
                   )}

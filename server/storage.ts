@@ -616,10 +616,48 @@ export class DatabaseStorage implements IStorage {
     return task;
   }
 
-  async cancelTask(taskId: number, cancelledBy: string, reason: string): Promise<Task> {
+  async deliverTask(taskId: number, deliveredBy: string, rating: number = 3, notes?: string): Promise<Task> {
+    // الحصول على التوقيت السوري الدقيق للإنهاء
     const now = new Date();
+    const syrianTime = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Damascus',
+      year: 'numeric',
+      month: '2-digit', 
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+    }).formatToParts(now);
     
-    // Get the next delivery number
+    const endTimeStr = `${syrianTime.find(p => p.type === 'year')?.value}-${syrianTime.find(p => p.type === 'month')?.value}-${syrianTime.find(p => p.type === 'day')?.value} ${syrianTime.find(p => p.type === 'hour')?.value}:${syrianTime.find(p => p.type === 'minute')?.value}:${syrianTime.find(p => p.type === 'second')?.value}`;
+    
+    // إنهاء أي جلسة وقت نشطة
+    const [currentEntry] = await db
+      .select()
+      .from(timeEntries)
+      .where(
+        and(
+          eq(timeEntries.taskId, taskId),
+          isNull(timeEntries.endTime)
+        )
+      )
+      .orderBy(desc(timeEntries.startTime))
+      .limit(1);
+
+    if (currentEntry) {
+      const startTime = new Date(currentEntry.startTime);
+      const duration = Math.floor((now.getTime() - startTime.getTime()) / 1000);
+      await db
+        .update(timeEntries)
+        .set({
+          endTime: endTimeStr,
+          duration,
+        })
+        .where(eq(timeEntries.id, currentEntry.id));
+    }
+    
+    // الحصول على آخر رقم تسليم
     const lastArchivedTask = await db.query.tasks.findFirst({
       where: eq(tasks.isArchived, true),
       orderBy: [desc(tasks.deliveryNumber)],
@@ -627,24 +665,26 @@ export class DatabaseStorage implements IStorage {
     
     const nextDeliveryNumber = (lastArchivedTask?.deliveryNumber || 0) + 1;
     
+    // حساب النسبة المئوية (3 نجوم = 100%، 2 نجوم = 66%، 1 نجمة = 33%)
+    const efficiency = rating === 3 ? 100 : rating === 2 ? 66 : 33;
+    
+    // تحديث المهمة للأرشيف مع كامل المعلومات
     const [task] = await db
       .update(tasks)
       .set({
-        isArchived: true,
-        isCancelled: true,
-        cancelledAt: now,
-        cancelledBy,
-        cancellationReason: reason,
-        archivedAt: now,
-        archivedBy: cancelledBy,
-        archiveNotes: `مهمة ملغاة - السبب: ${reason}`,
         status: "archived",
+        endTime: endTimeStr,
+        isArchived: true,
+        archivedAt: now.toISOString(),
+        archivedBy: deliveredBy,
+        archiveNotes: notes || 'تم التسليم بنجاح',
+        rating: rating,
         deliveryNumber: nextDeliveryNumber,
       })
       .where(eq(tasks.id, taskId))
       .returning();
 
-    return task;
+    return task as any;
   }
 
   async getArchivedTasks(limit: number = 100): Promise<TaskHistory[]> {
