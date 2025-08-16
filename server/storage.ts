@@ -429,6 +429,51 @@ export class DatabaseStorage implements IStorage {
     return this.startTask(taskId);
   }
 
+  async cancelTask(taskId: number, reason?: string, cancelledBy?: string): Promise<Task> {
+    const now = new Date();
+    
+    // End current time entry if exists
+    const [currentEntry] = await db
+      .select()
+      .from(timeEntries)
+      .where(
+        and(
+          eq(timeEntries.taskId, taskId),
+          isNull(timeEntries.endTime)
+        )
+      )
+      .orderBy(desc(timeEntries.startTime))
+      .limit(1);
+
+    if (currentEntry) {
+      const startTime = new Date(currentEntry.startTime);
+      const duration = Math.floor((now.getTime() - startTime.getTime()) / 1000);
+      await db
+        .update(timeEntries)
+        .set({
+          endTime: now,
+          duration,
+        })
+        .where(eq(timeEntries.id, currentEntry.id));
+    }
+
+    // Update task status to cancelled
+    const [task] = await db
+      .update(tasks)
+      .set({
+        status: "completed", // استخدام completed ووضع علامة الإلغاء
+        endTime: now,
+        isCancelled: true,
+        cancellationReason: reason || 'تم إلغاء المهمة',
+        cancelledBy: cancelledBy || 'مجهول',
+        cancelledAt: now.toISOString(),
+      })
+      .where(eq(tasks.id, taskId))
+      .returning();
+
+    return task;
+  }
+
   async finishTask(taskId: number): Promise<Task> {
     const now = new Date();
     
@@ -446,7 +491,8 @@ export class DatabaseStorage implements IStorage {
       .limit(1);
 
     if (currentEntry) {
-      const duration = Math.floor((now.getTime() - currentEntry.startTime.getTime()) / 1000);
+      const startTime = new Date(currentEntry.startTime);
+      const duration = Math.floor((now.getTime() - startTime.getTime()) / 1000);
       await db
         .update(timeEntries)
         .set({

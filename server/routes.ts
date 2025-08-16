@@ -165,6 +165,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/tasks/:id/cancel", async (req, res) => {
+    try {
+      const taskId = parseInt(req.params.id);
+      const { reason, cancelledBy } = req.body;
+      const task = await storage.cancelTask(taskId, reason, cancelledBy);
+      
+      broadcastUpdate("task_cancelled", task);
+      
+      res.json(task);
+    } catch (error) {
+      console.error("Error cancelling task:", error);
+      res.status(500).json({ message: "Failed to cancel task" });
+    }
+  });
+
   // تعديل مهمة
   app.patch("/api/tasks/:id", async (req, res) => {
     try {
