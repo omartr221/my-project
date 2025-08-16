@@ -424,22 +424,24 @@ export default function PartsRequestsList() {
                         <div className="space-y-1 text-xs">
                           <div className="flex items-center gap-2">
                             <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-                            <span>طلب: {new Date(request.requestedAt!).toLocaleDateString('ar-SY', {
+                            <span>طلب: {new Date(request.requestedAt!).toLocaleDateString('ar-SA', {
                               month: 'short',
                               day: 'numeric',
                               hour: '2-digit',
                               minute: '2-digit',
+                              timeZone: 'Asia/Damascus'
                             })}</span>
                           </div>
                           
                           {request.approvedAt && (
                             <div className="flex items-center gap-2">
                               <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                              <span>موافقة: {new Date(request.approvedAt).toLocaleDateString('ar-SY', {
+                              <span>موافقة: {new Date(request.approvedAt).toLocaleDateString('ar-SA', {
                                 month: 'short',
                                 day: 'numeric',
                                 hour: '2-digit',
                                 minute: '2-digit',
+                                timeZone: 'Asia/Damascus'
                               })}</span>
                             </div>
                           )}
@@ -447,11 +449,12 @@ export default function PartsRequestsList() {
                           {request.inPreparationAt && (
                             <div className="flex items-center gap-2">
                               <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                              <span>تحضير: {new Date(request.inPreparationAt).toLocaleDateString('ar-SY', {
+                              <span>تحضير: {new Date(request.inPreparationAt).toLocaleDateString('ar-SA', {
                                 month: 'short',
                                 day: 'numeric',
                                 hour: '2-digit',
                                 minute: '2-digit',
+                                timeZone: 'Asia/Damascus'
                               })}</span>
                             </div>
                           )}
@@ -459,11 +462,12 @@ export default function PartsRequestsList() {
                           {request.readyForPickupAt && (
                             <div className="flex items-center gap-2">
                               <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                              <span>جاهز: {new Date(request.readyForPickupAt).toLocaleDateString('ar-SY', {
+                              <span>جاهز: {new Date(request.readyForPickupAt).toLocaleDateString('ar-SA', {
                                 month: 'short',
                                 day: 'numeric',
                                 hour: '2-digit',
                                 minute: '2-digit',
+                                timeZone: 'Asia/Damascus'
                               })}</span>
                             </div>
                           )}
@@ -471,11 +475,12 @@ export default function PartsRequestsList() {
                           {request.orderedExternallyAt && (
                             <div className="flex items-center gap-2">
                               <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                              <span>خارجي: {new Date(request.orderedExternallyAt).toLocaleDateString('ar-SY', {
+                              <span>خارجي: {new Date(request.orderedExternallyAt).toLocaleDateString('ar-SA', {
                                 month: 'short',
                                 day: 'numeric',
                                 hour: '2-digit',
                                 minute: '2-digit',
+                                timeZone: 'Asia/Damascus'
                               })}</span>
                             </div>
                           )}
@@ -490,11 +495,12 @@ export default function PartsRequestsList() {
                           {request.partsArrivedAt && (
                             <div className="flex items-center gap-2">
                               <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                              <span>وصول: {new Date(request.partsArrivedAt).toLocaleDateString('ar-SY', {
+                              <span>وصول: {new Date(request.partsArrivedAt).toLocaleDateString('ar-SA', {
                                 month: 'short',
                                 day: 'numeric',
                                 hour: '2-digit',
                                 minute: '2-digit',
+                                timeZone: 'Asia/Damascus'
                               })}</span>
                             </div>
                           )}
@@ -502,11 +508,12 @@ export default function PartsRequestsList() {
                           {request.unavailableAt && (
                             <div className="flex items-center gap-2">
                               <div className="w-2 h-2 bg-gray-500 rounded-full"></div>
-                              <span>غير متوفر: {new Date(request.unavailableAt).toLocaleDateString('ar-SY', {
+                              <span>غير متوفر: {new Date(request.unavailableAt).toLocaleDateString('ar-SA', {
                                 month: 'short',
                                 day: 'numeric',
                                 hour: '2-digit',
                                 minute: '2-digit',
+                                timeZone: 'Asia/Damascus'
                               })}</span>
                             </div>
                           )}

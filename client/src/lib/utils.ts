@@ -21,6 +21,7 @@ export function formatTime(date: Date): string {
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit',
+    timeZone: 'Asia/Damascus'
   });
 }
 
@@ -29,6 +30,7 @@ export function formatDate(date: Date): string {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
+    timeZone: 'Asia/Damascus'
   });
 }
 
@@ -74,4 +76,28 @@ export function getTaskStatusColor(status: string): string {
   };
   
   return colorMap[status] || 'bg-gray-100 text-gray-800';
+}
+
+// دالة لتنسيق التوقيت والتاريخ معاً بالتوقيت السوري  
+export function formatDateTime(date: Date): string {
+  return date.toLocaleString('ar-SA', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+    timeZone: 'Asia/Damascus'
+  });
+}
+
+// دالة لتنسيق الوقت فقط بالتوقيت السوري
+export function formatSyrianTime(date: Date): string {
+  return date.toLocaleTimeString('ar-SA', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+    timeZone: 'Asia/Damascus'
+  });
 }
