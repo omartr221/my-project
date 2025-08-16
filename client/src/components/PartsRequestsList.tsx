@@ -14,6 +14,7 @@ import { CheckCircle, XCircle, Clock, Package2, Search, Filter, Check, Undo2, Me
 import { type PartsRequest } from "@shared/schema";
 import { useAuth } from "@/hooks/use-auth";
 import { useNotifications } from "@/hooks/useNotifications";
+import { useEffect } from "react";
 
 const statusColors = {
   pending: "bg-yellow-100 text-yellow-800",
@@ -59,13 +60,14 @@ export default function PartsRequestsList() {
 
   const { data: partsRequests = [], isLoading } = useQuery<PartsRequest[]>({
     queryKey: ["/api/parts-requests"],
-    onSuccess: () => {
-      // تحديد الطلبات كمقروءة عند تحميل البيانات (فقط لهبة)
-      if (user?.username === "هبة") {
-        markPartsRequestsAsViewed();
-      }
-    }
   });
+
+  // تحديد الطلبات كمقروءة عند تحميل البيانات (فقط لهبة)
+  useEffect(() => {
+    if (user?.username === "هبة" && partsRequests.length > 0) {
+      markPartsRequestsAsViewed();
+    }
+  }, [partsRequests, user, markPartsRequestsAsViewed]);
 
   const updateStatusMutation = useMutation({
     mutationFn: async ({ id, status, notes }: { id: number; status: string; notes?: string }) => {
@@ -165,8 +167,8 @@ export default function PartsRequestsList() {
     },
   });
 
-  const filteredRequests = partsRequests
-    .filter((request) => {
+  const filteredRequests = (partsRequests as PartsRequest[])
+    .filter((request: PartsRequest) => {
       const matchesStatus = statusFilter === "all" || request.status === statusFilter;
       const matchesSearch = searchTerm === "" || 
         request.partName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -177,7 +179,7 @@ export default function PartsRequestsList() {
       
       return matchesStatus && matchesSearch;
     })
-    .sort((a, b) => {
+    .sort((a: PartsRequest, b: PartsRequest) => {
       // ترتيب حسب الأولوية: pending أولاً، ثم حسب التاريخ
       const statusPriority = {
         'pending': 1,
@@ -250,7 +252,7 @@ export default function PartsRequestsList() {
             <Card className="p-4 bg-yellow-50 border-yellow-200">
               <div className="text-center">
                 <div className="text-2xl font-bold text-yellow-800">
-                  {partsRequests.filter(r => r.status === 'pending').length}
+                  {(partsRequests as PartsRequest[]).filter((r: PartsRequest) => r.status === 'pending').length}
                 </div>
                 <div className="text-sm text-yellow-600">في الانتظار</div>
               </div>
@@ -258,7 +260,7 @@ export default function PartsRequestsList() {
             <Card className="p-4 bg-blue-50 border-blue-200">
               <div className="text-center">
                 <div className="text-2xl font-bold text-blue-800">
-                  {partsRequests.filter(r => ['approved', 'in_preparation'].includes(r.status || '')).length}
+                  {(partsRequests as PartsRequest[]).filter((r: PartsRequest) => ['approved', 'in_preparation'].includes(r.status || '')).length}
                 </div>
                 <div className="text-sm text-blue-600">قيد التحضير</div>
               </div>
@@ -266,7 +268,7 @@ export default function PartsRequestsList() {
             <Card className="p-4 bg-purple-50 border-purple-200">
               <div className="text-center">
                 <div className="text-2xl font-bold text-purple-800">
-                  {partsRequests.filter(r => ['awaiting_pickup', 'parts_arrived'].includes(r.status || '')).length}
+                  {(partsRequests as PartsRequest[]).filter((r: PartsRequest) => ['awaiting_pickup', 'parts_arrived'].includes(r.status || '')).length}
                 </div>
                 <div className="text-sm text-purple-600">جاهزة للاستلام</div>
               </div>
@@ -274,7 +276,7 @@ export default function PartsRequestsList() {
             <Card className="p-4 bg-green-50 border-green-200">
               <div className="text-center">
                 <div className="text-2xl font-bold text-green-800">
-                  {partsRequests.filter(r => r.status === 'delivered').length}
+                  {(partsRequests as PartsRequest[]).filter((r: PartsRequest) => r.status === 'delivered').length}
                 </div>
                 <div className="text-sm text-green-600">تم التسليم</div>
               </div>
@@ -290,13 +292,13 @@ export default function PartsRequestsList() {
                   <SelectValue placeholder="فلتر الحالة" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">جميع الحالات ({partsRequests.length})</SelectItem>
-                  <SelectItem value="pending">في الانتظار ({partsRequests.filter(r => r.status === 'pending').length})</SelectItem>
-                  <SelectItem value="approved">موافق عليه ({partsRequests.filter(r => r.status === 'approved').length})</SelectItem>
-                  <SelectItem value="in_preparation">قيد التحضير ({partsRequests.filter(r => r.status === 'in_preparation').length})</SelectItem>
-                  <SelectItem value="awaiting_pickup">بانتظار الاستلام ({partsRequests.filter(r => r.status === 'awaiting_pickup').length})</SelectItem>
-                  <SelectItem value="delivered">تم التسليم ({partsRequests.filter(r => r.status === 'delivered').length})</SelectItem>
-                  <SelectItem value="rejected">مرفوض ({partsRequests.filter(r => r.status === 'rejected').length})</SelectItem>
+                  <SelectItem value="all">جميع الحالات ({(partsRequests as PartsRequest[]).length})</SelectItem>
+                  <SelectItem value="pending">في الانتظار ({(partsRequests as PartsRequest[]).filter((r: PartsRequest) => r.status === 'pending').length})</SelectItem>
+                  <SelectItem value="approved">موافق عليه ({(partsRequests as PartsRequest[]).filter((r: PartsRequest) => r.status === 'approved').length})</SelectItem>
+                  <SelectItem value="in_preparation">قيد التحضير ({(partsRequests as PartsRequest[]).filter((r: PartsRequest) => r.status === 'in_preparation').length})</SelectItem>
+                  <SelectItem value="awaiting_pickup">بانتظار الاستلام ({(partsRequests as PartsRequest[]).filter((r: PartsRequest) => r.status === 'awaiting_pickup').length})</SelectItem>
+                  <SelectItem value="delivered">تم التسليم ({(partsRequests as PartsRequest[]).filter((r: PartsRequest) => r.status === 'delivered').length})</SelectItem>
+                  <SelectItem value="rejected">مرفوض ({(partsRequests as PartsRequest[]).filter((r: PartsRequest) => r.status === 'rejected').length})</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -312,7 +314,7 @@ export default function PartsRequestsList() {
             </div>
             
             <div className="text-sm text-gray-600 self-center">
-              عرض {filteredRequests.length} من {partsRequests.length} طلب
+              عرض {filteredRequests.length} من {(partsRequests as PartsRequest[]).length} طلب
             </div>
           </div>
 
@@ -341,7 +343,7 @@ export default function PartsRequestsList() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredRequests.map((request) => (
+                  filteredRequests.map((request: PartsRequest) => (
                     <TableRow key={request.id} className="hover:bg-gray-50">
                       <TableCell className="font-medium">
                         <div className="flex items-center gap-2">

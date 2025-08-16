@@ -377,22 +377,11 @@ export default function Dashboard() {
                 {(canRead("parts") || user?.username === "فارس") && (
                   <Button
                     variant={activeTab === "parts-requests" ? "default" : "ghost"}
-                    onClick={() => {
-                      setActiveTab("parts-requests");
-                      // تحديد الطلبات كمقروءة عند النقر على الخانة (فقط لهبة)
-                      if (user?.username === "هبة") {
-                        markPartsRequestsAsViewed();
-                      }
-                    }}
-                    className="font-medium relative"
+                    onClick={() => setActiveTab("parts-requests")}
+                    className="font-medium"
                   >
                     <Package2 className="ml-2 h-4 w-4" />
                     طلبات القطع
-                    {user?.username === "هبة" && newPartsRequestsCount > 0 && (
-                      <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-pulse">
-                        {newPartsRequestsCount}
-                      </span>
-                    )}
                   </Button>
                 )}
 
@@ -416,14 +405,20 @@ export default function Dashboard() {
                 {(user?.username === "هبة" || user?.role === "viewer") && (
                   <Button
                     variant={activeTab === "requests" ? "default" : "ghost"}
-                    onClick={() => setActiveTab("requests")}
+                    onClick={() => {
+                      setActiveTab("requests");
+                      // تحديد الطلبات كمقروءة عند النقر على الخانة (فقط لهبة)
+                      if (user?.username === "هبة") {
+                        markPartsRequestsAsViewed();
+                      }
+                    }}
                     className="font-medium relative"
                   >
                     <ListTodo className="ml-2 h-4 w-4" />
                     الطلبات
-                    {newRequestsCount > 0 && (
+                    {user?.username === "هبة" && newPartsRequestsCount > 0 && (
                       <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-pulse">
-                        {newRequestsCount}
+                        {newPartsRequestsCount}
                       </span>
                     )}
                   </Button>

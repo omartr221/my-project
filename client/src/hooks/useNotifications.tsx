@@ -245,7 +245,7 @@ export function useNotifications() {
 
   // مراقبة طلبات القطع الجديدة
   useEffect(() => {
-    if (user?.username === 'هبة' && partsRequests.length > 0) {
+    if (user?.username === 'هبة' && Array.isArray(partsRequests) && partsRequests.length > 0) {
       // حساب الطلبات الجديدة منذ آخر مشاهدة
       const newRequests = partsRequests.filter((request: any) => 
         new Date(request.requestedAt).getTime() > lastViewedPartsRequests
