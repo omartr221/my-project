@@ -221,7 +221,7 @@ export class DatabaseStorage implements IStorage {
     
     return tasksData.map(task => {
       const duration = this.calculateCurrentDuration(task);
-      console.log(`Task ${task.id} mapped with duration: ${duration}`);
+      console.log(`Task ${task.id} - startTime: ${task.startTime} - mapped with duration: ${duration}`);
       return {
         ...task,
         currentDuration: duration,
@@ -681,6 +681,7 @@ export class DatabaseStorage implements IStorage {
     
     // For automatic tasks, calculate based on startTime
     if (!task.startTime) {
+      console.log(`Task ${task.id} has no startTime, returning 0`);
       return 0; // Task hasn't started yet
     }
     
@@ -688,8 +689,21 @@ export class DatabaseStorage implements IStorage {
     const currentTime = Date.now();
     const totalElapsed = (currentTime - startTime) / 1000; // Convert to seconds
     const pausedTime = task.totalPausedDuration || 0;
+    const result = Math.max(0, totalElapsed - pausedTime);
     
-    return Math.max(0, totalElapsed - pausedTime);
+    // Force return actual elapsed time for testing
+    if (task.status === 'active' && task.startTime) {
+      const now = new Date();
+      const start = new Date(task.startTime);
+      const elapsedMs = now.getTime() - start.getTime();
+      const elapsedSeconds = elapsedMs / 1000;
+      console.log(`FORCE CALCULATION: Task ${task.id} elapsed ${elapsedSeconds} seconds`);
+      return Math.max(0, elapsedSeconds);
+    }
+    
+    console.log(`Task ${task.id}: startTime=${task.startTime}, currentTime=${new Date(currentTime).toISOString()}, elapsed=${totalElapsed}, paused=${pausedTime}, result=${result}`);
+    
+    return result;
 
   }
 
