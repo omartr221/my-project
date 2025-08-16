@@ -398,7 +398,7 @@ export default function PartsRequestsList() {
                           )}
                           {request.status === 'pending' && (
                             <div className="text-xs text-yellow-600">
-                              منذ: {Math.floor((Date.now() - new Date(request.requestedAt || '').getTime()) / (1000 * 60 * 60))} ساعة
+                              منذ: {Math.floor((Date.now() - new Date((request.requestedAt || '') + 'Z').getTime()) / (1000 * 60 * 60))} ساعة
                             </div>
                           )}
                         </div>
