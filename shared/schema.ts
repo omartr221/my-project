@@ -164,13 +164,13 @@ export const insertTaskSchema = createInsertSchema(tasks).omit({
 }).extend({
   carModel: z.string().min(1, "يجب إدخال موديل السيارة"),
   licensePlate: z.string().min(1, "يجب إدخال رقم اللوحة"),
-  // تحويل المصفوفات إلى نصوص JSON
+  // تحويل المصفوفات إلى نصوص مفصولة بفواصل
   technicians: z.union([z.string(), z.array(z.string())]).optional().transform((val) => {
-    if (Array.isArray(val)) return JSON.stringify(val);
+    if (Array.isArray(val)) return val.join(', ');
     return val || null;
   }),
   assistants: z.union([z.string(), z.array(z.string())]).optional().transform((val) => {
-    if (Array.isArray(val)) return JSON.stringify(val);
+    if (Array.isArray(val)) return val.join(', ');
     return val || null;
   }),
 }).partial({

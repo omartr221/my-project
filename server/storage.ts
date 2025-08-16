@@ -275,8 +275,13 @@ export class DatabaseStorage implements IStorage {
         supervisorName: insertTask.supervisorName || null,
         technicianName: insertTask.technicianName || null,
         assistantName: insertTask.assistantName || null,
-        technicians: insertTask.technicians || null,
-        assistants: insertTask.assistants || null,
+        // تحويل المصفوفات إلى نص مفصول بفواصل بدلاً من JSON
+        technicians: Array.isArray(insertTask.technicians) 
+          ? insertTask.technicians.join(', ') 
+          : (insertTask.technicians || null),
+        assistants: Array.isArray(insertTask.assistants) 
+          ? insertTask.assistants.join(', ') 
+          : (insertTask.assistants || null),
         repairOperation: insertTask.repairOperation || null,
         taskType: insertTask.taskType || null,
         color: insertTask.color || null,
