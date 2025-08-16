@@ -20,6 +20,13 @@ Current active workers in the system:
 - مصطفى
 
 ## Recent Changes (August 16, 2025)
+### System Administration Centralization
+- All system modifications and permissions management now centralized under فارس account
+- فارس has complete administrative control over all system features and user permissions
+- Unified timestamp handling using Syrian timezone (UTC+3) across all parts requests
+- Auto-refresh functionality implemented for parts requests (5-second intervals)
+- Simplified time formatting to 24-hour format without complex timezone conversions
+
 ### Car Delivery System for بدوي
 - Added new "تسليم السيارة" tab visible only to بدوي account
 - Tab displays cars currently in workshop status ("في الورشة" or "workshop")
@@ -33,6 +40,12 @@ Current active workers in the system:
 - Added "تسليم للزبون" tab for reception account showing cars returned from workshop
 - Complete car information display including parts used and service details
 - Cars filter out from reception view once delivered to customer
+
+### Parts Request System Improvements
+- Fixed timestamp consistency across all parts request operations
+- Implemented proper Syrian timezone handling (UTC+3) for all timestamps
+- Parts requests now auto-refresh every 5 seconds without manual refresh
+- Sequential numbering system reset and properly functioning
 
 ## System Architecture
 
@@ -67,7 +80,7 @@ Current active workers in the system:
 - **Team Management**: Support for multiple technicians and assistants per task.
 - **Delivery System**: 3-star rating for task completion, work efficiency calculation.
 - **Car Management**: Car receipt system with sequential numbering, car status management workflow (reception, workshop entry, postponement). Includes customer and car data auto-fill. Enhanced with flexible car model selection (includes "أخرى" option for custom models) and automatic uppercase conversion for engine codes.
-- **Authentication & Authorization**: Role-based access control (finance, operator, viewer, supervisor, reception, workshop). Protected routes and permission-based component rendering.
+- **Authentication & Authorization**: Role-based access control (finance, operator, viewer, supervisor, reception, workshop). Protected routes and permission-based component rendering. Centralized administration under فارس account with full system control.
 - **Parts Request System**: Multi-stage approval workflow (in preparation, awaiting pickup, parts arrived, delivered), sequential numbering, real-time notifications for approver.
 - **Notifications**: Sound alerts, browser push notifications, visual badges for new requests, red notification badge for parts requests in "الطلبات" tab.
 - **Data Management**: Automatic hourly backups (customers, cars, parts requests), manual backup/restore.
