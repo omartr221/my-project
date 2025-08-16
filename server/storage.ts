@@ -217,10 +217,16 @@ export class DatabaseStorage implements IStorage {
       orderBy: [desc(tasks.startTime)],
     });
 
-    return tasksData.map(task => ({
-      ...task,
-      currentDuration: this.calculateCurrentDuration(task),
-    }));
+    console.log(`getActiveTasks: Found ${tasksData.length} tasks`);
+    
+    return tasksData.map(task => {
+      const duration = this.calculateCurrentDuration(task);
+      console.log(`Task ${task.id} mapped with duration: ${duration}`);
+      return {
+        ...task,
+        currentDuration: duration,
+      };
+    });
   }
 
   async getTask(id: number): Promise<TaskWithWorker | undefined> {
@@ -668,11 +674,18 @@ export class DatabaseStorage implements IStorage {
   }
 
   private calculateCurrentDuration(task: Task): number {
-    console.log(`Calculating duration for task ${task.id}: startTime=${task.startTime}, status=${task.status}, timerType=${task.timerType}`);
+    console.log(`========== CALCULATING DURATION ==========`);
+    console.log(`Task ID: ${task.id}`);
+    console.log(`startTime: ${task.startTime}`);
+    console.log(`status: ${task.status}`);
+    console.log(`timerType: ${task.timerType}`);
+    console.log(`===========================================`);
     
     // For manual timer tasks, use the consumed time directly
     if (task.timerType === 'manual' && task.consumedTime) {
-      return task.consumedTime * 60; // Convert minutes to seconds
+      const duration = task.consumedTime * 60;
+      console.log(`Manual task duration: ${duration}`);
+      return duration;
     }
     
     // For automatic timer tasks, check start and end times
@@ -682,8 +695,9 @@ export class DatabaseStorage implements IStorage {
     // Determine start time - only use startTime for accurate calculation
     if (task.startTime) {
       startTime = new Date(task.startTime);
+      console.log(`Using startTime: ${startTime.toISOString()}`);
     } else {
-      // If no startTime, task hasn't been started yet
+      console.log(`No startTime, returning 0`);
       return 0;
     }
     
