@@ -33,25 +33,13 @@ function toSyrianTime(date: Date | string): Date {
 }
 
 export function formatTime(date: Date | string): string {
-  let dateObj: Date;
+  const syrianTime = toSyrianTime(date);
   
-  if (typeof date === 'string') {
-    // إذا كان التوقيت محفوظ بالتوقيت السوري بدون Z، اعتبره محلي
-    if (!date.includes('Z') && !date.includes('+')) {
-      dateObj = new Date(date.replace(' ', 'T'));
-    } else {
-      const dateStr = date.includes('Z') ? date : date + 'Z';
-      dateObj = new Date(dateStr);
-    }
-  } else {
-    dateObj = date;
-  }
+  const hours = syrianTime.getUTCHours();
+  const minutes = syrianTime.getUTCMinutes();
+  const seconds = syrianTime.getUTCSeconds();
   
-  const hours = dateObj.getHours();
-  const minutes = dateObj.getMinutes();
-  const seconds = dateObj.getSeconds();
-  
-  // تنسيق 24 ساعة
+  // تنسيق 24 ساعة بالتوقيت السوري
   return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
 }
 
