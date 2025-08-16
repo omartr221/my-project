@@ -170,7 +170,7 @@ export default function TaskHistoryTable() {
                           <div><strong>المهندس:</strong> {request.engineerName}</div>
                           <div><strong>القطعة:</strong> {request.partName} ({request.quantity})</div>
                           <div><strong>السيارة:</strong> {request.carInfo}</div>
-                          <div><strong>الوقت:</strong> {formatTime(new Date(request.requestedAt || request.createdAt))} ({formatDate(new Date(request.requestedAt || request.createdAt))})</div>
+                          <div><strong>الوقت:</strong> {formatTime(request.requestedAt || request.createdAt)} ({formatDate(request.requestedAt || request.createdAt)})</div>
                         </div>
                       </div>
                     </div>
@@ -311,10 +311,10 @@ export default function TaskHistoryTable() {
                       {(task as any).color || '--'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {task.startTime ? formatTime(new Date(task.startTime)) : '--'}
+                      {task.startTime ? formatTime(task.startTime) : '--'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {task.endTime ? formatTime(new Date(task.endTime)) : '--'}
+                      {task.endTime ? formatTime(task.endTime) : '--'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {(task as any).timerType === 'manual' && (task as any).consumedTime 

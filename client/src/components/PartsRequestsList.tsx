@@ -352,7 +352,7 @@ export default function PartsRequestsList() {
                             {request.requestNumber || `#${request.id}`}
                           </Badge>
                           <div className="text-xs text-gray-500">
-                            {formatDate(new Date(request.requestedAt || ''))}
+                            {formatDate(request.requestedAt || '')}
                           </div>
                         </div>
                       </TableCell>
@@ -393,7 +393,7 @@ export default function PartsRequestsList() {
                           </Badge>
                           {request.status === 'delivered' && request.deliveredAt && (
                             <div className="text-xs text-green-600">
-                              تم في: {formatDate(new Date(request.deliveredAt || ''))}
+                              تم في: {formatDate(request.deliveredAt || '')}
                             </div>
                           )}
                           {request.status === 'pending' && (
@@ -435,34 +435,34 @@ export default function PartsRequestsList() {
                         <div className="space-y-1 text-xs">
                           <div className="flex items-center gap-2">
                             <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-                            <span>طلب: {formatTime(new Date(request.requestedAt!))}</span>
+                            <span>طلب: {formatTime(request.requestedAt!)}</span>
                           </div>
                           
                           {request.approvedAt && (
                             <div className="flex items-center gap-2">
                               <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                              <span>موافقة: {formatTime(new Date(request.approvedAt))}</span>
+                              <span>موافقة: {formatTime(request.approvedAt)}</span>
                             </div>
                           )}
                           
                           {request.inPreparationAt && (
                             <div className="flex items-center gap-2">
                               <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                              <span>تحضير: {formatTime(new Date(request.inPreparationAt))}</span>
+                              <span>تحضير: {formatTime(request.inPreparationAt)}</span>
                             </div>
                           )}
                           
                           {request.readyForPickupAt && (
                             <div className="flex items-center gap-2">
                               <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                              <span>جاهز: {formatTime(new Date(request.readyForPickupAt))}</span>
+                              <span>جاهز: {formatTime(request.readyForPickupAt)}</span>
                             </div>
                           )}
                           
                           {request.orderedExternallyAt && (
                             <div className="flex items-center gap-2">
                               <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                              <span>خارجي: {formatTime(new Date(request.orderedExternallyAt))}</span>
+                              <span>خارجي: {formatTime(request.orderedExternallyAt)}</span>
                             </div>
                           )}
                           
@@ -476,14 +476,14 @@ export default function PartsRequestsList() {
                           {request.partsArrivedAt && (
                             <div className="flex items-center gap-2">
                               <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                              <span>وصول: {formatTime(new Date(request.partsArrivedAt))}</span>
+                              <span>وصول: {formatTime(request.partsArrivedAt)}</span>
                             </div>
                           )}
                           
                           {request.unavailableAt && (
                             <div className="flex items-center gap-2">
                               <div className="w-2 h-2 bg-gray-500 rounded-full"></div>
-                              <span>غير متوفر: {formatTime(new Date(request.unavailableAt))}</span>
+                              <span>غير متوفر: {formatTime(request.unavailableAt)}</span>
                             </div>
                           )}
                         </div>

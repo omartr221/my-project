@@ -220,7 +220,7 @@ export default function ActiveTimers({
                         {formatDuration(currentDuration)}
                       </p>
                       <p className="text-xs text-gray-500">
-                        بدء في {task.startTime ? formatTime(new Date(task.startTime)) : '--'}
+                        بدء في {task.startTime ? formatTime(task.startTime) : '--'}
                       </p>
                     </div>
                   </div>
