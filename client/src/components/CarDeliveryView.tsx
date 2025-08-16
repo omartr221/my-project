@@ -53,7 +53,11 @@ export default function CarDeliveryView() {
   const returnToReceptionMutation = useMutation({
     mutationFn: async (carId: number) => {
       console.log('🔄 Returning car to reception:', carId);
-      const response = await apiRequest("POST", `/api/cars/${carId}/return-to-reception`);
+      const response = await apiRequest("PATCH", `/api/car-status/${carId}`, {
+        currentStatus: "في الاستقبال",
+        returnedToReceptionAt: new Date().toISOString(),
+        returnedBy: "بدوي"
+      });
       return response.json();
     },
     onSuccess: () => {
@@ -61,7 +65,7 @@ export default function CarDeliveryView() {
         title: "تم بنجاح ✅",
         description: "تم تسليم السيارة للاستقبال",
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/cars'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/car-status'] });
     },
     onError: (error: Error) => {
       console.error('❌ Error returning car to reception:', error);

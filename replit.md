@@ -19,6 +19,15 @@ Current active workers in the system:
 - عبد الحفيظ
 - مصطفى
 
+## Recent Changes (August 16, 2025)
+### Car Delivery System for بدوي
+- Added new "تسليم السيارة" tab visible only to بدوي account
+- Tab displays cars currently in workshop status ("في الورشة" or "workshop")
+- Each car has a green "تسليم للاستقبال" button for delivery to reception
+- Button updates car status from "في الورشة" to "في الاستقبال" via PATCH /api/car-status/{id}
+- Proper API integration with real-time updates and WebSocket notifications
+- Enhanced CarStatusDisplay component with role-based button visibility
+
 ## System Architecture
 
 ### Frontend
