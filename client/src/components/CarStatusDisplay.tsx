@@ -279,26 +279,10 @@ export default function CarStatusDisplay() {
                             </Button>
                           )}
                           
-                          {/* زر اختبار للجميع - مؤقت للتحقق */}
-                          <Button
-                            size="lg"
-                            onClick={() => {
-                              console.log('🔴 Button clicked for car:', car.id, car.licensePlate);
-                              console.log('🔴 User:', user?.username, 'isBadawi:', isBadawi);
-                              console.log('🔴 Car status:', car.currentStatus);
-                              if (car.currentStatus === "في الورشة") {
-                                returnToReceptionMutation.mutate(car.id);
-                              } else {
-                                alert(`السيارة ليست في الورشة - الحالة: ${car.currentStatus}`);
-                              }
-                            }}
-                            className="bg-red-600 hover:bg-red-700 text-white w-full text-lg font-bold mb-2"
-                          >
-                            🔴 اختبار الزر - للجميع 🔴
-                          </Button>
+
                           
-                          {/* زر بدوي فقط - شرط واضح */}
-                          {(user?.username === 'بدوي' || user?.username === 'badawi') && car.currentStatus === "في الورشة" && (
+                          {/* زر تسليم للاستقبال - لبدوي فقط والسيارات في الورشة */}
+                          {user?.username === 'بدوي' && (car.currentStatus === "في الورشة" || car.currentStatus === "workshop") && (
                             <Button
                               size="lg"
                               onClick={() => {
@@ -306,34 +290,16 @@ export default function CarStatusDisplay() {
                                 returnToReceptionMutation.mutate(car.id);
                               }}
                               disabled={returnToReceptionMutation.isPending}
-                              className="bg-blue-600 hover:bg-blue-700 text-white w-full text-lg font-bold mb-2"
+                              className="bg-green-600 hover:bg-green-700 text-white w-full text-lg font-bold mb-2"
                             >
                               <ArrowLeft className="ml-2 h-5 w-5" />
-                              🚗 بدوي - تسليم السيارة للاستقبال 🚗
+                              🚗 تسليم السيارة للاستقبال 🚗
                             </Button>
                           )}
                           
-                          {/* زر مؤقت للاختبار - إذا المستخدم بدوي أو لم يسجل دخول */}
-                          {(!user || user?.username === 'بدوي') && car.currentStatus === "في الورشة" && (
-                            <Button
-                              size="lg"
-                              onClick={() => {
-                                console.log('🟡 Testing button for بدوي - car:', car.id, car.licensePlate);
-                                returnToReceptionMutation.mutate(car.id);
-                              }}
-                              disabled={returnToReceptionMutation.isPending}
-                              className="bg-yellow-600 hover:bg-yellow-700 text-white w-full text-lg font-bold mb-2"
-                            >
-                              🟡 اختبار بدوي - تسليم للاستقبال 🟡
-                            </Button>
-                          )}
-                          
-                          {/* معلومات المستخدم - واضحة */}
-                          <div className="text-sm text-gray-700 bg-yellow-100 p-3 rounded border">
-                            <div><strong>المستخدم:</strong> {user?.username || 'غير مسجل'}</div>
-                            <div><strong>هل هو بدوي؟</strong> {(user?.username === 'بدوي' || user?.username === 'badawi') ? '✅ نعم' : '❌ لا'}</div>
-                            <div><strong>حالة السيارة:</strong> {car.currentStatus}</div>
-                            <div><strong>رقم السيارة:</strong> {car.id}</div>
+                          {/* معلومات السيارة */}
+                          <div className="text-xs text-gray-600 bg-gray-50 p-2 rounded">
+                            المستخدم: {user?.username} | حالة: {car.currentStatus} | رقم: {car.id}
                           </div>
                         </div>
                       </div>
