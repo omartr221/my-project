@@ -18,12 +18,6 @@ export function formatDuration(seconds: number): string {
 export function formatTime(date: Date): string {
   // إضافة 3 ساعات للتوقيت السوري (UTC+3)
   const syrianTime = new Date(date.getTime() + (3 * 60 * 60 * 1000));
-  console.log('formatTime - Input:', date.toString(), 'Output:', syrianTime.toLocaleTimeString('en-US', {
-    hour12: false,
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit'
-  }));
   return syrianTime.toLocaleTimeString('en-US', {
     hour12: false,
     hour: '2-digit',
