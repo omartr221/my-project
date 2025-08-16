@@ -153,7 +153,7 @@ export default function Dashboard() {
 
             {/* Active Timers */}
             <div className="mt-8 space-y-4">
-              <ActiveTimers tasks={activeTasks || []} />
+              <ActiveTimers tasks={activeTasks || []} showControls />
               <PausedTasksList tasks={activeTasks || []} />
             </div>
           </div>
