@@ -15,6 +15,7 @@ import { type PartsRequest } from "@shared/schema";
 import { useAuth } from "@/hooks/use-auth";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useEffect } from "react";
+import { formatDate, formatTime } from "@/lib/utils";
 
 const statusColors = {
   pending: "bg-yellow-100 text-yellow-800",
@@ -351,7 +352,7 @@ export default function PartsRequestsList() {
                             {request.requestNumber || `#${request.id}`}
                           </Badge>
                           <div className="text-xs text-gray-500">
-                            {new Date(request.requestedAt || '').toLocaleDateString('ar-SA')}
+                            {formatDate(new Date(request.requestedAt || ''))}
                           </div>
                         </div>
                       </TableCell>
@@ -392,7 +393,7 @@ export default function PartsRequestsList() {
                           </Badge>
                           {request.status === 'delivered' && request.deliveredAt && (
                             <div className="text-xs text-green-600">
-                              تم في: {new Date(request.deliveredAt || '').toLocaleDateString('ar-SA')}
+                              تم في: {formatDate(new Date(request.deliveredAt || ''))}
                             </div>
                           )}
                           {request.status === 'pending' && (
@@ -434,74 +435,34 @@ export default function PartsRequestsList() {
                         <div className="space-y-1 text-xs">
                           <div className="flex items-center gap-2">
                             <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-                            <span>طلب: {(() => {
-                              const syrianTime = new Date(new Date(request.requestedAt!).getTime() + (3 * 60 * 60 * 1000));
-                              return syrianTime.toLocaleDateString('en-US', {
-                                month: 'short',
-                                day: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit'
-                              });
-                            })()}</span>
+                            <span>طلب: {formatTime(new Date(request.requestedAt!))}</span>
                           </div>
                           
                           {request.approvedAt && (
                             <div className="flex items-center gap-2">
                               <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                              <span>موافقة: {(() => {
-                                const syrianTime = new Date(new Date(request.approvedAt).getTime() + (3 * 60 * 60 * 1000));
-                                return syrianTime.toLocaleDateString('en-US', {
-                                  month: 'short',
-                                  day: 'numeric',
-                                  hour: '2-digit',
-                                  minute: '2-digit'
-                                });
-                              })()}</span>
+                              <span>موافقة: {formatTime(new Date(request.approvedAt))}</span>
                             </div>
                           )}
                           
                           {request.inPreparationAt && (
                             <div className="flex items-center gap-2">
                               <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                              <span>تحضير: {(() => {
-                                const syrianTime = new Date(new Date(request.inPreparationAt).getTime() + (3 * 60 * 60 * 1000));
-                                return syrianTime.toLocaleDateString('en-US', {
-                                  month: 'short',
-                                  day: 'numeric',
-                                  hour: '2-digit',
-                                  minute: '2-digit'
-                                });
-                              })()}</span>
+                              <span>تحضير: {formatTime(new Date(request.inPreparationAt))}</span>
                             </div>
                           )}
                           
                           {request.readyForPickupAt && (
                             <div className="flex items-center gap-2">
                               <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                              <span>جاهز: {(() => {
-                                const syrianTime = new Date(new Date(request.readyForPickupAt).getTime() + (3 * 60 * 60 * 1000));
-                                return syrianTime.toLocaleDateString('en-US', {
-                                  month: 'short',
-                                  day: 'numeric',
-                                  hour: '2-digit',
-                                  minute: '2-digit'
-                                });
-                              })()}</span>
+                              <span>جاهز: {formatTime(new Date(request.readyForPickupAt))}</span>
                             </div>
                           )}
                           
                           {request.orderedExternallyAt && (
                             <div className="flex items-center gap-2">
                               <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                              <span>خارجي: {(() => {
-                                const syrianTime = new Date(new Date(request.orderedExternallyAt).getTime() + (3 * 60 * 60 * 1000));
-                                return syrianTime.toLocaleDateString('en-US', {
-                                  month: 'short',
-                                  day: 'numeric',
-                                  hour: '2-digit',
-                                  minute: '2-digit'
-                                });
-                              })()}</span>
+                              <span>خارجي: {formatTime(new Date(request.orderedExternallyAt))}</span>
                             </div>
                           )}
                           
@@ -515,30 +476,14 @@ export default function PartsRequestsList() {
                           {request.partsArrivedAt && (
                             <div className="flex items-center gap-2">
                               <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                              <span>وصول: {(() => {
-                                const syrianTime = new Date(new Date(request.partsArrivedAt).getTime() + (3 * 60 * 60 * 1000));
-                                return syrianTime.toLocaleDateString('en-US', {
-                                  month: 'short',
-                                  day: 'numeric',
-                                  hour: '2-digit',
-                                  minute: '2-digit'
-                                });
-                              })()}</span>
+                              <span>وصول: {formatTime(new Date(request.partsArrivedAt))}</span>
                             </div>
                           )}
                           
                           {request.unavailableAt && (
                             <div className="flex items-center gap-2">
                               <div className="w-2 h-2 bg-gray-500 rounded-full"></div>
-                              <span>غير متوفر: {(() => {
-                                const syrianTime = new Date(new Date(request.unavailableAt).getTime() + (3 * 60 * 60 * 1000));
-                                return syrianTime.toLocaleDateString('en-US', {
-                                  month: 'short',
-                                  day: 'numeric',
-                                  hour: '2-digit',
-                                  minute: '2-digit'
-                                });
-                              })()}</span>
+                              <span>غير متوفر: {formatTime(new Date(request.unavailableAt))}</span>
                             </div>
                           )}
                         </div>
