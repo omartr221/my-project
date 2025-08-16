@@ -1409,6 +1409,62 @@ export class DatabaseStorage implements IStorage {
       color: result.color || undefined,
     }));
   }
+
+  async returnTaskToReception(taskId: number, returnedBy: string): Promise<Task> {
+    // الحصول على التوقيت السوري الدقيق
+    const now = new Date();
+    const syrianTime = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Damascus',
+      year: 'numeric',
+      month: '2-digit', 
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+    }).formatToParts(now);
+    
+    const currentTimeStr = `${syrianTime.find(p => p.type === 'year')?.value}-${syrianTime.find(p => p.type === 'month')?.value}-${syrianTime.find(p => p.type === 'day')?.value} ${syrianTime.find(p => p.type === 'hour')?.value}:${syrianTime.find(p => p.type === 'minute')?.value}:${syrianTime.find(p => p.type === 'second')?.value}`;
+    
+    // إنهاء أي جلسة وقت نشطة
+    const [currentEntry] = await db
+      .select()
+      .from(timeEntries)
+      .where(
+        and(
+          eq(timeEntries.taskId, taskId),
+          isNull(timeEntries.endTime)
+        )
+      )
+      .orderBy(desc(timeEntries.startTime))
+      .limit(1);
+
+    if (currentEntry) {
+      const startTime = new Date(currentEntry.startTime);
+      const duration = Math.floor((now.getTime() - startTime.getTime()) / 1000);
+      await db
+        .update(timeEntries)
+        .set({
+          endTime: currentTimeStr,
+          duration,
+        })
+        .where(eq(timeEntries.id, currentEntry.id));
+    }
+    
+    // تحديث المهمة لحالة "تم التسليم للاستقبال"
+    const [task] = await db
+      .update(tasks)
+      .set({
+        status: "paused",
+        pausedAt: currentTimeStr,
+        pauseReason: "تم تسليم السيارة للاستقبال",
+        pauseNotes: `تم التسليم للاستقبال بواسطة ${returnedBy} في ${currentTimeStr}`,
+      })
+      .where(eq(tasks.id, taskId))
+      .returning();
+
+    return task;
+  }
 }
 
 export const storage = new DatabaseStorage();

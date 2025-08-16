@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Clock, Pause, Play, CheckCircle, User, UserCheck, Wrench, Edit, Package } from "lucide-react";
+import { Clock, Pause, Play, CheckCircle, User, UserCheck, Wrench, Edit, Package, ArrowLeft } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -130,6 +130,29 @@ export default function ActiveTimers({
       toast({
         title: "خطأ",
         description: "فشل في تسليم المهمة",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const returnToReceptionMutation = useMutation({
+    mutationFn: async (taskId: number) => {
+      const response = await apiRequest("POST", `/api/tasks/${taskId}/return-to-reception`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/tasks/active'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/workers'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/stats'] });
+      toast({
+        title: "تم تسليم السيارة للاستقبال",
+        description: "تم إيقاف المؤقت وتحويل السيارة للاستقبال",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "خطأ",
+        description: "فشل في تسليم السيارة للاستقبال",
         variant: "destructive",
       });
     },
@@ -270,12 +293,8 @@ export default function ActiveTimers({
                   
                   {showControls && (canWrite("tasks") || canCreate("tasks")) && (
                     <div className="flex space-x-reverse space-x-2">
-                      {isActive ? (
-                        <PauseTaskDialog 
-                          taskId={task.id} 
-                          disabled={pauseTaskMutation.isPending}
-                        />
-                      ) : (
+                      {/* إزالة زر الإيقاف وإضافة زر التسليم للاستقبال لحساب بدوي */}
+                      {!isActive && (
                         <Button
                           size="sm"
                           variant="outline"
@@ -290,13 +309,13 @@ export default function ActiveTimers({
                       
                       <EditTaskDialog 
                         task={task} 
-                        disabled={pauseTaskMutation.isPending || resumeTaskMutation.isPending || finishTaskMutation.isPending}
+                        disabled={resumeTaskMutation.isPending || finishTaskMutation.isPending}
                       />
                       
                       {!isSupervisor && (
                         <CancelTaskDialog 
                           task={task} 
-                          disabled={pauseTaskMutation.isPending || resumeTaskMutation.isPending || finishTaskMutation.isPending}
+                          disabled={resumeTaskMutation.isPending || finishTaskMutation.isPending}
                         />
                       )}
                       
@@ -318,6 +337,17 @@ export default function ActiveTimers({
                       >
                         <Package className="ml-1 h-3 w-3" />
                         تسليم
+                      </Button>
+
+                      {/* زر تسليم السيارة للاستقبال - لحساب بدوي فقط */}
+                      <Button
+                        size="sm"
+                        onClick={() => returnToReceptionMutation.mutate(task.id)}
+                        disabled={returnToReceptionMutation.isPending}
+                        className="bg-blue-600 hover:bg-blue-700 text-white"
+                      >
+                        <ArrowLeft className="ml-1 h-3 w-3" />
+                        تسليم للاستقبال
                       </Button>
                     </div>
                   )}

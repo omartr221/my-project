@@ -183,6 +183,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Return task to reception (تسليم السيارة للاستقبال)
+  app.post("/api/tasks/:id/return-to-reception", async (req, res) => {
+    try {
+      const taskId = parseInt(req.params.id);
+      const returnedBy = 'بدوي';
+      
+      const task = await storage.returnTaskToReception(taskId, returnedBy);
+      
+      broadcastUpdate("task_returned_to_reception", task);
+      
+      res.json(task);
+    } catch (error) {
+      console.error("Error returning task to reception:", error);
+      res.status(500).json({ message: "Failed to return task to reception" });
+    }
+  });
+
   app.post("/api/tasks/:id/cancel", async (req, res) => {
     try {
       const taskId = parseInt(req.params.id);
