@@ -32,7 +32,7 @@ export default function CarStatusDisplay() {
   const { lastMessage } = useWebSocket();
   const { user } = useAuth();
   const isBadawi = user?.username === 'بدوي';
-
+  
   // Fetch car statuses
   const { data: carStatuses = [], isLoading, refetch } = useQuery<CarStatus[]>({
     queryKey: ['/api/car-status'],
@@ -105,6 +105,11 @@ export default function CarStatusDisplay() {
       });
     },
   });
+
+  // تشخيص للمساعدة
+  console.log('Current user:', user?.username);
+  console.log('Is Badawi:', isBadawi);
+  console.log('Car statuses:', carStatuses?.length);
 
   // Filter cars based on search term
   const filteredCars = carStatuses.filter((car) =>
@@ -341,12 +346,26 @@ export default function CarStatusDisplay() {
                         {isBadawi && car.currentStatus === "في الورشة" && (
                           <Button
                             size="sm"
-                            onClick={() => returnToReceptionMutation.mutate(car.id)}
+                            onClick={() => {
+                              console.log('Button clicked for car:', car.id, car.licensePlate);
+                              returnToReceptionMutation.mutate(car.id);
+                            }}
                             disabled={returnToReceptionMutation.isPending}
                             className="bg-blue-600 hover:bg-blue-700 text-white"
                           >
                             <ArrowLeft className="ml-1 h-3 w-3" />
                             تسليم للاستقبال
+                          </Button>
+                        )}
+                        
+                        {/* زر اختبار مؤقت - يظهر دائماً لبدوي */}
+                        {isBadawi && (
+                          <Button
+                            size="sm"
+                            onClick={() => console.log('Test button clicked, car status:', car.currentStatus)}
+                            className="bg-purple-600 hover:bg-purple-700 text-white mt-2"
+                          >
+                            اختبار ({car.currentStatus})
                           </Button>
                         )}
                       </div>
