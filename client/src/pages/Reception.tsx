@@ -797,7 +797,7 @@ export default function Reception() {
                               </Button>
                               
                               {/* زر إدخال للورشة للمستخدم بدوي */}
-                              {user?.username === "بدوي" && entry.status === "في الاستقبال" && (
+                              {(user?.username === "بدوي" || user?.role === "operator") && entry.status === "في الاستقبال" && (
                                 <Button
                                   size="sm"
                                   onClick={() => moveCarToWorkshop(entry.id, entry.licensePlate)}
