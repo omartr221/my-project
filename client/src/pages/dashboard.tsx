@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Clock, Users, UserCheck, Watch, ListTodo, Archive, LogOut, Package2, Car } from "lucide-react";
+import { Clock, Users, UserCheck, Watch, ListTodo, Archive, LogOut, Package2, Car, ArrowLeft } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
@@ -24,12 +24,13 @@ import WorkshopNotificationDialog from "@/components/WorkshopNotificationDialog"
 
 import CarStatusDisplay from "@/components/CarStatusDisplay";
 import CarPositionsView from "@/components/CarPositionsView";
+import CarDeliveryView from "@/components/CarDeliveryView";
 
 import Reception from "@/pages/Reception";
 import Workshop from "@/pages/Workshop";
 import { useNotifications } from "@/hooks/useNotifications";
 
-type TabType = "dashboard" | "timers" | "history" | "archive" | "addworker" | "customercard" | "parts-requests" | "requests" | "car-status" | "car-positions" | "car-receipts" | "reception" | "workshop";
+type TabType = "dashboard" | "timers" | "history" | "archive" | "addworker" | "customercard" | "parts-requests" | "requests" | "car-status" | "car-positions" | "car-receipts" | "reception" | "workshop" | "car-delivery";
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<TabType>("dashboard");
@@ -215,6 +216,9 @@ export default function Dashboard() {
       case "workshop":
         return <Workshop />;
       
+      case "car-delivery":
+        return <CarDeliveryView />;
+      
       default:
         return null;
     }
@@ -304,6 +308,18 @@ export default function Dashboard() {
                   <Car className="ml-2 h-4 w-4" />
                   وضع السيارات
                 </Button>
+
+                {/* تبويب تسليم السيارة - لبدوي فقط */}
+                {user?.username === "بدوي" && (
+                  <Button
+                    variant={activeTab === "car-delivery" ? "default" : "ghost"}
+                    onClick={() => setActiveTab("car-delivery")}
+                    className="font-medium"
+                  >
+                    <ArrowLeft className="ml-2 h-4 w-4" />
+                    تسليم السيارة
+                  </Button>
+                )}
 
               </>
             ) : (
