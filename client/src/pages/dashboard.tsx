@@ -309,17 +309,7 @@ export default function Dashboard() {
                   وضع السيارات
                 </Button>
 
-                {/* تبويب تسليم السيارة - لبدوي فقط */}
-                {user?.username === "بدوي" && (
-                  <Button
-                    variant={activeTab === "car-delivery" ? "default" : "ghost"}
-                    onClick={() => setActiveTab("car-delivery")}
-                    className="font-medium"
-                  >
-                    <ArrowLeft className="ml-2 h-4 w-4" />
-                    تسليم السيارة
-                  </Button>
-                )}
+
 
               </>
             ) : (
@@ -465,6 +455,18 @@ export default function Dashboard() {
               >
                 <Watch className="ml-2 h-4 w-4" />
                 الورشة
+              </Button>
+            )}
+
+            {/* تبويب تسليم السيارة - لبدوي فقط */}
+            {user?.username === "بدوي" && (
+              <Button
+                variant={activeTab === "car-delivery" ? "default" : "ghost"}
+                onClick={() => setActiveTab("car-delivery")}
+                className="font-medium"
+              >
+                <ArrowLeft className="ml-2 h-4 w-4" />
+                تسليم السيارة
               </Button>
             )}
 
