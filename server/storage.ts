@@ -352,14 +352,19 @@ export class DatabaseStorage implements IStorage {
       .where(eq(tasks.id, taskId))
       .limit(1);
     
-    // Update task status and set startTime if it's the first time
+    // Only set startTime if it's not already set (first start)
+    const updateData: any = {
+      status: "active",
+      pausedAt: null,
+    };
+    
+    if (!currentTask?.startTime) {
+      updateData.startTime = now; // Set startTime only on first start
+    }
+    
     await db
       .update(tasks)
-      .set({
-        status: "active",
-        pausedAt: null,
-        startTime: currentTask?.startTime ? currentTask.startTime : now, // Set startTime only if not set
-      })
+      .set(updateData)
       .where(eq(tasks.id, taskId));
 
     const [timeEntry] = await db
