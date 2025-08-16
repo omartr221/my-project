@@ -59,7 +59,9 @@ export function NotificationCenter() {
 
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleString('ar-SA', {
+    // إضافة 3 ساعات للتوقيت السوري (UTC+3)
+    const syrianTime = new Date(date.getTime() + (3 * 60 * 60 * 1000));
+    return syrianTime.toLocaleString('en-US', {
       hour: '2-digit',
       minute: '2-digit',
       day: '2-digit',

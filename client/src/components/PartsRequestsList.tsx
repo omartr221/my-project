@@ -426,7 +426,7 @@ export default function PartsRequestsList() {
                             <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
                             <span>طلب: {(() => {
                               const syrianTime = new Date(new Date(request.requestedAt!).getTime() + (3 * 60 * 60 * 1000));
-                              return syrianTime.toLocaleDateString('ar-SA', {
+                              return syrianTime.toLocaleDateString('en-US', {
                                 month: 'short',
                                 day: 'numeric',
                                 hour: '2-digit',
@@ -440,7 +440,7 @@ export default function PartsRequestsList() {
                               <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                               <span>موافقة: {(() => {
                                 const syrianTime = new Date(new Date(request.approvedAt).getTime() + (3 * 60 * 60 * 1000));
-                                return syrianTime.toLocaleDateString('ar-SA', {
+                                return syrianTime.toLocaleDateString('en-US', {
                                   month: 'short',
                                   day: 'numeric',
                                   hour: '2-digit',
@@ -455,7 +455,7 @@ export default function PartsRequestsList() {
                               <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                               <span>تحضير: {(() => {
                                 const syrianTime = new Date(new Date(request.inPreparationAt).getTime() + (3 * 60 * 60 * 1000));
-                                return syrianTime.toLocaleDateString('ar-SA', {
+                                return syrianTime.toLocaleDateString('en-US', {
                                   month: 'short',
                                   day: 'numeric',
                                   hour: '2-digit',
@@ -468,26 +468,30 @@ export default function PartsRequestsList() {
                           {request.readyForPickupAt && (
                             <div className="flex items-center gap-2">
                               <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                              <span>جاهز: {new Date(request.readyForPickupAt).toLocaleDateString('ar-SA', {
-                                month: 'short',
-                                day: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit',
-                                timeZone: 'Asia/Damascus'
-                              })}</span>
+                              <span>جاهز: {(() => {
+                                const syrianTime = new Date(new Date(request.readyForPickupAt).getTime() + (3 * 60 * 60 * 1000));
+                                return syrianTime.toLocaleDateString('en-US', {
+                                  month: 'short',
+                                  day: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                });
+                              })()}</span>
                             </div>
                           )}
                           
                           {request.orderedExternallyAt && (
                             <div className="flex items-center gap-2">
                               <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                              <span>خارجي: {new Date(request.orderedExternallyAt).toLocaleDateString('ar-SA', {
-                                month: 'short',
-                                day: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit',
-                                timeZone: 'Asia/Damascus'
-                              })}</span>
+                              <span>خارجي: {(() => {
+                                const syrianTime = new Date(new Date(request.orderedExternallyAt).getTime() + (3 * 60 * 60 * 1000));
+                                return syrianTime.toLocaleDateString('en-US', {
+                                  month: 'short',
+                                  day: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                });
+                              })()}</span>
                             </div>
                           )}
                           
@@ -501,26 +505,30 @@ export default function PartsRequestsList() {
                           {request.partsArrivedAt && (
                             <div className="flex items-center gap-2">
                               <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                              <span>وصول: {new Date(request.partsArrivedAt).toLocaleDateString('ar-SA', {
-                                month: 'short',
-                                day: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit',
-                                timeZone: 'Asia/Damascus'
-                              })}</span>
+                              <span>وصول: {(() => {
+                                const syrianTime = new Date(new Date(request.partsArrivedAt).getTime() + (3 * 60 * 60 * 1000));
+                                return syrianTime.toLocaleDateString('en-US', {
+                                  month: 'short',
+                                  day: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                });
+                              })()}</span>
                             </div>
                           )}
                           
                           {request.unavailableAt && (
                             <div className="flex items-center gap-2">
                               <div className="w-2 h-2 bg-gray-500 rounded-full"></div>
-                              <span>غير متوفر: {new Date(request.unavailableAt).toLocaleDateString('ar-SA', {
-                                month: 'short',
-                                day: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit',
-                                timeZone: 'Asia/Damascus'
-                              })}</span>
+                              <span>غير متوفر: {(() => {
+                                const syrianTime = new Date(new Date(request.unavailableAt).getTime() + (3 * 60 * 60 * 1000));
+                                return syrianTime.toLocaleDateString('en-US', {
+                                  month: 'short',
+                                  day: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                });
+                              })()}</span>
                             </div>
                           )}
                         </div>

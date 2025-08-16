@@ -18,7 +18,7 @@ export function formatDuration(seconds: number): string {
 export function formatTime(date: Date): string {
   // إضافة 3 ساعات للتوقيت السوري (UTC+3)
   const syrianTime = new Date(date.getTime() + (3 * 60 * 60 * 1000));
-  return syrianTime.toLocaleTimeString('ar-SA', {
+  return syrianTime.toLocaleTimeString('en-US', {
     hour12: false,
     hour: '2-digit',
     minute: '2-digit',
@@ -29,7 +29,7 @@ export function formatTime(date: Date): string {
 export function formatDate(date: Date): string {
   // إضافة 3 ساعات للتوقيت السوري (UTC+3)
   const syrianTime = new Date(date.getTime() + (3 * 60 * 60 * 1000));
-  return syrianTime.toLocaleDateString('ar-SA', {
+  return syrianTime.toLocaleDateString('en-US', {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit'
@@ -84,7 +84,7 @@ export function getTaskStatusColor(status: string): string {
 export function formatDateTime(date: Date): string {
   // إضافة 3 ساعات للتوقيت السوري (UTC+3)
   const syrianTime = new Date(date.getTime() + (3 * 60 * 60 * 1000));
-  return syrianTime.toLocaleString('ar-SA', {
+  return syrianTime.toLocaleString('en-US', {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
@@ -99,7 +99,7 @@ export function formatDateTime(date: Date): string {
 export function formatSyrianTime(date: Date): string {
   // إضافة 3 ساعات للتوقيت السوري (UTC+3)
   const syrianTime = new Date(date.getTime() + (3 * 60 * 60 * 1000));
-  return syrianTime.toLocaleTimeString('ar-SA', {
+  return syrianTime.toLocaleTimeString('en-US', {
     hour: '2-digit',
     minute: '2-digit',
     hour12: false
