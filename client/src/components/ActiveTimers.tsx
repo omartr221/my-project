@@ -119,9 +119,13 @@ export default function ActiveTimers({
     }
     
     // For active tasks, calculate from start time minus any paused time
-    const startTime = new Date(task.startTime).getTime();
+    // Convert UTC startTime to local time for accurate calculation
+    const startTimeUTC = new Date(task.startTime);
+    const startTime = startTimeUTC.getTime();
+    const currentUTC = new Date().getTime();
+    
     // Use precise millisecond calculation and convert to seconds
-    const totalElapsedMs = currentTime - startTime;
+    const totalElapsedMs = currentUTC - startTime;
     const totalElapsed = totalElapsedMs / 1000;
     const pausedTime = task.totalPausedDuration || 0;
     
