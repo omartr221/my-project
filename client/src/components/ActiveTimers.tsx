@@ -27,12 +27,10 @@ export default function ActiveTimers({
   const { canWrite, canCreate, isSupervisor } = usePermissions();
   const [currentTime, setCurrentTime] = useState(Date.now());
 
-  // Update timer with more precision (every 1000ms for accurate timing)
+  // Update timer every second for real-time display
   useEffect(() => {
-    // Update immediately on mount
     setCurrentTime(Date.now());
     
-    // Then update every second for timer display
     const interval = setInterval(() => {
       setCurrentTime(Date.now());
     }, 1000);
@@ -111,8 +109,16 @@ export default function ActiveTimers({
   });
 
   const calculateCurrentDuration = (task: TaskWithWorker) => {
-    // Use the currentDuration from the server API directly
-    // This ensures consistency with server calculations and avoids timezone issues
+    // For active tasks, calculate real-time duration
+    if (task.status === 'active' && task.startTime) {
+      const startTime = new Date(task.startTime).getTime();
+      const currentMs = Date.now();
+      const elapsedSeconds = (currentMs - startTime) / 1000;
+      const pausedSeconds = task.totalPausedDuration || 0;
+      return Math.max(0, elapsedSeconds - pausedSeconds);
+    }
+    
+    // For paused/completed tasks, use server value
     return (task as any).currentDuration || 0;
   };
 
