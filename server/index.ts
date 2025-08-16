@@ -1,3 +1,6 @@
+// ضبط التوقيت السوري كتوقيت افتراضي للنظام
+process.env.TZ = process.env.TZ || 'Asia/Damascus';
+
 import express from "express";
 import { createServer } from "http";
 import { setupVite, serveStatic } from "./vite.js";
@@ -42,6 +45,7 @@ async function startServer() {
     console.log(`   - المنفذ: ${port}`);
     console.log(`   - العنوان: ${host}`);
     console.log(`   - الرابط المحلي: http://localhost:${port}`);
+    console.log(`   - التوقيت: ${process.env.TZ || 'UTC'} (${new Date().toString()})`);
     console.log(`📖 النظام جاهز للاستخدام!`);
   });
 }

@@ -18,12 +18,12 @@ export function formatDuration(seconds: number): string {
   return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 }
 
-// دالة مساعدة لتحويل أي توقيت إلى التوقيت السوري
+// دالة مساعدة لتحويل أي توقيت إلى التوقيت السوري (UTC+3)
 function toSyrianTime(date: Date | string): Date {
   let dateObj: Date;
   
   if (typeof date === 'string') {
-    // إذا كان النص يحتوي على Z فهو UTC بالفعل، وإلا أضفه
+    // تعامل مع التوقيت كـ UTC دائماً للحصول على حساب صحيح
     const dateStr = date.includes('Z') ? date : date + 'Z';
     dateObj = new Date(dateStr);
   } else {
