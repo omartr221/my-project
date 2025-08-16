@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Clock, Users, UserCheck, Watch, ListTodo, Archive, LogOut, Package2, Car, ArrowLeft } from "lucide-react";
+import { Clock, Users, UserCheck, Watch, ListTodo, Archive, LogOut, Package2, Car, ArrowLeft, CheckCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
@@ -25,12 +25,13 @@ import WorkshopNotificationDialog from "@/components/WorkshopNotificationDialog"
 import CarStatusDisplay from "@/components/CarStatusDisplay";
 import CarPositionsView from "@/components/CarPositionsView";
 import CarDeliveryView from "@/components/CarDeliveryView";
+import CustomerDeliveryView from "@/components/CustomerDeliveryView";
 
 import Reception from "@/pages/Reception";
 import Workshop from "@/pages/Workshop";
 import { useNotifications } from "@/hooks/useNotifications";
 
-type TabType = "dashboard" | "timers" | "history" | "archive" | "addworker" | "customercard" | "parts-requests" | "requests" | "car-status" | "car-positions" | "car-receipts" | "reception" | "workshop" | "car-delivery";
+type TabType = "dashboard" | "timers" | "history" | "archive" | "addworker" | "customercard" | "parts-requests" | "requests" | "car-status" | "car-positions" | "car-receipts" | "reception" | "workshop" | "car-delivery" | "customer-delivery";
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<TabType>("dashboard");
@@ -219,6 +220,9 @@ export default function Dashboard() {
       case "car-delivery":
         return <CarDeliveryView />;
       
+      case "customer-delivery":
+        return <CustomerDeliveryView />;
+      
       default:
         return null;
     }
@@ -308,6 +312,18 @@ export default function Dashboard() {
                   <Car className="ml-2 h-4 w-4" />
                   وضع السيارات
                 </Button>
+
+                {/* تبويب تسليم للزبون - للاستقبال فقط */}
+                {(user?.role === "reception" || user?.username === "الاستقبال" || user?.username === "فارس") && (
+                  <Button
+                    variant={activeTab === "customer-delivery" ? "default" : "ghost"}
+                    onClick={() => setActiveTab("customer-delivery")}
+                    className="font-medium"
+                  >
+                    <CheckCircle className="ml-2 h-4 w-4" />
+                    تسليم للزبون
+                  </Button>
+                )}
 
 
 
