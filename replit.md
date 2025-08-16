@@ -27,6 +27,12 @@ Current active workers in the system:
 - Button updates car status from "في الورشة" to "في الاستقبال" via PATCH /api/car-status/{id}
 - Proper API integration with real-time updates and WebSocket notifications
 - Enhanced CarStatusDisplay component with role-based button visibility
+- Removed workshop tab from بدوي account (only has car delivery functionality now)
+
+### Customer Delivery System for Reception
+- Added "تسليم للزبون" tab for reception account showing cars returned from workshop
+- Complete car information display including parts used and service details
+- Cars filter out from reception view once delivered to customer
 
 ## System Architecture
 

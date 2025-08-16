@@ -462,8 +462,8 @@ export default function Dashboard() {
               </Button>
             )}
 
-            {/* الورشة - متاح لفارس وبدوي */}
-            {(user?.role === "workshop" || user?.username === "بدوي" || user?.username === "فارس") && (
+            {/* الورشة - متاح لفارس فقط */}
+            {user?.username === "فارس" && (
               <Button
                 variant={activeTab === "workshop" ? "default" : "ghost"}
                 onClick={() => setActiveTab("workshop")}
