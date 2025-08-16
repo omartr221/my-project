@@ -61,6 +61,7 @@ export default function PartsRequestsList() {
 
   const { data: partsRequests = [], isLoading } = useQuery<PartsRequest[]>({
     queryKey: ["/api/parts-requests"],
+    refetchInterval: 5000, // Refresh every 5 seconds
   });
 
   // تحديد الطلبات كمقروءة عند تحميل البيانات (فقط لهبة)

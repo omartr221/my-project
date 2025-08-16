@@ -294,9 +294,10 @@ export default function Reception() {
     queryKey: ["/api/customer-cars"],
   });
 
-  // Fetch parts requests for cars in reception
+  // Fetch parts requests for cars in reception with auto-refresh every 5 seconds
   const { data: partsRequests = [] } = useQuery({
     queryKey: ["/api/parts-requests"],
+    refetchInterval: 5000, // Refresh every 5 seconds
   });
 
   // Filter customers based on search term
