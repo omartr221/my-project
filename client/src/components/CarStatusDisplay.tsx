@@ -3,7 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Car, Clock, Package, Users, RefreshCw } from "lucide-react";
+import { Search, Car, Clock, Package, Users, RefreshCw, ArrowLeft } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -29,6 +30,8 @@ export default function CarStatusDisplay() {
   const [searchTerm, setSearchTerm] = useState("");
   const { toast } = useToast();
   const { lastMessage } = useWebSocket();
+  const { user } = useAuth();
+  const isBadawi = user?.username === 'بدوي';
 
   // Fetch car statuses
   const { data: carStatuses = [], isLoading, refetch } = useQuery<CarStatus[]>({
@@ -76,6 +79,28 @@ export default function CarStatusDisplay() {
       toast({
         title: "خطأ",
         description: "فشل في تحديث وضع السيارة",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Mutation for returning car to reception (for بدوي)
+  const returnToReceptionMutation = useMutation({
+    mutationFn: async (carId: number) => {
+      const response = await apiRequest("POST", `/api/car-status/${carId}/return-to-reception`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/car-status'] });
+      toast({
+        title: "تم تسليم السيارة للاستقبال",
+        description: "تم تحويل السيارة للاستقبال بنجاح",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "خطأ",
+        description: "فشل في تسليم السيارة للاستقبال",
         variant: "destructive",
       });
     },
@@ -309,6 +334,19 @@ export default function CarStatusDisplay() {
                             disabled={updateStatusMutation.isPending}
                           >
                             جاهزة للتسليم
+                          </Button>
+                        )}
+                        
+                        {/* زر تسليم السيارة للاستقبال - لحساب بدوي فقط */}
+                        {isBadawi && car.currentStatus === "في الورشة" && (
+                          <Button
+                            size="sm"
+                            onClick={() => returnToReceptionMutation.mutate(car.id)}
+                            disabled={returnToReceptionMutation.isPending}
+                            className="bg-blue-600 hover:bg-blue-700 text-white"
+                          >
+                            <ArrowLeft className="ml-1 h-3 w-3" />
+                            تسليم للاستقبال
                           </Button>
                         )}
                       </div>

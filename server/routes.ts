@@ -1026,6 +1026,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.patch('/api/car-status/:id', async (req, res) => {
     try {
+      const id = parseInt(req.params.id);
+      const updates = req.body;
+      
+      const carStatus = await storage.updateCarStatus(id, updates);
+      
+      // Send WebSocket notification for car status update
+      broadcastUpdate('CAR_STATUS_UPDATED', carStatus);
+      
+      res.json(carStatus);
+    } catch (error) {
+      console.error('Error updating car status:', error);
+      res.status(500).json({ error: 'Failed to update car status' });
+    }
+  });
+
+  // Return car to reception endpoint (for بدوي)
+  app.post('/api/car-status/:id/return-to-reception', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const username = (req.user as any)?.username || 'Unknown';
+      
+      // Update car status to "في الاستقبال"
+      const carStatus = await storage.updateCarStatus(id, {
+        currentStatus: "في الاستقبال",
+        returnedToReceptionAt: new Date(),
+        returnedBy: username,
+      });
+      
+      // Send WebSocket notification
+      broadcastUpdate('CAR_RETURNED_TO_RECEPTION', {
+        carStatus,
+        returnedBy: username,
+        message: `تم تسليم السيارة ${carStatus.licensePlate} للاستقبال بواسطة ${username}`
+      });
+      
+      res.json(carStatus);
+    } catch (error) {
+      console.error('Error returning car to reception:', error);
+      res.status(500).json({ error: 'Failed to return car to reception' });
+    }
+  });
+
+  app.patch('/api/car-status/:id', async (req, res) => {
+    try {
       const carStatus = await storage.updateCarStatus(parseInt(req.params.id), req.body);
       
       // Send WebSocket notification for status update

@@ -367,16 +367,7 @@ export default function ActiveTimers({
                         </Button>
                       )}
                       
-                      {/* زر مؤقت لاختبار الظهور - يظهر دائماً */}
-                      <Button
-                        size="sm"
-                        onClick={() => returnToReceptionMutation.mutate(task.id)}
-                        disabled={returnToReceptionMutation.isPending}
-                        className="bg-purple-600 hover:bg-purple-700 text-white"
-                      >
-                        <ArrowLeft className="ml-1 h-3 w-3" />
-                        اختبار الزر
-                      </Button>
+
                     </div>
                   )}
                 </div>
