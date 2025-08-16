@@ -474,8 +474,8 @@ export default function Dashboard() {
               </Button>
             )}
 
-            {/* تبويب تسليم السيارة - لبدوي فقط */}
-            {user?.username === "بدوي" && (
+            {/* تبويب تسليم السيارة - لبدوي وفارس */}
+            {(user?.username === "بدوي" || user?.username === "فارس") && (
               <Button
                 variant={activeTab === "car-delivery" ? "default" : "ghost"}
                 onClick={() => setActiveTab("car-delivery")}
@@ -483,6 +483,18 @@ export default function Dashboard() {
               >
                 <ArrowLeft className="ml-2 h-4 w-4" />
                 تسليم السيارة
+              </Button>
+            )}
+
+            {/* تبويب تسليم للزبون - لفارس */}
+            {user?.username === "فارس" && (
+              <Button
+                variant={activeTab === "customer-delivery" ? "default" : "ghost"}
+                onClick={() => setActiveTab("customer-delivery")}
+                className="font-medium"
+              >
+                <CheckCircle className="ml-2 h-4 w-4" />
+                تسليم للزبون
               </Button>
             )}
 
