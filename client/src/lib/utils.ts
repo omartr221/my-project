@@ -15,8 +15,8 @@ export function formatDuration(seconds: number): string {
   return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 }
 
-export function formatTime(date: Date | string): string {
-  // تحويل النص إلى Date object إذا لزم الأمر
+// دالة مساعدة لتحويل أي توقيت إلى التوقيت السوري
+function toSyrianTime(date: Date | string): Date {
   let dateObj: Date;
   
   if (typeof date === 'string') {
@@ -28,8 +28,11 @@ export function formatTime(date: Date | string): string {
   }
   
   // إضافة 3 ساعات للتوقيت السوري (UTC+3)
-  const syrianTime = new Date(dateObj.getTime() + (3 * 60 * 60 * 1000));
-  
+  return new Date(dateObj.getTime() + (3 * 60 * 60 * 1000));
+}
+
+export function formatTime(date: Date | string): string {
+  const syrianTime = toSyrianTime(date);
   return syrianTime.toLocaleTimeString('en-US', {
     hour12: false,
     hour: '2-digit',
@@ -39,20 +42,7 @@ export function formatTime(date: Date | string): string {
 }
 
 export function formatDate(date: Date | string): string {
-  // تحويل النص إلى Date object إذا لزم الأمر
-  let dateObj: Date;
-  
-  if (typeof date === 'string') {
-    // إذا كان النص يحتوي على Z فهو UTC بالفعل، وإلا أضفه
-    const dateStr = date.includes('Z') ? date : date + 'Z';
-    dateObj = new Date(dateStr);
-  } else {
-    dateObj = date;
-  }
-  
-  // إضافة 3 ساعات للتوقيت السوري (UTC+3)
-  const syrianTime = new Date(dateObj.getTime() + (3 * 60 * 60 * 1000));
-  
+  const syrianTime = toSyrianTime(date);
   return syrianTime.toLocaleDateString('en-US', {
     year: 'numeric',
     month: '2-digit',
@@ -106,20 +96,7 @@ export function getTaskStatusColor(status: string): string {
 
 // دالة لتنسيق التوقيت والتاريخ معاً بالتوقيت السوري  
 export function formatDateTime(date: Date | string): string {
-  // تحويل النص إلى Date object إذا لزم الأمر
-  let dateObj: Date;
-  
-  if (typeof date === 'string') {
-    // إذا كان النص يحتوي على Z فهو UTC بالفعل، وإلا أضفه
-    const dateStr = date.includes('Z') ? date : date + 'Z';
-    dateObj = new Date(dateStr);
-  } else {
-    dateObj = date;
-  }
-  
-  // إضافة 3 ساعات للتوقيت السوري (UTC+3)
-  const syrianTime = new Date(dateObj.getTime() + (3 * 60 * 60 * 1000));
-  
+  const syrianTime = toSyrianTime(date);
   return syrianTime.toLocaleString('en-US', {
     year: 'numeric',
     month: '2-digit',
@@ -129,6 +106,11 @@ export function formatDateTime(date: Date | string): string {
     second: '2-digit',
     hour12: false
   });
+}
+
+// دالة لإنشاء Date object بالتوقيت السوري - لاستخدامها مع مكتبات التاريخ الأخرى
+export function createSyrianDate(date: Date | string): Date {
+  return toSyrianTime(date);
 }
 
 // دالة لتنسيق الوقت فقط بالتوقيت السوري

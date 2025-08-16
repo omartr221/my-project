@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Package2, Calendar, User, Car, FileText, Check, X, Clock, ShoppingCart, AlertCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { ar } from 'date-fns/locale';
+import { createSyrianDate } from '@/lib/utils';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useEffect } from 'react';
 import TestNotification from './TestNotification';
@@ -393,7 +394,7 @@ export default function RequestsList() {
                 <Calendar className="h-4 w-4 text-gray-600" />
                 <span className="font-medium">التاريخ:</span>
                 <span>
-                  {format(new Date(request.requestedAt + 'Z'), 'PPP', { locale: ar })}
+                  {format(createSyrianDate(request.requestedAt), 'PPP', { locale: ar })}
                 </span>
               </div>
             </div>
@@ -407,34 +408,34 @@ export default function RequestsList() {
               <div className="space-y-2 text-sm">
                 <div className="flex items-center space-x-reverse space-x-2">
                   <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-                  <span>تم الطلب: {format(new Date(request.requestedAt + 'Z'), 'PPpp', { locale: ar })}</span>
+                  <span>تم الطلب: {format(createSyrianDate(request.requestedAt), 'PPpp', { locale: ar })}</span>
                 </div>
                 
                 {request.approvedAt && (
                   <div className="flex items-center space-x-reverse space-x-2">
                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    <span>تم الموافقة: {format(new Date(request.approvedAt + 'Z'), 'PPpp', { locale: ar })}</span>
+                    <span>تم الموافقة: {format(createSyrianDate(request.approvedAt), 'PPpp', { locale: ar })}</span>
                   </div>
                 )}
                 
                 {request.inPreparationAt && (
                   <div className="flex items-center space-x-reverse space-x-2">
                     <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                    <span>قيد التحضير: {format(new Date(request.inPreparationAt + 'Z'), 'PPpp', { locale: ar })}</span>
+                    <span>قيد التحضير: {format(createSyrianDate(request.inPreparationAt), 'PPpp', { locale: ar })}</span>
                   </div>
                 )}
                 
                 {request.readyForPickupAt && (
                   <div className="flex items-center space-x-reverse space-x-2">
                     <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                    <span>جاهز للاستلام: {format(new Date(request.readyForPickupAt + 'Z'), 'PPpp', { locale: ar })}</span>
+                    <span>جاهز للاستلام: {format(createSyrianDate(request.readyForPickupAt), 'PPpp', { locale: ar })}</span>
                   </div>
                 )}
                 
                 {request.orderedExternallyAt && (
                   <div className="flex items-center space-x-reverse space-x-2">
                     <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                    <span>تم الطلب خارجياً: {format(new Date(request.orderedExternallyAt + 'Z'), 'PPpp', { locale: ar })}</span>
+                    <span>تم الطلب خارجياً: {format(createSyrianDate(request.orderedExternallyAt), 'PPpp', { locale: ar })}</span>
                   </div>
                 )}
                 
@@ -448,21 +449,21 @@ export default function RequestsList() {
                 {request.partsArrivedAt && (
                   <div className="flex items-center space-x-reverse space-x-2">
                     <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                    <span>وصلت القطعة: {format(new Date(request.partsArrivedAt + 'Z'), 'PPpp', { locale: ar })}</span>
+                    <span>وصلت القطعة: {format(createSyrianDate(request.partsArrivedAt), 'PPpp', { locale: ar })}</span>
                   </div>
                 )}
                 
                 {request.deliveredAt && (
                   <div className="flex items-center space-x-reverse space-x-2">
                     <div className="w-2 h-2 bg-teal-500 rounded-full"></div>
-                    <span>تم الاستلام: {format(new Date(request.deliveredAt + 'Z'), 'PPpp', { locale: ar })}</span>
+                    <span>تم الاستلام: {format(createSyrianDate(request.deliveredAt), 'PPpp', { locale: ar })}</span>
                   </div>
                 )}
                 
                 {request.unavailableAt && (
                   <div className="flex items-center space-x-reverse space-x-2">
                     <div className="w-2 h-2 bg-gray-500 rounded-full"></div>
-                    <span>غير متوفر: {format(new Date(request.unavailableAt + 'Z'), 'PPpp', { locale: ar })}</span>
+                    <span>غير متوفر: {format(createSyrianDate(request.unavailableAt), 'PPpp', { locale: ar })}</span>
                   </div>
                 )}
               </div>

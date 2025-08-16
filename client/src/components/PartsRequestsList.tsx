@@ -15,7 +15,7 @@ import { type PartsRequest } from "@shared/schema";
 import { useAuth } from "@/hooks/use-auth";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useEffect } from "react";
-import { formatDate, formatTime } from "@/lib/utils";
+import { formatDate, formatTime, createSyrianDate } from "@/lib/utils";
 
 const statusColors = {
   pending: "bg-yellow-100 text-yellow-800",
