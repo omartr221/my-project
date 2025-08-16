@@ -15,6 +15,7 @@ import { z } from "zod";
 import { formatDuration, formatTime, formatDate, getCarBrandInArabic, getTaskStatusInArabic, getTaskStatusColor } from "@/lib/utils";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 import { type TaskHistory } from "@shared/schema";
 
 const archiveFormSchema = z.object({
@@ -27,12 +28,19 @@ type ArchiveFormData = z.infer<typeof archiveFormSchema>;
 
 export default function TaskHistoryTable() {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
   const [selectedRating, setSelectedRating] = useState<number>(0);
 
   const { data: taskHistory, isLoading } = useQuery({
     queryKey: ['/api/tasks/history'],
     refetchInterval: 5000,
+  });
+
+  // استعلام طلبات القطع مع تحديثاتها لبدوي وفارس
+  const { data: partsRequests, isLoading: isLoadingParts } = useQuery({
+    queryKey: ['/api/parts-requests'],
+    refetchInterval: 3000,
   });
 
   const archiveForm = useForm<ArchiveFormData>({
@@ -101,25 +109,78 @@ export default function TaskHistoryTable() {
     archiveForm.reset();
   };
 
-  if (isLoading) {
+  if (isLoading || isLoadingParts) {
     return (
       <Card>
         <CardContent className="p-6">
-          <div className="text-center">جاري تحميل سجل المهام...</div>
+          <div className="text-center">جاري تحميل السجل...</div>
         </CardContent>
       </Card>
     );
   }
+
+  // دالة لعرض حالة طلب القطع بالعربية
+  const getPartsStatusInArabic = (status: string) => {
+    const statusMap: { [key: string]: string } = {
+      'in_preparation': 'قيد التحضير',
+      'awaiting_pickup': 'بانتظار الاستلام', 
+      'parts_arrived': 'وصلت القطع',
+      'delivered': 'تم التسليم'
+    };
+    return statusMap[status] || status;
+  };
+
+  // دالة لعرض لون حالة طلب القطع
+  const getPartsStatusColor = (status: string) => {
+    switch (status) {
+      case 'in_preparation': return 'bg-yellow-100 text-yellow-800';
+      case 'awaiting_pickup': return 'bg-blue-100 text-blue-800';
+      case 'parts_arrived': return 'bg-purple-100 text-purple-800';
+      case 'delivered': return 'bg-green-100 text-green-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
 
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Clock className="w-5 h-5" />
-          سجل المهام
+          سجل المهام {(user?.username === "بدوي" || user?.username === "فارس") && "وطلبات القطع"}
         </CardTitle>
       </CardHeader>
       <CardContent>
+        {/* عرض طلبات القطع لبدوي وفارس */}
+        {(user?.username === "بدوي" || user?.username === "فارس") && partsRequests && partsRequests.length > 0 && (
+          <div className="mb-8">
+            <h3 className="text-lg font-semibold mb-4 text-blue-600">📦 طلبات القطع</h3>
+            <div className="bg-blue-50 rounded-lg p-4 mb-4">
+              <div className="grid gap-3">
+                {partsRequests.slice(0, 10).map((request: any) => (
+                  <div key={request.id} className="bg-white rounded-lg p-3 border border-blue-200">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="font-medium text-gray-900">طلب #{request.requestNumber}</span>
+                          <Badge className={getPartsStatusColor(request.status)}>
+                            {getPartsStatusInArabic(request.status)}
+                          </Badge>
+                        </div>
+                        <div className="text-sm text-gray-600 space-y-1">
+                          <div><strong>المهندس:</strong> {request.engineerName}</div>
+                          <div><strong>القطعة:</strong> {request.partName} ({request.quantity})</div>
+                          <div><strong>السيارة:</strong> {request.carInfo}</div>
+                          <div><strong>الوقت:</strong> {formatTime(new Date(request.createdAt))}</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
         {!taskHistory || taskHistory.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
             لا توجد مهام في السجل
