@@ -33,23 +33,44 @@ function toSyrianTime(date: Date | string): Date {
 }
 
 export function formatTime(date: Date | string): string {
-  const syrianTime = toSyrianTime(date);
+  let dateObj: Date;
   
-  const hours = syrianTime.getUTCHours();
-  const minutes = syrianTime.getUTCMinutes();
-  const seconds = syrianTime.getUTCSeconds();
+  if (typeof date === 'string') {
+    // إذا كان التوقيت بدون Z، اعتبره محلي (توقيت سوري)
+    if (!date.includes('Z') && !date.includes('+')) {
+      dateObj = new Date(date.replace(' ', 'T'));
+    } else {
+      dateObj = new Date(date);
+    }
+  } else {
+    dateObj = date;
+  }
   
-  // تنسيق 24 ساعة بالتوقيت السوري
+  const hours = dateObj.getHours();
+  const minutes = dateObj.getMinutes();
+  const seconds = dateObj.getSeconds();
+  
+  // تنسيق 24 ساعة
   return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
 }
 
 export function formatDate(date: Date | string): string {
-  const syrianTime = toSyrianTime(date);
+  let dateObj: Date;
   
-  // استخدام UTC لتجنب تحويل المنطقة الزمنية المحلية
-  const year = syrianTime.getUTCFullYear();
-  const month = (syrianTime.getUTCMonth() + 1).toString().padStart(2, '0');
-  const day = syrianTime.getUTCDate().toString().padStart(2, '0');
+  if (typeof date === 'string') {
+    // إذا كان التوقيت بدون Z، اعتبره محلي (توقيت سوري)
+    if (!date.includes('Z') && !date.includes('+')) {
+      dateObj = new Date(date.replace(' ', 'T'));
+    } else {
+      dateObj = new Date(date);
+    }
+  } else {
+    dateObj = date;
+  }
+  
+  const year = dateObj.getFullYear();
+  const month = (dateObj.getMonth() + 1).toString().padStart(2, '0');
+  const day = dateObj.getDate().toString().padStart(2, '0');
   
   return `${month}/${day}/${year}`;
 }
