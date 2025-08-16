@@ -85,14 +85,14 @@ export default function PausedTasksList({ tasks }: PausedTasksListProps) {
                         مشرف: {(task as any).supervisorName}
                       </Badge>
                     )}
-                    {(task as any).technicians && (task as any).technicians.length > 0 && (
+                    {(task as any).technicians && (task as any).technicians.trim() !== '' && (
                       <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-800">
-                        فنيون: {(task as any).technicians.join(', ')}
+                        فنيون: {(task as any).technicians}
                       </Badge>
                     )}
-                    {(task as any).assistants && (task as any).assistants.length > 0 && (
+                    {(task as any).assistants && (task as any).assistants.trim() !== '' && (
                       <Badge variant="secondary" className="text-xs bg-purple-100 text-purple-800">
-                        مساعدون: {(task as any).assistants.join(', ')}
+                        مساعدون: {(task as any).assistants}
                       </Badge>
                     )}
                   </div>

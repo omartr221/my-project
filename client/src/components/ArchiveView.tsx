@@ -330,11 +330,11 @@ export default function ArchiveView() {
                   <td>${(task as any).color || '--'}</td>
                   <td>${engineerName}</td>
                   <td>${supervisorName}</td>
-                  <td>${(task as any).technicians && (task as any).technicians.length > 0 ? 
-                    (task as any).technicians.join(', ') : 
+                  <td>${(task as any).technicians && (task as any).technicians.trim() !== '' ? 
+                    (task as any).technicians : 
                     ((task as any).technicianName || '--')}</td>
-                  <td>${(task as any).assistants && (task as any).assistants.length > 0 ? 
-                    (task as any).assistants.join(', ') : 
+                  <td>${(task as any).assistants && (task as any).assistants.trim() !== '' ? 
+                    (task as any).assistants : 
                     ((task as any).assistantName || '--')}</td>
                   <td>${task.estimatedDuration ? task.estimatedDuration + ' دقيقة' : 'غير محدد'}</td>
                   <td>${(task as any).timerType === 'manual' && (task as any).consumedTime 
