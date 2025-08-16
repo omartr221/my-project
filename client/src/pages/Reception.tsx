@@ -9,13 +9,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Car, Clock, User, Phone, MapPin, Fuel, Gauge, Search } from "lucide-react";
+import { Plus, Car, Clock, User, Phone, MapPin, Fuel, Gauge, Search, Settings } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import type { ReceptionEntry, InsertReceptionEntry, Customer, CustomerCar } from "@shared/schema";
+import { useAuth } from "@/hooks/use-auth";
 
 export default function Reception() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState<Omit<InsertReceptionEntry, 'receptionUserId'>>({
     carOwnerName: "",
@@ -105,6 +107,32 @@ export default function Reception() {
       toast({
         title: "خطأ",
         description: "حدث خطأ أثناء تسليم السيارة",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Function to move car to workshop (for بدوي)
+  const moveCarToWorkshop = async (entryId: number, licensePlate: string) => {
+    try {
+      await fetch(`/api/reception-entries/${entryId}/enter-workshop`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      
+      toast({
+        title: "تم إدخال السيارة للورشة",
+        description: `تم إدخال السيارة ${licensePlate} للورشة بنجاح`,
+      });
+      
+      queryClient.invalidateQueries({ queryKey: ["/api/reception-entries"] });
+      
+    } catch (error) {
+      toast({
+        title: "خطأ",
+        description: "حدث خطأ أثناء إدخال السيارة للورشة",
         variant: "destructive",
       });
     }
@@ -767,6 +795,18 @@ export default function Reception() {
                               >
                                 {receptionTimer[entry.id]?.isRunning ? "إيقاف المؤقت" : "استئناف المؤقت"}
                               </Button>
+                              
+                              {/* زر إدخال للورشة للمستخدم بدوي */}
+                              {user?.username === "بدوي" && entry.status === "في الاستقبال" && (
+                                <Button
+                                  size="sm"
+                                  onClick={() => moveCarToWorkshop(entry.id, entry.licensePlate)}
+                                  className="bg-blue-500 hover:bg-blue-600 text-white"
+                                >
+                                  <Settings className="ml-2 h-4 w-4" />
+                                  إدخال للورشة
+                                </Button>
+                              )}
                             </div>
                           )}
                           
