@@ -657,6 +657,37 @@ export class DatabaseStorage implements IStorage {
         .where(eq(timeEntries.id, currentEntry.id));
     }
     
+    // الحصول على المهمة لحساب المدة الفعلية والنسبة المئوية
+    const existingTask = await db.query.tasks.findFirst({
+      where: eq(tasks.id, taskId),
+    });
+    
+    if (!existingTask) {
+      throw new Error('المهمة غير موجودة');
+    }
+    
+    // حساب المدة الفعلية الكاملة من البداية حتى الآن
+    let actualDurationSeconds = 0;
+    if (existingTask.startTime) {
+      const startTime = new Date(existingTask.startTime);
+      actualDurationSeconds = Math.floor((now.getTime() - startTime.getTime()) / 1000);
+    }
+    
+    // حساب النسبة المئوية بناءً على المدة الفعلية مقابل الوقت المقدر
+    let efficiencyPercentage = 100; // افتراضي
+    
+    if (existingTask.estimatedDuration && existingTask.estimatedDuration > 0 && actualDurationSeconds > 0) {
+      // إذا كانت المدة الفعلية أقل من أو تساوي المقدرة = 100%
+      // إذا كانت أكثر، نقلل النسبة تدريجياً
+      if (actualDurationSeconds <= existingTask.estimatedDuration) {
+        efficiencyPercentage = 100;
+      } else {
+        // حساب النسبة: كلما زادت المدة الفعلية عن المقدرة، قلت النسبة
+        const ratio = existingTask.estimatedDuration / actualDurationSeconds;
+        efficiencyPercentage = Math.max(Math.round(ratio * 100), 20); // حد أدنى 20%
+      }
+    }
+    
     // الحصول على آخر رقم تسليم
     const lastArchivedTask = await db.query.tasks.findFirst({
       where: eq(tasks.isArchived, true),
@@ -665,26 +696,24 @@ export class DatabaseStorage implements IStorage {
     
     const nextDeliveryNumber = (lastArchivedTask?.deliveryNumber || 0) + 1;
     
-    // حساب النسبة المئوية (3 نجوم = 100%، 2 نجوم = 66%، 1 نجمة = 33%)
-    const efficiency = rating === 3 ? 100 : rating === 2 ? 66 : 33;
-    
-    // تحديث المهمة للأرشيف مع كامل المعلومات
+    // تحديث المهمة للأرشيف مع كامل المعلومات والحسابات الصحيحة  
     const [task] = await db
       .update(tasks)
       .set({
         status: "archived",
         endTime: endTimeStr,
+        consumedTime: actualDurationSeconds,
         isArchived: true,
-        archivedAt: now.toISOString(),
+        archivedAt: endTimeStr,
         archivedBy: deliveredBy,
-        archiveNotes: notes || 'تم التسليم بنجاح',
+        archiveNotes: notes || `تم التسليم - المدة الفعلية: ${Math.round(actualDurationSeconds / 60)} دقيقة - النسبة: ${efficiencyPercentage}%`,
         rating: rating,
         deliveryNumber: nextDeliveryNumber,
       })
       .where(eq(tasks.id, taskId))
       .returning();
 
-    return task as any;
+    return task;
   }
 
   async getArchivedTasks(limit: number = 100): Promise<TaskHistory[]> {
