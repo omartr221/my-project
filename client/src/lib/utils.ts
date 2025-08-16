@@ -16,21 +16,23 @@ export function formatDuration(seconds: number): string {
 }
 
 export function formatTime(date: Date): string {
-  return date.toLocaleTimeString('ar-SA', {
+  // إضافة 3 ساعات للتوقيت السوري (UTC+3)
+  const syrianTime = new Date(date.getTime() + (3 * 60 * 60 * 1000));
+  return syrianTime.toLocaleTimeString('ar-SA', {
     hour12: false,
     hour: '2-digit',
     minute: '2-digit',
-    second: '2-digit',
-    timeZone: 'Asia/Damascus'
+    second: '2-digit'
   });
 }
 
 export function formatDate(date: Date): string {
-  return date.toLocaleDateString('ar-SA', {
+  // إضافة 3 ساعات للتوقيت السوري (UTC+3)
+  const syrianTime = new Date(date.getTime() + (3 * 60 * 60 * 1000));
+  return syrianTime.toLocaleDateString('ar-SA', {
     year: 'numeric',
     month: '2-digit',
-    day: '2-digit',
-    timeZone: 'Asia/Damascus'
+    day: '2-digit'
   });
 }
 
@@ -80,24 +82,26 @@ export function getTaskStatusColor(status: string): string {
 
 // دالة لتنسيق التوقيت والتاريخ معاً بالتوقيت السوري  
 export function formatDateTime(date: Date): string {
-  return date.toLocaleString('ar-SA', {
+  // إضافة 3 ساعات للتوقيت السوري (UTC+3)
+  const syrianTime = new Date(date.getTime() + (3 * 60 * 60 * 1000));
+  return syrianTime.toLocaleString('ar-SA', {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit',
-    hour12: false,
-    timeZone: 'Asia/Damascus'
+    hour12: false
   });
 }
 
 // دالة لتنسيق الوقت فقط بالتوقيت السوري
 export function formatSyrianTime(date: Date): string {
-  return date.toLocaleTimeString('ar-SA', {
+  // إضافة 3 ساعات للتوقيت السوري (UTC+3)
+  const syrianTime = new Date(date.getTime() + (3 * 60 * 60 * 1000));
+  return syrianTime.toLocaleTimeString('ar-SA', {
     hour: '2-digit',
     minute: '2-digit',
-    hour12: false,
-    timeZone: 'Asia/Damascus'
+    hour12: false
   });
 }

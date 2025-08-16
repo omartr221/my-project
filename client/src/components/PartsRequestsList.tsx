@@ -424,38 +424,44 @@ export default function PartsRequestsList() {
                         <div className="space-y-1 text-xs">
                           <div className="flex items-center gap-2">
                             <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-                            <span>طلب: {new Date(request.requestedAt!).toLocaleDateString('ar-SA', {
-                              month: 'short',
-                              day: 'numeric',
-                              hour: '2-digit',
-                              minute: '2-digit',
-                              timeZone: 'Asia/Damascus'
-                            })}</span>
+                            <span>طلب: {(() => {
+                              const syrianTime = new Date(new Date(request.requestedAt!).getTime() + (3 * 60 * 60 * 1000));
+                              return syrianTime.toLocaleDateString('ar-SA', {
+                                month: 'short',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              });
+                            })()}</span>
                           </div>
                           
                           {request.approvedAt && (
                             <div className="flex items-center gap-2">
                               <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                              <span>موافقة: {new Date(request.approvedAt).toLocaleDateString('ar-SA', {
-                                month: 'short',
-                                day: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit',
-                                timeZone: 'Asia/Damascus'
-                              })}</span>
+                              <span>موافقة: {(() => {
+                                const syrianTime = new Date(new Date(request.approvedAt).getTime() + (3 * 60 * 60 * 1000));
+                                return syrianTime.toLocaleDateString('ar-SA', {
+                                  month: 'short',
+                                  day: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                });
+                              })()}</span>
                             </div>
                           )}
                           
                           {request.inPreparationAt && (
                             <div className="flex items-center gap-2">
                               <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                              <span>تحضير: {new Date(request.inPreparationAt).toLocaleDateString('ar-SA', {
-                                month: 'short',
-                                day: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit',
-                                timeZone: 'Asia/Damascus'
-                              })}</span>
+                              <span>تحضير: {(() => {
+                                const syrianTime = new Date(new Date(request.inPreparationAt).getTime() + (3 * 60 * 60 * 1000));
+                                return syrianTime.toLocaleDateString('ar-SA', {
+                                  month: 'short',
+                                  day: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                });
+                              })()}</span>
                             </div>
                           )}
                           
