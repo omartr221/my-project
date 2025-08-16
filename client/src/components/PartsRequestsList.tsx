@@ -87,14 +87,14 @@ export default function PartsRequestsList() {
     mutationFn: async (requestId: number) => {
       const response = await apiRequest('PATCH', `/api/parts-requests/${requestId}/status`, {
         status: 'delivered',
-        notes: 'تم الاستلام بنجاح'
+        notes: 'تم استلام القطعة'
       });
       return response.json();
     },
     onSuccess: () => {
       toast({
-        title: "تم التسليم بنجاح",
-        description: "تم تسليم القطعة بنجاح",
+        title: "تم الاستلام بنجاح",
+        description: "تم استلام القطعة بنجاح",
       });
       queryClient.invalidateQueries({ queryKey: ['/api/parts-requests'] });
     },
@@ -538,18 +538,7 @@ export default function PartsRequestsList() {
                               </Button>
                             </>
                           )}
-                          {request.status === "approved" && (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleStatusUpdate(request.id, "delivered")}
-                              disabled={updateStatusMutation.isPending}
-                              className="text-blue-600 hover:text-blue-700"
-                            >
-                              <Package2 className="h-4 w-4 mr-1" />
-                              تم التسليم
-                            </Button>
-                          )}
+
                           
                           {/* زر تسليم للمستخدم بدوي */}
                           {user?.username === 'بدوي' && request.status !== 'delivered' && request.status !== 'rejected' && request.status !== 'returned' && (
@@ -561,7 +550,7 @@ export default function PartsRequestsList() {
                               className="bg-teal-600 hover:bg-teal-700"
                             >
                               <Check className="h-4 w-4 mr-1" />
-                              {finalDeliveryMutation.isPending ? 'جاري...' : 'تسليم'}
+                              {finalDeliveryMutation.isPending ? 'جاري...' : 'تم الاستلام'}
                             </Button>
                           )}
 
