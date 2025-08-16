@@ -279,30 +279,46 @@ export default function CarStatusDisplay() {
                             </Button>
                           )}
                           
-                          {/* زر تسليم السيارة للاستقبال - لحساب بدوي فقط */}
-                          {isBadawi && car.currentStatus === "في الورشة" && (
+                          {/* زر اختبار للجميع - مؤقت للتحقق */}
+                          <Button
+                            size="lg"
+                            onClick={() => {
+                              console.log('🔴 Button clicked for car:', car.id, car.licensePlate);
+                              console.log('🔴 User:', user?.username, 'isBadawi:', isBadawi);
+                              console.log('🔴 Car status:', car.currentStatus);
+                              if (car.currentStatus === "في الورشة") {
+                                returnToReceptionMutation.mutate(car.id);
+                              } else {
+                                alert(`السيارة ليست في الورشة - الحالة: ${car.currentStatus}`);
+                              }
+                            }}
+                            className="bg-red-600 hover:bg-red-700 text-white w-full text-lg font-bold mb-2"
+                          >
+                            🔴 اختبار الزر - للجميع 🔴
+                          </Button>
+                          
+                          {/* زر بدوي فقط */}
+                          {user?.username === 'بدوي' && car.currentStatus === "في الورشة" && (
                             <Button
                               size="lg"
                               onClick={() => {
-                                console.log('🔴 بدوي clicked return to reception for car:', car.id, car.licensePlate);
+                                console.log('🔵 بدوي clicked return to reception for car:', car.id, car.licensePlate);
                                 returnToReceptionMutation.mutate(car.id);
                               }}
                               disabled={returnToReceptionMutation.isPending}
-                              className="bg-blue-600 hover:bg-blue-700 text-white w-full text-lg font-bold"
+                              className="bg-blue-600 hover:bg-blue-700 text-white w-full text-lg font-bold mb-2"
                             >
                               <ArrowLeft className="ml-2 h-5 w-5" />
                               🚗 تسليم السيارة للاستقبال 🚗
                             </Button>
                           )}
                           
-                          {/* زر اختبار لعرض معلومات المستخدم */}
-                          <Button
-                            size="sm"
-                            onClick={() => console.log('المستخدم الحالي:', user?.username, 'هل هو بدوي؟', isBadawi)}
-                            className="bg-gray-500 hover:bg-gray-600 text-white mt-2"
-                          >
-                            اختبار المستخدم: {user?.username || 'غير مسجل'}
-                          </Button>
+                          {/* معلومات المستخدم */}
+                          <div className="text-xs text-gray-600 bg-gray-100 p-2 rounded">
+                            المستخدم: {user?.username || 'غير مسجل'} | 
+                            بدوي؟ {user?.username === 'بدوي' ? 'نعم' : 'لا'} |
+                            حالة السيارة: {car.currentStatus}
+                          </div>
                         </div>
                       </div>
                     </div>
