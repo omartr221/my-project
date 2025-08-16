@@ -13,16 +13,20 @@ import { cn } from "@/lib/utils";
 
 const statusColors = {
   "في الاستقبال": "bg-blue-500 text-white",
-  "في الورشة": "bg-orange-500 text-white", 
-  "بانتظار قطع": "bg-yellow-500 text-white",
-  "جاهزة للتسليم": "bg-green-500 text-white"
+  "في الورشة": "bg-orange-500 text-white",
+  "بانتظار قطع": "bg-purple-500 text-white",
+  "جاهزة للتسليم": "bg-green-500 text-white",
+  "تم التسليم": "bg-gray-500 text-white",
+  "مؤجلة": "bg-red-500 text-white",
 };
 
 const statusIcons = {
-  "في الاستقبال": Car,
-  "في الورشة": RefreshCw,
+  "في الاستقبال": Users,
+  "في الورشة": Car,
   "بانتظار قطع": Package,
-  "جاهزة للتسليم": Users
+  "جاهزة للتسليم": RefreshCw,
+  "تم التسليم": Clock,
+  "مؤجلة": Clock,
 };
 
 export default function CarStatusDisplay() {
@@ -37,47 +41,25 @@ export default function CarStatusDisplay() {
     refetchInterval: 5000, // Refresh every 5 seconds for real-time updates
   });
 
-  // Fetch parts requests to show with car status
-  const { data: partsRequests = [] } = useQuery<any[]>({
-    queryKey: ["/api/parts-requests"],
-    refetchInterval: 5000,
-  });
-
-  // Handle WebSocket updates
-  useEffect(() => {
-    if (lastMessage) {
-      try {
-        const message = JSON.parse(lastMessage);
-        if (message.type === 'CAR_STATUS_CREATED' || 
-            message.type === 'CAR_STATUS_UPDATED' || 
-            message.type === 'CAR_STATUS_DELETED') {
-          refetch();
-        }
-      } catch (error) {
-        console.error('Error parsing WebSocket message:', error);
-      }
-    }
-  }, [lastMessage, refetch]);
-
-  // Update car status mutation
+  // Mutation for updating car status
   const updateStatusMutation = useMutation({
-    mutationFn: ({ id, updates }: { id: number, updates: Partial<CarStatus> }) =>
-      apiRequest(`/api/car-status/${id}`, {
-        method: 'PATCH',
-        body: JSON.stringify(updates),
-      }),
-    onSuccess: () => {
-      toast({
-        title: "تم التحديث",
-        description: "تم تحديث وضع السيارة بنجاح",
-      });
-      queryClient.invalidateQueries({ queryKey: ['/api/car-status'] });
+    mutationFn: async ({ id, updates }: { id: number; updates: Partial<CarStatus> }) => {
+      const response = await apiRequest("PATCH", `/api/car-status/${id}`, updates);
+      return response.json();
     },
-    onError: () => {
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/car-status'] });
       toast({
-        title: "خطأ",
-        description: "فشل في تحديث وضع السيارة",
+        title: "تم تحديث حالة السيارة",
+        description: "تم حفظ التغييرات بنجاح",
+      });
+    },
+    onError: (error) => {
+      console.error("Error updating car status:", error);
+      toast({
         variant: "destructive",
+        title: "خطأ في التحديث",
+        description: "حدث خطأ أثناء تحديث حالة السيارة",
       });
     },
   });
@@ -92,25 +74,29 @@ export default function CarStatusDisplay() {
       queryClient.invalidateQueries({ queryKey: ['/api/car-status'] });
       toast({
         title: "تم تسليم السيارة للاستقبال",
-        description: "تم تحويل السيارة للاستقبال بنجاح",
+        description: "تم نقل السيارة من الورشة إلى الاستقبال بنجاح",
       });
     },
-    onError: () => {
+    onError: (error) => {
+      console.error("Error returning car to reception:", error);
       toast({
-        title: "خطأ",
-        description: "فشل في تسليم السيارة للاستقبال",
         variant: "destructive",
+        title: "خطأ في التسليم",
+        description: "حدث خطأ أثناء تسليم السيارة للاستقبال",
       });
     },
   });
 
-  // تشخيص للمساعدة
-  console.log('Current user:', user?.username);
-  console.log('Is Badawi:', isBadawi);
-  console.log('Car statuses:', carStatuses?.length);
+  // Auto-refresh every 10 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      refetch();
+    }, 10000);
+    return () => clearInterval(interval);
+  }, [refetch]);
 
   // Filter cars based on search term
-  const filteredCars = carStatuses.filter((car) =>
+  const filteredCars = carStatuses.filter(car =>
     car.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
     car.licensePlate.toLowerCase().includes(searchTerm.toLowerCase()) ||
     car.carBrand.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -183,9 +169,9 @@ export default function CarStatusDisplay() {
           {/* Search Bar */}
           <div className="mb-6">
             <div className="relative">
-              <Search className="absolute right-3 top-3 h-4 w-4 text-gray-400" />
+              <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
-                placeholder="ابحث عن سيارة (الزبون، رقم السيارة، نوع السيارة)"
+                placeholder="البحث في السيارات..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pr-10"
@@ -193,132 +179,87 @@ export default function CarStatusDisplay() {
             </div>
           </div>
 
-          {/* Status Summary */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            {Object.entries(statusColors).map(([status, colorClass]) => {
-              const count = carStatuses.filter(car => car.currentStatus === status).length;
-              const StatusIcon = statusIcons[status as keyof typeof statusIcons];
-              return (
-                <Card key={status} className="p-4">
-                  <div className="flex items-center space-x-reverse space-x-2">
-                    <StatusIcon className="h-5 w-5 text-gray-600" />
-                    <div>
-                      <p className="text-sm text-gray-600">{status}</p>
-                      <p className="text-2xl font-bold">{count}</p>
-                    </div>
-                  </div>
-                </Card>
-              );
-            })}
-          </div>
-
-          {/* Cars List */}
+          {/* Car Status Grid */}
           <div className="space-y-4">
             {filteredCars.length === 0 ? (
-              <div className="text-center text-gray-500 py-8">
-                {searchTerm ? "لا توجد سيارات تطابق البحث" : "لا توجد سيارات مسجلة حالياً"}
+              <div className="text-center py-8 text-gray-500">
+                <Car className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>لا توجد سيارات تطابق البحث</p>
               </div>
             ) : (
               filteredCars.map((car) => (
-                <Card key={car.id} className="p-4 hover:shadow-md transition-shadow">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-reverse space-x-4 mb-2">
-                        <h3 className="font-bold text-lg">{car.customerName}</h3>
-                        <Badge variant="outline">{car.licensePlate}</Badge>
-                        <span className="text-gray-600">{car.carBrand} {car.carModel}</span>
-                      </div>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm text-gray-600 mb-3">
-                        {car.maintenanceType && (
-                          <div>نوع الصيانة: {car.maintenanceType}</div>
-                        )}
-                        {car.kmReading && (
-                          <div>الكيلومترات: {car.kmReading.toLocaleString()}</div>
-                        )}
-                        {car.fuelLevel && (
-                          <div>البنزين: {car.fuelLevel}</div>
-                        )}
-                      </div>
-
-                      {car.complaints && (
-                        <div className="text-sm text-gray-700 mb-2">
-                          <strong>الشكاوي:</strong> {car.complaints}
+                <Card key={car.id} className="hover:shadow-md transition-shadow">
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-reverse space-x-4 mb-2">
+                          <h3 className="font-bold text-lg">{car.customerName}</h3>
+                          <Badge variant="outline">{car.licensePlate}</Badge>
+                          <span className="text-gray-600">{car.carBrand} {car.carModel}</span>
                         </div>
-                      )}
-
-                      {/* عرض طلبات القطع للسيارة */}
-                      {(() => {
-                        const carPartsRequests = partsRequests.filter((req: any) => 
-                          req.licensePlate === car.licensePlate
-                        );
-                        if (carPartsRequests.length > 0) {
-                          return (
-                            <div className="mt-2 p-2 bg-blue-50 rounded border">
-                              <div className="text-sm font-medium text-blue-800 mb-1">
-                                طلبات القطع ({carPartsRequests.length}):
-                              </div>
-                              <div className="space-y-1">
-                                {carPartsRequests.slice(0, 3).map((req: any) => (
-                                  <div key={req.id} className="text-xs text-blue-700">
-                                    • {req.partName} - {req.status === 'pending' ? 'قيد المراجعة' : 
-                                      req.status === 'approved' ? 'تم الموافقة' :
-                                      req.status === 'in_preparation' ? 'قيد التحضير' :
-                                      req.status === 'awaiting_pickup' ? 'بانتظار الاستلام' :
-                                      req.status === 'delivered' ? 'تم التسليم' : req.status}
-                                  </div>
-                                ))}
-                                {carPartsRequests.length > 3 && (
-                                  <div className="text-xs text-blue-600">
-                                    +{carPartsRequests.length - 3} طلبات أخرى
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          );
-                        }
-                        return null;
-                      })()}
-
-                      <div className="flex items-center space-x-reverse space-x-4 text-xs text-gray-500">
-                        <div className="flex items-center">
-                          <Clock className="h-3 w-3 mr-1" />
-                          منذ {getElapsedTime(car)}
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm text-gray-600 mb-3">
+                          {car.maintenanceType && (
+                            <div>نوع الصيانة: {car.maintenanceType}</div>
+                          )}
+                          {car.kmReading && (
+                            <div>الكيلومترات: {car.kmReading.toLocaleString()}</div>
+                          )}
+                          {car.fuelLevel && (
+                            <div>البنزين: {car.fuelLevel}</div>
+                          )}
                         </div>
-                        {car.partsRequestsCount > 0 && (
-                          <div className="flex items-center">
-                            <Package className="h-3 w-3 mr-1" />
-                            {car.partsRequestsCount} طلب قطع ({car.completedPartsCount} مكتمل)
+
+                        {car.complaints && (
+                          <div className="text-sm text-gray-700 mb-2">
+                            <strong>الشكاوي:</strong> {car.complaints}
                           </div>
                         )}
-                      </div>
-                    </div>
 
-                    <div className="flex flex-col items-end space-y-2">
-                      {getStatusBadge(car.currentStatus)}
-                      
-                      {/* Quick Status Change Buttons */}
-                      <div className="flex flex-wrap gap-1">
-                        {car.currentStatus === "في الاستقبال" && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleStatusChange(car.id, "في الورشة")}
-                            disabled={updateStatusMutation.isPending}
-                          >
-                            إدخال للورشة
-                          </Button>
-                        )}
-                        {car.currentStatus === "في الورشة" && (
-                          <>
+                        <div className="flex items-center space-x-reverse space-x-4 text-xs text-gray-500">
+                          <div className="flex items-center">
+                            <Clock className="h-3 w-3 mr-1" />
+                            منذ {getElapsedTime(car)}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col items-end space-y-2">
+                        {getStatusBadge(car.currentStatus)}
+                        
+                        {/* Quick Status Change Buttons */}
+                        <div className="flex flex-wrap gap-1">
+                          {car.currentStatus === "في الاستقبال" && (
                             <Button
                               size="sm"
                               variant="outline"
-                              onClick={() => handleStatusChange(car.id, "بانتظار قطع")}
+                              onClick={() => handleStatusChange(car.id, "في الورشة")}
                               disabled={updateStatusMutation.isPending}
                             >
-                              طلب قطع
+                              إدخال للورشة
                             </Button>
+                          )}
+                          {car.currentStatus === "في الورشة" && (
+                            <>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleStatusChange(car.id, "بانتظار قطع")}
+                                disabled={updateStatusMutation.isPending}
+                              >
+                                طلب قطع
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleStatusChange(car.id, "جاهزة للتسليم")}
+                                disabled={updateStatusMutation.isPending}
+                              >
+                                جاهزة للتسليم
+                              </Button>
+                            </>
+                          )}
+                          {car.currentStatus === "بانتظار قطع" && (
                             <Button
                               size="sm"
                               variant="outline"
@@ -327,48 +268,38 @@ export default function CarStatusDisplay() {
                             >
                               جاهزة للتسليم
                             </Button>
-                          </>
-                        )}
-                        {car.currentStatus === "بانتظار قطع" && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleStatusChange(car.id, "جاهزة للتسليم")}
-                            disabled={updateStatusMutation.isPending}
-                          >
-                            جاهزة للتسليم
-                          </Button>
-                        )}
-                        
-                        {/* زر تسليم السيارة للاستقبال - لحساب بدوي فقط */}
-                        {isBadawi && car.currentStatus === "في الورشة" && (
-                          <Button
-                            size="sm"
-                            onClick={() => {
-                              console.log('Button clicked for car:', car.id, car.licensePlate);
-                              returnToReceptionMutation.mutate(car.id);
-                            }}
-                            disabled={returnToReceptionMutation.isPending}
-                            className="bg-blue-600 hover:bg-blue-700 text-white"
-                          >
-                            <ArrowLeft className="ml-1 h-3 w-3" />
-                            تسليم للاستقبال
-                          </Button>
-                        )}
-                        
-                        {/* زر اختبار مؤقت - يظهر دائماً لبدوي */}
-                        {isBadawi && (
-                          <Button
-                            size="sm"
-                            onClick={() => console.log('Test button clicked, car status:', car.currentStatus)}
-                            className="bg-purple-600 hover:bg-purple-700 text-white mt-2"
-                          >
-                            اختبار ({car.currentStatus})
-                          </Button>
-                        )}
+                          )}
+                          
+                          {/* زر تسليم السيارة للاستقبال - لحساب بدوي فقط */}
+                          {isBadawi && car.currentStatus === "في الورشة" && (
+                            <Button
+                              size="sm"
+                              onClick={() => {
+                                console.log('🔴 Button clicked for car:', car.id, car.licensePlate, 'Status:', car.currentStatus);
+                                returnToReceptionMutation.mutate(car.id);
+                              }}
+                              disabled={returnToReceptionMutation.isPending}
+                              className="bg-blue-600 hover:bg-blue-700 text-white"
+                            >
+                              <ArrowLeft className="ml-1 h-3 w-3" />
+                              تسليم للاستقبال
+                            </Button>
+                          )}
+                          
+                          {/* زر اختبار مؤقت - يظهر دائماً لبدوي */}
+                          {isBadawi && (
+                            <Button
+                              size="sm"
+                              onClick={() => console.log('🟣 Test button clicked. Car ID:', car.id, 'Status:', car.currentStatus, 'User:', user?.username)}
+                              className="bg-purple-600 hover:bg-purple-700 text-white mt-2"
+                            >
+                              اختبار ({car.currentStatus})
+                            </Button>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  </CardContent>
                 </Card>
               ))
             )}
