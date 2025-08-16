@@ -999,12 +999,16 @@ export class DatabaseStorage implements IStorage {
     
     const requestNumber = `طلب-${maxNumber + 1}`;
     
+    const now = new Date();
+    const localTime = new Date(now.getTime() + (3 * 60 * 60 * 1000)); // Add 3 hours for Syria time
+    const timeString = localTime.toISOString().replace('T', ' ').split('.')[0];
+    
     const [newRequest] = await db
       .insert(partsRequests)
       .values({
         ...request,
         requestNumber,
-        requestedAt: new Date().toISOString().replace('T', ' ').split('.')[0],
+        requestedAt: timeString,
         licensePlate: request.licensePlate || null,
         chassisNumber: request.chassisNumber || null,
         engineCode: request.engineCode || null,
@@ -1037,7 +1041,8 @@ export class DatabaseStorage implements IStorage {
   async updatePartsRequestStatus(id: number, status: string, notes?: string, estimatedArrival?: string): Promise<PartsRequest> {
     const updateData: any = { status };
     const now = new Date();
-    const timeString = now.toISOString().replace('T', ' ').split('.')[0];
+    const localTime = new Date(now.getTime() + (3 * 60 * 60 * 1000)); // Add 3 hours for Syria time
+    const timeString = localTime.toISOString().replace('T', ' ').split('.')[0];
     
     // تسجيل الأوقات حسب الحالة - استخدام نفس تنسيق requestedAt
     if (status === "approved") {
