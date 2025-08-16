@@ -6,6 +6,19 @@ This is a full-stack web application for task distribution and time tracking for
 ## User Preferences
 Preferred communication style: Simple, everyday language.
 
+## Worker Names (Updated August 16, 2025)
+Current active workers in the system:
+- خالد
+- حسام  
+- حكيم
+- محمد العلي
+- يزن
+- عامر
+- زياد
+- علي
+- عبد الحفيظ
+- مصطفى
+
 ## System Architecture
 
 ### Frontend
