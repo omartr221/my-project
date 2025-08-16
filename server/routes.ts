@@ -653,15 +653,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (status === 'delivered') {
         // إضافة سجل في المهام للمهندس المطلوب
         try {
+          // البحث عن العامل بناءً على اسم المهندس أو إنشاء سجل افتراضي
+          const workers = await storage.getWorkers();
+          let workerId = workers.find(w => w.name === request.engineerName)?.id || 1;
+          
           await storage.createTask({
-            workerId: 0, // سيتم تجاهل هذا في حالة task entries للقطع
+            workerId: workerId,
             description: `تم استلام القطعة: ${request.partName} - ${request.requestNumber}`,
             taskType: "parts_received",
-            estimatedTime: 0,
-            carInfo: request.carInfo || "",
+            estimatedDuration: 0,
+            carBrand: "N/A",
+            carModel: "N/A", 
+            licensePlate: request.licensePlate || "N/A",
             engineerName: request.engineerName || "",
-            partName: request.partName || "",
-            requestNumber: request.requestNumber || ""
           });
         } catch (taskError) {
           console.error("Error creating task entry for parts delivery:", taskError);
