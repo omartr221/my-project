@@ -668,6 +668,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   private calculateCurrentDuration(task: Task): number {
+    console.log(`Calculating duration for task ${task.id}: startTime=${task.startTime}, status=${task.status}, timerType=${task.timerType}`);
+    
     // For manual timer tasks, use the consumed time directly
     if (task.timerType === 'manual' && task.consumedTime) {
       return task.consumedTime * 60; // Convert minutes to seconds
@@ -709,6 +711,8 @@ export class DatabaseStorage implements IStorage {
     
     // Ensure minimum reasonable duration for completed tasks
     const calculatedDuration = Math.max(0, totalDuration - pausedTime);
+    
+    console.log(`Task ${task.id}: totalDuration=${totalDuration}, pausedTime=${pausedTime}, calculatedDuration=${calculatedDuration}`);
     
     // For completed tasks with very small duration, return a minimum of 1 minute
     if ((task.status === 'completed' || task.status === 'archived') && calculatedDuration < 60) {
