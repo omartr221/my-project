@@ -33,21 +33,27 @@ function toSyrianTime(date: Date | string): Date {
 
 export function formatTime(date: Date | string): string {
   const syrianTime = toSyrianTime(date);
-  return syrianTime.toLocaleTimeString('en-US', {
-    hour12: true,
-    hour: 'numeric',
-    minute: '2-digit',
-    second: '2-digit'
-  });
+  
+  // استخدام UTC لتجنب تحويل المنطقة الزمنية المحلية
+  const hours = syrianTime.getUTCHours();
+  const minutes = syrianTime.getUTCMinutes();
+  const seconds = syrianTime.getUTCSeconds();
+  
+  const period = hours >= 12 ? 'PM' : 'AM';
+  const displayHours = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
+  
+  return `${displayHours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')} ${period}`;
 }
 
 export function formatDate(date: Date | string): string {
   const syrianTime = toSyrianTime(date);
-  return syrianTime.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit'
-  });
+  
+  // استخدام UTC لتجنب تحويل المنطقة الزمنية المحلية
+  const year = syrianTime.getUTCFullYear();
+  const month = (syrianTime.getUTCMonth() + 1).toString().padStart(2, '0');
+  const day = syrianTime.getUTCDate().toString().padStart(2, '0');
+  
+  return `${month}/${day}/${year}`;
 }
 
 export function getCarBrandInArabic(brand: string): string {
