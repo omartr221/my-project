@@ -35,6 +35,10 @@ export default function CarStatusDisplay() {
   const { user } = useAuth();
   const isBadawi = user?.username === 'بدوي';
   
+  // Debug logging
+  console.log('🟢 CarStatusDisplay - Current user:', user);
+  console.log('🟢 CarStatusDisplay - isBadawi:', isBadawi);
+  
   // Fetch car statuses
   const { data: carStatuses = [], isLoading, refetch } = useQuery<CarStatus[]>({
     queryKey: ['/api/car-status'],
@@ -102,6 +106,11 @@ export default function CarStatusDisplay() {
     car.carBrand.toLowerCase().includes(searchTerm.toLowerCase()) ||
     car.carModel.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // Debug: Log all cars and their statuses
+  console.log('🚗 All cars:', carStatuses);
+  console.log('🚗 Cars in workshop:', carStatuses.filter(car => car.currentStatus === "في الورشة"));
+  console.log('🚗 Filtered cars:', filteredCars);
 
   const handleStatusChange = (carId: number, newStatus: string) => {
     const updates: Partial<CarStatus> = {
@@ -270,32 +279,30 @@ export default function CarStatusDisplay() {
                             </Button>
                           )}
                           
-                          {/* زر تسليم السيارة للاستقبال - لحساب بدوي فقط */}
-                          {isBadawi && car.currentStatus === "في الورشة" && (
+                          {/* زر تسليم السيارة للاستقبال - مؤقتاً للجميع للاختبار */}
+                          {car.currentStatus === "في الورشة" && (
                             <Button
                               size="sm"
                               onClick={() => {
-                                console.log('🔴 Button clicked for car:', car.id, car.licensePlate, 'Status:', car.currentStatus);
+                                console.log('🔴 Return to reception button clicked for car:', car.id, car.licensePlate);
                                 returnToReceptionMutation.mutate(car.id);
                               }}
                               disabled={returnToReceptionMutation.isPending}
                               className="bg-blue-600 hover:bg-blue-700 text-white"
                             >
                               <ArrowLeft className="ml-1 h-3 w-3" />
-                              تسليم للاستقبال
+                              تسليم للاستقبال (للجميع)
                             </Button>
                           )}
                           
-                          {/* زر اختبار مؤقت - يظهر دائماً لبدوي */}
-                          {isBadawi && (
-                            <Button
-                              size="sm"
-                              onClick={() => console.log('🟣 Test button clicked. Car ID:', car.id, 'Status:', car.currentStatus, 'User:', user?.username)}
-                              className="bg-purple-600 hover:bg-purple-700 text-white mt-2"
-                            >
-                              اختبار ({car.currentStatus})
-                            </Button>
-                          )}
+                          {/* زر اختبار مؤقت - يظهر دائماً */}
+                          <Button
+                            size="sm"
+                            onClick={() => console.log('🟣 Test button clicked. Car ID:', car.id, 'Status:', car.currentStatus, 'User:', user?.username, 'isBadawi:', isBadawi)}
+                            className="bg-purple-600 hover:bg-purple-700 text-white mt-2"
+                          >
+                            اختبار-{user?.username || 'غير مسجل'} ({car.currentStatus})
+                          </Button>
                         </div>
                       </div>
                     </div>
