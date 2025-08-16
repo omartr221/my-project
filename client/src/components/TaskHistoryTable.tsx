@@ -170,7 +170,7 @@ export default function TaskHistoryTable() {
                           <div><strong>المهندس:</strong> {request.engineerName}</div>
                           <div><strong>القطعة:</strong> {request.partName} ({request.quantity})</div>
                           <div><strong>السيارة:</strong> {request.carInfo}</div>
-                          <div><strong>الوقت:</strong> {formatTime(new Date(request.requestedAt || request.createdAt))}</div>
+                          <div><strong>الوقت:</strong> {formatTime(new Date(request.requestedAt || request.createdAt))} ({formatDate(new Date(request.requestedAt || request.createdAt))})</div>
                         </div>
                       </div>
                     </div>
