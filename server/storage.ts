@@ -288,7 +288,7 @@ export class DatabaseStorage implements IStorage {
         timerType: insertTask.timerType || "automatic",
         consumedTime: insertTask.timerType === "manual" ? (insertTask.consumedTime || 0) : null,
         taskNumber,
-        startTime: insertTask.timerType === "manual" ? null : new Date(),
+        startTime: insertTask.timerType === "manual" ? null : null, // سيتم تعيينه في startTask
         status: insertTask.timerType === "manual" ? "completed" : "paused",
       })
       .returning();
@@ -343,12 +343,22 @@ export class DatabaseStorage implements IStorage {
   }
 
   async startTask(taskId: number): Promise<TimeEntry> {
-    // Resume task if paused
+    const now = new Date();
+    
+    // Get current task to check if it's the first start
+    const [currentTask] = await db
+      .select()
+      .from(tasks)
+      .where(eq(tasks.id, taskId))
+      .limit(1);
+    
+    // Update task status and set startTime if it's the first time
     await db
       .update(tasks)
       .set({
         status: "active",
         pausedAt: null,
+        startTime: currentTask?.startTime ? currentTask.startTime : now, // Set startTime only if not set
       })
       .where(eq(tasks.id, taskId));
 
@@ -356,7 +366,7 @@ export class DatabaseStorage implements IStorage {
       .insert(timeEntries)
       .values({
         taskId,
-        startTime: new Date(),
+        startTime: now,
         entryType: "work",
       })
       .returning();
