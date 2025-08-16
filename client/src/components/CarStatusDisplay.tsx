@@ -279,29 +279,21 @@ export default function CarStatusDisplay() {
                             </Button>
                           )}
                           
-                          {/* زر تسليم السيارة للاستقبال - مؤقتاً للجميع للاختبار */}
-                          {car.currentStatus === "في الورشة" && (
-                            <Button
-                              size="sm"
-                              onClick={() => {
-                                console.log('🔴 Return to reception button clicked for car:', car.id, car.licensePlate);
-                                returnToReceptionMutation.mutate(car.id);
-                              }}
-                              disabled={returnToReceptionMutation.isPending}
-                              className="bg-blue-600 hover:bg-blue-700 text-white"
-                            >
-                              <ArrowLeft className="ml-1 h-3 w-3" />
-                              تسليم للاستقبال (للجميع)
-                            </Button>
-                          )}
-                          
-                          {/* زر اختبار مؤقت - يظهر دائماً */}
+                          {/* زر كبير واضح للجميع */}
                           <Button
-                            size="sm"
-                            onClick={() => console.log('🟣 Test button clicked. Car ID:', car.id, 'Status:', car.currentStatus, 'User:', user?.username, 'isBadawi:', isBadawi)}
-                            className="bg-purple-600 hover:bg-purple-700 text-white mt-2"
+                            size="lg"
+                            onClick={() => {
+                              console.log('🔴 BIG BLUE BUTTON clicked for car:', car.id, car.licensePlate);
+                              if (car.currentStatus === "في الورشة") {
+                                returnToReceptionMutation.mutate(car.id);
+                              } else {
+                                alert(`حالة السيارة: ${car.currentStatus} - الزر يعمل فقط للسيارات في الورشة`);
+                              }
+                            }}
+                            className="bg-blue-600 hover:bg-blue-700 text-white w-full text-lg font-bold"
                           >
-                            اختبار-{user?.username || 'غير مسجل'} ({car.currentStatus})
+                            <ArrowLeft className="ml-2 h-5 w-5" />
+                            {car.currentStatus === "في الورشة" ? "🚗 تسليم للاستقبال 🚗" : `حالة السيارة: ${car.currentStatus}`}
                           </Button>
                         </div>
                       </div>
