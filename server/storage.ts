@@ -1004,7 +1004,7 @@ export class DatabaseStorage implements IStorage {
       .values({
         ...request,
         requestNumber,
-        requestedAt: new Date(),
+        requestedAt: new Date().toISOString().replace('T', ' ').split('.')[0],
         licensePlate: request.licensePlate || null,
         chassisNumber: request.chassisNumber || null,
         engineCode: request.engineCode || null,
@@ -1037,29 +1037,30 @@ export class DatabaseStorage implements IStorage {
   async updatePartsRequestStatus(id: number, status: string, notes?: string, estimatedArrival?: string): Promise<PartsRequest> {
     const updateData: any = { status };
     const now = new Date();
+    const timeString = now.toISOString().replace('T', ' ').split('.')[0];
     
-    // تسجيل الأوقات حسب الحالة
+    // تسجيل الأوقات حسب الحالة - استخدام نفس تنسيق requestedAt
     if (status === "approved") {
-      updateData.approvedAt = now.toISOString();
+      updateData.approvedAt = timeString;
     } else if (status === "in_preparation") {
-      updateData.inPreparationAt = now.toISOString();
-      updateData.approvedAt = now.toISOString(); // تسجيل وقت الموافقة أيضاً
+      updateData.inPreparationAt = timeString;
+      updateData.approvedAt = timeString; // تسجيل وقت الموافقة أيضاً
     } else if (status === "awaiting_pickup") {
-      updateData.readyForPickupAt = now.toISOString();
+      updateData.readyForPickupAt = timeString;
     } else if (status === "ordered_externally") {
-      updateData.orderedExternallyAt = now.toISOString();
+      updateData.orderedExternallyAt = timeString;
       updateData.orderedExternallyBy = "هبة"; // يمكن تحسين هذا لاحقاً
       if (estimatedArrival) {
         updateData.estimatedArrival = estimatedArrival;
       }
     } else if (status === "parts_arrived") {
-      updateData.partsArrivedAt = now.toISOString();
+      updateData.partsArrivedAt = timeString;
       updateData.partsArrivedBy = "بدوي"; // يمكن تحسين هذا لاحقاً
     } else if (status === "unavailable") {
-      updateData.unavailableAt = now.toISOString();
+      updateData.unavailableAt = timeString;
       updateData.unavailableBy = "هبة"; // يمكن تحسين هذا لاحقاً
     } else if (status === "delivered") {
-      updateData.deliveredAt = now.toISOString();
+      updateData.deliveredAt = timeString;
       updateData.deliveredBy = "بدوي"; // يمكن تحسين هذا لاحقاً
     }
     
