@@ -18,16 +18,36 @@ export default function CarDeliveryView() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // جلب جميع السيارات
-  const { data: allCars = [], isLoading } = useQuery<Car[]>({
-    queryKey: ['/api/cars'],
+  // جلب حالات السيارات من API الصحيح
+  const { data: carStatuses = [], isLoading, error } = useQuery<any[]>({
+    queryKey: ['/api/car-status'],
     refetchInterval: 3000,
   });
+  
+  console.log('🚗 Car statuses from correct API:', carStatuses);
+  
+  // تحويل carStatuses إلى تنسيق Car مؤقتاً
+  const allCars = carStatuses.map((status: any) => ({
+    id: status.id,
+    licensePlate: status.licensePlate,
+    currentStatus: status.currentStatus,
+    customerName: status.customerName,
+    carModel: status.carModel || status.carBrand,
+    entryTime: status.enteredWorkshopAt || status.createdAt
+  }));
 
-  // فلترة السيارات في الورشة فقط
-  const carsInWorkshop = allCars.filter(car => 
-    car.currentStatus === "في الورشة" || car.currentStatus === "workshop"
-  );
+  // فلترة السيارات في الورشة فقط - مع إضافة تسجيل للتحقق
+  console.log('🔍 All cars data:', allCars);
+  const carsInWorkshop = allCars.filter(car => {
+    const isInWorkshop = car.currentStatus === "في الورشة" || 
+                        car.currentStatus === "workshop" ||
+                        car.currentStatus === "في_الورشة" ||
+                        car.currentStatus === "ورشة";
+    console.log(`🚗 Car ${car.licensePlate}: status="${car.currentStatus}", isInWorkshop=${isInWorkshop}`);
+    return isInWorkshop;
+  });
+  
+  console.log('🏭 Cars in workshop:', carsInWorkshop.length, carsInWorkshop);
 
   // تسليم السيارة للاستقبال
   const returnToReceptionMutation = useMutation({
