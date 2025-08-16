@@ -51,10 +51,8 @@ export function formatTime(date: Date | string): string {
   const minutes = dateObj.getMinutes();
   const seconds = dateObj.getSeconds();
   
-  const period = hours >= 12 ? 'PM' : 'AM';
-  const displayHours = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
-  
-  return `${displayHours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')} ${period}`;
+  // تنسيق 24 ساعة
+  return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
 }
 
 export function formatDate(date: Date | string): string {
