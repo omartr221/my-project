@@ -15,9 +15,11 @@ export function formatDuration(seconds: number): string {
   return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 }
 
-export function formatTime(date: Date): string {
+export function formatTime(date: Date | string): string {
+  // تحويل النص إلى Date object إذا لزم الأمر
+  const dateObj = typeof date === 'string' ? new Date(date + 'Z') : date;
   // إضافة 3 ساعات للتوقيت السوري (UTC+3)
-  const syrianTime = new Date(date.getTime() + (3 * 60 * 60 * 1000));
+  const syrianTime = new Date(dateObj.getTime() + (3 * 60 * 60 * 1000));
   return syrianTime.toLocaleTimeString('en-US', {
     hour12: false,
     hour: '2-digit',
@@ -26,9 +28,11 @@ export function formatTime(date: Date): string {
   });
 }
 
-export function formatDate(date: Date): string {
+export function formatDate(date: Date | string): string {
+  // تحويل النص إلى Date object إذا لزم الأمر
+  const dateObj = typeof date === 'string' ? new Date(date + 'Z') : date;
   // إضافة 3 ساعات للتوقيت السوري (UTC+3)
-  const syrianTime = new Date(date.getTime() + (3 * 60 * 60 * 1000));
+  const syrianTime = new Date(dateObj.getTime() + (3 * 60 * 60 * 1000));
   return syrianTime.toLocaleDateString('en-US', {
     year: 'numeric',
     month: '2-digit',
@@ -81,9 +85,11 @@ export function getTaskStatusColor(status: string): string {
 }
 
 // دالة لتنسيق التوقيت والتاريخ معاً بالتوقيت السوري  
-export function formatDateTime(date: Date): string {
+export function formatDateTime(date: Date | string): string {
+  // تحويل النص إلى Date object إذا لزم الأمر
+  const dateObj = typeof date === 'string' ? new Date(date + 'Z') : date;
   // إضافة 3 ساعات للتوقيت السوري (UTC+3)
-  const syrianTime = new Date(date.getTime() + (3 * 60 * 60 * 1000));
+  const syrianTime = new Date(dateObj.getTime() + (3 * 60 * 60 * 1000));
   return syrianTime.toLocaleString('en-US', {
     year: 'numeric',
     month: '2-digit',
