@@ -353,20 +353,7 @@ export default function ActiveTimers({
                         تسليم
                       </Button>
 
-                      {/* زر تسليم السيارة للاستقبال - لحساب بدوي فقط */}
-                      {console.log('Rendering delivery button for task', task.id, 'isBadawi:', isBadawi)}
-                      {isBadawi && (
-                        <Button
-                          size="sm"
-                          onClick={() => returnToReceptionMutation.mutate(task.id)}
-                          disabled={returnToReceptionMutation.isPending}
-                          className="bg-blue-600 hover:bg-blue-700 text-white"
-                        >
-                          <ArrowLeft className="ml-1 h-3 w-3" />
-                          تسليم للاستقبال
-                        </Button>
-                      )}
-                      
+
 
                     </div>
                   )}

@@ -8,7 +8,6 @@ import { useAuth } from "@/hooks/use-auth";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { useWebSocket } from "@/hooks/useWebSocket";
 import { type CarStatus } from "@shared/schema";
 import { cn } from "@/lib/utils";
 
@@ -29,7 +28,6 @@ const statusIcons = {
 export default function CarStatusDisplay() {
   const [searchTerm, setSearchTerm] = useState("");
   const { toast } = useToast();
-  const { lastMessage } = useWebSocket();
   const { user } = useAuth();
   const isBadawi = user?.username === 'بدوي';
   
@@ -40,7 +38,7 @@ export default function CarStatusDisplay() {
   });
 
   // Fetch parts requests to show with car status
-  const { data: partsRequests = [] } = useQuery({
+  const { data: partsRequests = [] } = useQuery<any[]>({
     queryKey: ["/api/parts-requests"],
     refetchInterval: 5000,
   });
@@ -87,7 +85,7 @@ export default function CarStatusDisplay() {
   // Mutation for returning car to reception (for بدوي)
   const returnToReceptionMutation = useMutation({
     mutationFn: async (carId: number) => {
-      const response = await apiRequest("POST", `/api/car-status/${carId}/return-to-reception`);
+      const response = await apiRequest("POST", `/api/car-status/${carId}/return-to-reception`, {});
       return response.json();
     },
     onSuccess: () => {
