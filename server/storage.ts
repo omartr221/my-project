@@ -371,9 +371,20 @@ export class DatabaseStorage implements IStorage {
   }
 
   async startTask(taskId: number): Promise<TimeEntry> {
-    // استخدم التوقيت السوري مباشرة  
-    const syrianTime = new Date(Date.now() + (3 * 60 * 60 * 1000));
-    const now = new Date(); // للـ time entries
+    // الحصول على التوقيت السوري الدقيق
+    const now = new Date();
+    const syrianTime = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Damascus',
+      year: 'numeric',
+      month: '2-digit', 
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+    }).formatToParts(now);
+    
+    const startTimeStr = `${syrianTime.find(p => p.type === 'year')?.value}-${syrianTime.find(p => p.type === 'month')?.value}-${syrianTime.find(p => p.type === 'day')?.value} ${syrianTime.find(p => p.type === 'hour')?.value}:${syrianTime.find(p => p.type === 'minute')?.value}:${syrianTime.find(p => p.type === 'second')?.value}`;
     
     // Get current task to check if it's the first start
     const [currentTask] = await db
@@ -389,8 +400,6 @@ export class DatabaseStorage implements IStorage {
     };
     
     if (!currentTask?.startTime) {
-      // احفظ الوقت بالتوقيت السوري بدون Z
-      const startTimeStr = syrianTime.toISOString().replace('Z', '').replace('T', ' ');
       updateData.startTime = startTimeStr;
     }
     
