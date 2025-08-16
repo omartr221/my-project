@@ -417,6 +417,9 @@ export const carStatus = pgTable("car_status", {
   receivedAt: timestamp("received_at").defaultNow(), // وقت الاستقبال
   enteredWorkshopAt: timestamp("entered_workshop_at"), // وقت دخول الورشة
   completedAt: timestamp("completed_at"), // وقت الانتهاء
+  returnedToReceptionAt: timestamp("returned_to_reception_at"), // وقت الإرجاع للاستقبال
+  returnedBy: text("returned_by"), // من قام بالإرجاع
+  deliveredAt: timestamp("delivered_at"), // وقت التسليم
   updatedAt: timestamp("updated_at").defaultNow(), // آخر تحديث
   createdAt: timestamp("created_at").defaultNow(),
 });
