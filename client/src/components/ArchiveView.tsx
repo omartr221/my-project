@@ -483,14 +483,10 @@ export default function ArchiveView() {
                       <div>
                         <span className="font-medium">الفنيون:</span>
                         <div className="mt-1">
-                          {(task as any).technicians && (task as any).technicians.length > 0 ? (
-                            <div className="flex flex-wrap gap-1">
-                              {(task as any).technicians.map((tech: string, index: number) => (
-                                <span key={index} className="bg-orange-100 text-orange-700 px-2 py-1 rounded text-xs">
-                                  {tech}
-                                </span>
-                              ))}
-                            </div>
+                          {(task as any).technicians && (task as any).technicians.trim() !== '' ? (
+                            <span className="bg-orange-100 text-orange-700 px-2 py-1 rounded text-xs">
+                              {(task as any).technicians}
+                            </span>
                           ) : (task as any).technicianName && (task as any).technicianName !== '' ? (
                             <span className="bg-orange-100 text-orange-700 px-2 py-1 rounded text-xs">
                               {(task as any).technicianName}
@@ -503,14 +499,10 @@ export default function ArchiveView() {
                       <div>
                         <span className="font-medium">المساعدون:</span>
                         <div className="mt-1">
-                          {(task as any).assistants && (task as any).assistants.length > 0 ? (
-                            <div className="flex flex-wrap gap-1">
-                              {(task as any).assistants.map((assistant: string, index: number) => (
-                                <span key={index} className="bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs">
-                                  {assistant}
-                                </span>
-                              ))}
-                            </div>
+                          {(task as any).assistants && (task as any).assistants.trim() !== '' ? (
+                            <span className="bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs">
+                              {(task as any).assistants}
+                            </span>
                           ) : (task as any).assistantName && (task as any).assistantName !== '' ? (
                             <span className="bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs">
                               {(task as any).assistantName}
