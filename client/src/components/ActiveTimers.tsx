@@ -32,7 +32,7 @@ export default function ActiveTimers({
     setCurrentTime(Date.now());
     
     const interval = setInterval(() => {
-      setCurrentTime(Date.now());
+      setCurrentTime(prev => prev + 1000);
     }, 1000);
 
     return () => clearInterval(interval);
@@ -108,16 +108,37 @@ export default function ActiveTimers({
     },
   });
 
+  // Track the initial server duration and start time for each task
+  const [taskBaselines, setTaskBaselines] = useState<Record<number, {serverDuration: number, clientStart: number}>>({});
+  
+  // Update baselines when tasks change
+  useEffect(() => {
+    const newBaselines: Record<number, {serverDuration: number, clientStart: number}> = {};
+    tasks.forEach(task => {
+      if (task.status === 'active') {
+        const currentBaseline = taskBaselines[task.id];
+        if (!currentBaseline) {
+          newBaselines[task.id] = {
+            serverDuration: (task as any).currentDuration || 0,
+            clientStart: Date.now()
+          };
+        } else {
+          newBaselines[task.id] = currentBaseline;
+        }
+      }
+    });
+    setTaskBaselines(newBaselines);
+  }, [tasks.map(t => t.id).join(',')]);
+
   const calculateCurrentDuration = (task: TaskWithWorker) => {
-    // For active tasks, calculate real-time client-side duration
-    if (task.status === 'active' && task.startTime) {
-      const startTimeStr = task.startTime.includes('Z') ? task.startTime : task.startTime + 'Z';
-      const startTime = new Date(startTimeStr).getTime();
-      const currentMs = Date.now();
-      const elapsedSeconds = (currentMs - startTime) / 1000;
-      const pausedSeconds = task.totalPausedDuration || 0;
-      
-      return Math.max(0, elapsedSeconds - pausedSeconds);
+    // For active tasks, calculate from baseline
+    if (task.status === 'active') {
+      const baseline = taskBaselines[task.id];
+      if (baseline) {
+        const elapsedSinceBaseline = (currentTime - baseline.clientStart) / 1000;
+        return baseline.serverDuration + elapsedSinceBaseline;
+      }
+      return (task as any).currentDuration || 0;
     }
     
     // For paused/completed tasks, use server value
@@ -211,7 +232,7 @@ export default function ActiveTimers({
 
                     </div>
                     <div className="text-left">
-                      <p className={`timer-display ${isActive ? 'error' : 'warning'}`}>
+                      <p className={`timer-display ${isActive ? 'error' : 'warning'}`} key={currentTime}>
                         {formatDuration(currentDuration)}
                       </p>
                       <p className="text-xs text-gray-500">
