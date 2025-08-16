@@ -594,13 +594,13 @@ export default function Reception() {
           {/* Reception entries list */}
           <div className="space-y-4">
             <h3 className="text-lg font-medium">السيارات المسجلة</h3>
-            {(entries as ReceptionEntry[]).length === 0 ? (
+            {(entries as ReceptionEntry[]).filter(entry => entry.status !== "مكتمل").length === 0 ? (
               <div className="text-center text-gray-500 py-8">
                 لا توجد سيارات مسجلة حالياً
               </div>
             ) : (
               <div className="space-y-3">
-                {(entries as ReceptionEntry[]).map((entry: ReceptionEntry) => (
+                {(entries as ReceptionEntry[]).filter(entry => entry.status !== "مكتمل").map((entry: ReceptionEntry) => (
                   <Card key={entry.id} className="border-gray-200">
                     <CardContent className="p-4">
                       <div className="flex justify-between items-start">
