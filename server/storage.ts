@@ -371,7 +371,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   async startTask(taskId: number): Promise<TimeEntry> {
-    const now = new Date();
+    // استخدم التوقيت السوري مباشرة  
+    const syrianTime = new Date(Date.now() + (3 * 60 * 60 * 1000));
+    const now = new Date(); // للـ time entries
     
     // Get current task to check if it's the first start
     const [currentTask] = await db
@@ -387,7 +389,9 @@ export class DatabaseStorage implements IStorage {
     };
     
     if (!currentTask?.startTime) {
-      updateData.startTime = now; // Set startTime only on first start
+      // احفظ الوقت بالتوقيت السوري بدون Z
+      const startTimeStr = syrianTime.toISOString().replace('Z', '').replace('T', ' ');
+      updateData.startTime = startTimeStr;
     }
     
     await db
