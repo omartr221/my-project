@@ -27,15 +27,15 @@ export default function ActiveTimers({
   const { canWrite, canCreate, isSupervisor } = usePermissions();
   const [currentTime, setCurrentTime] = useState(Date.now());
 
-  // Update timer with more precision (every 100ms for smoother updates)
+  // Update timer with more precision (every 1000ms for accurate timing)
   useEffect(() => {
     // Update immediately on mount
     setCurrentTime(Date.now());
     
-    // Then update every 100ms for more accurate timing
+    // Then update every second for timer display
     const interval = setInterval(() => {
       setCurrentTime(Date.now());
-    }, 100);
+    }, 1000);
 
     return () => clearInterval(interval);
   }, []);
@@ -119,10 +119,9 @@ export default function ActiveTimers({
     }
     
     // For active tasks, calculate from start time minus any paused time
-    // Convert UTC startTime to local time for accurate calculation
-    const startTimeUTC = new Date(task.startTime);
-    const startTime = startTimeUTC.getTime();
-    const currentUTC = new Date().getTime();
+    // Both times should be in same timezone for accurate calculation
+    const startTime = new Date(task.startTime).getTime();
+    const currentUTC = Date.now(); // Use Date.now() for current UTC time
     
     // Use precise millisecond calculation and convert to seconds
     const totalElapsedMs = currentUTC - startTime;
