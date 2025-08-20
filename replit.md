@@ -8,15 +8,16 @@ Preferred communication style: Simple, everyday language.
 
 ## Worker Names (Updated August 20, 2025)
 Current active workers in the system:
-- عدير
-- سليمان
+- خالد
 - حسام
-- حسن
-- يحيى
-- زياد
-- بدوي
-- عبد الحفيظ
+- حكيم
 - محمد العلي
+- يزن
+- عامر
+- زياد
+- علي
+- عبد الحفيظ
+- مصطفى
 
 ## Recent Changes (August 16, 2025)
 ### System Administration Centralization

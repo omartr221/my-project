@@ -35,15 +35,16 @@ type PartsRequestFormData = z.infer<typeof partsRequestFormSchema>;
 
 // قائمة أسماء المهندسين
 const engineerNames = [
-  "عدير",
-  "سليمان", 
-  "حسام",
-  "حسن",
-  "يحيى",
+  "خالد",
+  "حسام", 
+  "حكيم",
+  "محمد العلي",
+  "يزن",
+  "عامر",
   "زياد",
-  "بدوي",
+  "علي",
   "عبد الحفيظ",
-  "محمد العلي"
+  "مصطفى"
 ];
 
 export default function PartsRequestForm() {
