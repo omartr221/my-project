@@ -20,7 +20,7 @@ interface WorkerStatusGridProps {
 }
 
 const predefinedWorkers = [
-  "مصطفى", "حسام", "زياد", "حسن", "يحيى", "محمد العلي", "سليمان", "علي"
+  "عدير", "سليمان", "حسام", "حسن", "يحيى", "زياد", "بدوي", "عبد الحفيظ", "محمد العلي"
 ];
 
 const workerCategories = [
