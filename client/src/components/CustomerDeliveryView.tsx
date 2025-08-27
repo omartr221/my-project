@@ -35,7 +35,22 @@ export default function CustomerDeliveryView() {
     refetchInterval: 3000,
   });
 
+  // جلب القطع المستخدمة لكل سيارة
+  const { data: allPartsRequests = [] } = useQuery<any[]>({
+    queryKey: ['/api/parts-requests'],
+    refetchInterval: 5000,
+  });
+
   console.log('🚗 All car statuses:', carStatuses);
+
+  // دالة للحصول على القطع المستخدمة لسيارة معينة
+  const getPartsUsedForCar = (licensePlate: string) => {
+    const carParts = allPartsRequests.filter((part: any) => 
+      part.licensePlate === licensePlate && 
+      (part.status === "delivered" || part.status === "مُسلم")
+    );
+    return carParts.map((part: any) => `${part.partName} (${part.quantity})`);
+  };
 
   // فلترة السيارات في الاستقبال والجاهزة للتسليم
   const carsForDelivery = carStatuses.filter(car => {
@@ -51,10 +66,10 @@ export default function CustomerDeliveryView() {
     carModel: status.carModel || status.carBrand,
     carBrand: status.carBrand,
     engineCode: status.engineCode,
-    entryTime: status.createdAt,
+    entryTime: status.receivedAt || status.createdAt,
     returnedToReceptionAt: status.returnedToReceptionAt,
     returnedBy: status.returnedBy,
-    partsUsed: status.partsUsed || [],
+    partsUsed: getPartsUsedForCar(status.licensePlate),
     serviceDescription: status.serviceDescription || "خدمة صيانة عامة",
     estimatedCost: status.estimatedCost || 0,
     actualCost: status.actualCost || 0
@@ -72,13 +87,13 @@ export default function CustomerDeliveryView() {
     carModel: status.carModel || status.carBrand,
     carBrand: status.carBrand,
     engineCode: status.engineCode,
-    entryTime: status.receivedAt,
+    entryTime: status.receivedAt || status.createdAt,
     enteredWorkshopAt: status.enteredWorkshopAt,
     returnedToReceptionAt: status.returnedToReceptionAt,
     deliveredAt: status.deliveredAt,
     deliveredBy: status.deliveredBy,
     returnedBy: status.returnedBy,
-    partsUsed: status.partsUsed || [],
+    partsUsed: getPartsUsedForCar(status.licensePlate),
     serviceDescription: status.serviceDescription || "خدمة صيانة عامة",
     estimatedCost: status.estimatedCost || 0,
     actualCost: status.actualCost || 0
@@ -251,7 +266,7 @@ export default function CustomerDeliveryView() {
                               <span className="font-medium">القطع المستخدمة:</span>
                             </div>
                             <div className="mr-6">
-                              {car.partsUsed.map((part, index) => (
+                              {car.partsUsed.map((part: string, index: number) => (
                                 <Badge key={index} variant="secondary" className="ml-1 mb-1">
                                   {part}
                                 </Badge>
@@ -323,15 +338,15 @@ export default function CustomerDeliveryView() {
           ) : (
             <div className="space-y-6">
               {deliveredCars.map((car) => {
-                // حساب الأوقات والمدد
+                // حساب الأوقات والمدد - من دخول السيارة حتى جاهزة للتسليم
                 const entryTime = car.entryTime ? new Date(car.entryTime) : null;
                 const workshopEntryTime = car.enteredWorkshopAt ? new Date(car.enteredWorkshopAt) : null;
                 const returnTime = car.returnedToReceptionAt ? new Date(car.returnedToReceptionAt) : null;
                 const deliveryTime = car.deliveredAt ? new Date(car.deliveredAt) : null;
                 
-                // حساب المدد بالساعات والأيام
+                // حساب المدد بالساعات والأيام (مؤقت تصاعدي من دخول السيارة)
                 const calculateDuration = (start: Date | null, end: Date | null) => {
-                  if (!start || !end) return "غير محدد";
+                  if (!start || !end) return "0 ساعة";
                   const diffMs = end.getTime() - start.getTime();
                   const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
                   const diffDays = Math.floor(diffHours / 24);
@@ -344,9 +359,10 @@ export default function CustomerDeliveryView() {
                   }
                 };
                 
-                const receptionDuration = calculateDuration(entryTime, workshopEntryTime);
-                const workshopDuration = calculateDuration(workshopEntryTime, returnTime);
-                const totalDuration = calculateDuration(entryTime, deliveryTime);
+                // المدد الزمنية المطلوبة - مؤقت تصاعدي من الدخول
+                const receptionDuration = calculateDuration(entryTime, workshopEntryTime || returnTime || deliveryTime);
+                const workshopDuration = calculateDuration(workshopEntryTime, returnTime || deliveryTime);
+                const totalDuration = calculateDuration(entryTime, deliveryTime); // المدة الإجمالية من الدخول حتى التسليم
                 
                 return (
                   <Card key={car.id} className="border-l-4 border-l-green-500">
@@ -444,7 +460,7 @@ export default function CustomerDeliveryView() {
                                 <span className="font-medium">القطع المستخدمة:</span>
                               </div>
                               <div className="flex flex-wrap gap-1">
-                                {car.partsUsed.map((part, index) => (
+                                {car.partsUsed.map((part: string, index: number) => (
                                   <Badge key={index} variant="secondary" className="text-xs">
                                     {part}
                                   </Badge>
