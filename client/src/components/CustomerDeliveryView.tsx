@@ -355,18 +355,53 @@ export default function CustomerDeliveryView() {
                 const returnTime = car.returnedToReceptionAt ? new Date(car.returnedToReceptionAt) : null;
                 const deliveryTime = car.deliveredAt ? new Date(car.deliveredAt) : null;
                 
+                // تحقق من صحة التواريخ
+                const isValidDate = (date: Date | null) => date && !isNaN(date.getTime());
+                console.log(`🔍 Car ${car.licensePlate} date validation:`, {
+                  entryTime: entryTime?.toISOString(),
+                  entryValid: isValidDate(entryTime),
+                  workshopTime: workshopEntryTime?.toISOString(),
+                  workshopValid: isValidDate(workshopEntryTime),
+                  returnTime: returnTime?.toISOString(),
+                  returnValid: isValidDate(returnTime),
+                  deliveryTime: deliveryTime?.toISOString(),
+                  deliveryValid: isValidDate(deliveryTime)
+                });
+                
                 // حساب المدد بالساعات والأيام (مؤقت تصاعدي من دخول السيارة)
                 const calculateDuration = (start: Date | null, end: Date | null) => {
-                  if (!start || !end) return "0 ساعة";
+                  if (!start || !end || isNaN(start.getTime()) || isNaN(end.getTime())) {
+                    console.log(`⚠️ Invalid dates for calculation:`, { start, end });
+                    return "غير محدد";
+                  }
+                  
                   const diffMs = end.getTime() - start.getTime();
+                  if (diffMs < 0) {
+                    console.log(`⚠️ Negative duration:`, { start, end, diffMs });
+                    return "خطأ في التوقيت";
+                  }
+                  
+                  const diffMinutes = Math.floor(diffMs / (1000 * 60));
                   const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
                   const diffDays = Math.floor(diffHours / 24);
                   const remainingHours = diffHours % 24;
+                  const remainingMinutes = diffMinutes % 60;
+                  
+                  console.log(`⏱️ Duration calculation:`, { 
+                    start: start.toISOString(), 
+                    end: end.toISOString(), 
+                    diffMs, 
+                    diffMinutes, 
+                    diffHours, 
+                    diffDays 
+                  });
                   
                   if (diffDays > 0) {
                     return `${diffDays} يوم و ${remainingHours} ساعة`;
+                  } else if (diffHours > 0) {
+                    return `${diffHours} ساعة و ${remainingMinutes} دقيقة`;
                   } else {
-                    return `${diffHours} ساعة`;
+                    return `${diffMinutes} دقيقة`;
                   }
                 };
                 
