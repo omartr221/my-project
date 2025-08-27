@@ -102,19 +102,30 @@ export default function CustomerDeliveryView() {
   // تسليم السيارة للزبون
   const deliverToCustomerMutation = useMutation({
     mutationFn: async (carId: number) => {
+      // أولاً: تحديث حالة السيارة وإيقاف المؤقت
       const response = await apiRequest("PATCH", `/api/car-status/${carId}`, {
         currentStatus: "مكتمل",
         deliveredAt: new Date().toISOString(),
         deliveredBy: "الاستقبال"
       });
+      
+      // ثانياً: إيقاف المؤقت في صفحة الاستقبال
+      const car = carsForDelivery.find(c => c.id === carId);
+      if (car) {
+        await apiRequest("PATCH", `/api/reception-entries/stop-timer/${car.licensePlate}`, {
+          stopReason: "delivered_to_customer"
+        });
+      }
+      
       return response.json();
     },
     onSuccess: () => {
       toast({
         title: "تم التسليم بنجاح ✅",
-        description: "تم تسليم السيارة للزبون",
+        description: "تم تسليم السيارة للزبون وإيقاف المؤقت",
       });
       queryClient.invalidateQueries({ queryKey: ['/api/car-status'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/reception-entries'] });
     },
     onError: (error: Error) => {
       toast({

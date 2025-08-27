@@ -999,6 +999,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Stop timer when car is delivered to customer
+  app.patch("/api/reception-entries/stop-timer/:licensePlate", async (req, res, next) => {
+    try {
+      const licensePlate = req.params.licensePlate;
+      const { stopReason } = req.body;
+      
+      // Find the reception entry by license plate
+      const entries = await storage.getReceptionEntries();
+      const entry = entries.find(e => e.licensePlate === licensePlate && e.status !== "مكتمل");
+      
+      if (!entry) {
+        return res.status(404).json({ message: "Reception entry not found" });
+      }
+      
+      // Update the reception entry to completed status
+      const updatedEntry = await storage.updateReceptionEntry(entry.id, { 
+        status: "مكتمل",
+        completedAt: new Date(),
+        completedBy: "الاستقبال",
+        stopReason: stopReason
+      });
+      
+      // Broadcast timer stop update
+      broadcastUpdate("timer_stopped", {
+        type: "timer_stop",
+        entry: updatedEntry,
+        licensePlate: licensePlate,
+        stopReason: stopReason,
+        message: `تم إيقاف المؤقت للسيارة ${licensePlate} - ${stopReason}`
+      });
+      
+      res.json(updatedEntry);
+    } catch (error) {
+      next(error);
+    }
+  });
+
   // Car Status Management Routes
   app.get('/api/car-status', async (req, res) => {
     try {
