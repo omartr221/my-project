@@ -794,7 +794,7 @@ export default function Reception() {
                                   }
                                 }}
                               >
-                                {receptionTimer[entry.id]?.isRunning ? "إيقاف المؤقت" : "استئناف المؤقت"}
+                                {receptionTimer[entry.id]?.isRunning ? "إدخال للورشة" : "استئناف المؤقت"}
                               </Button>
                               
                               {/* زر إدخال للورشة للمستخدم بدوي */}
