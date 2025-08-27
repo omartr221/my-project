@@ -260,11 +260,11 @@ export default function Reception() {
     return () => clearInterval(interval);
   }, [checkAndPauseTimers]);
 
-  // Initialize timers for existing entries with accurate timing
+  // Initialize timers for existing entries with accurate timing - only for reception status
   useEffect(() => {
     if (Array.isArray(entries) && entries.length > 0) {
       (entries as ReceptionEntry[]).forEach((entry: ReceptionEntry) => {
-        if (!receptionTimer[entry.id] && entry.status !== "مكتمل") {
+        if (!receptionTimer[entry.id] && entry.status === "في الاستقبال") {
           // Use the exact entry time from database for accurate timing
           const entryTime = entry.entryTime ? new Date(entry.entryTime) : new Date();
           const now = new Date();
@@ -276,7 +276,7 @@ export default function Reception() {
             [entry.id]: {
               startTime: entryTime, // Store the exact entry time
               elapsed: Math.max(0, preciseElapsed),
-              isRunning: true // المؤقت يعمل من لحظة استقبال السيارة
+              isRunning: true // المؤقت يعمل فقط للسيارات في الاستقبال
             }
           }));
         }
@@ -780,8 +780,8 @@ export default function Reception() {
                         
                         {/* Timer controls and action buttons */}
                         <div className="flex flex-col gap-2 min-w-[200px]">
-                          {/* Timer control buttons for all users */}
-                          {entry.status !== "مكتمل" && (
+                          {/* Timer control buttons - only show for reception status */}
+                          {entry.status === "في الاستقبال" && (
                             <div className="flex flex-col gap-1">
                               <Button
                                 size="sm"
@@ -798,8 +798,6 @@ export default function Reception() {
                               >
                                 {receptionTimer[entry.id]?.isRunning ? "إدخال للورشة" : "استئناف المؤقت"}
                               </Button>
-                              
-
                             </div>
                           )}
                           
