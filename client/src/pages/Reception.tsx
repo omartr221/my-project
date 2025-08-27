@@ -788,7 +788,9 @@ export default function Reception() {
                                 variant={receptionTimer[entry.id]?.isRunning ? "destructive" : "default"}
                                 onClick={() => {
                                   if (receptionTimer[entry.id]?.isRunning) {
+                                    // إيقاف المؤقت وإدخال للورشة
                                     pauseReceptionTimer(entry.id);
+                                    moveCarToWorkshop(entry.id, entry.licensePlate);
                                   } else {
                                     resumeReceptionTimer(entry.id);
                                   }
@@ -797,17 +799,7 @@ export default function Reception() {
                                 {receptionTimer[entry.id]?.isRunning ? "إدخال للورشة" : "استئناف المؤقت"}
                               </Button>
                               
-                              {/* زر إدخال للورشة للمستخدم بدوي */}
-                              {(user?.username === "بدوي" || user?.role === "operator") && entry.status === "في الاستقبال" && (
-                                <Button
-                                  size="sm"
-                                  onClick={() => moveCarToWorkshop(entry.id, entry.licensePlate)}
-                                  className="bg-blue-500 hover:bg-blue-600 text-white"
-                                >
-                                  <Settings className="ml-2 h-4 w-4" />
-                                  إدخال للورشة
-                                </Button>
-                              )}
+
                             </div>
                           )}
                           
