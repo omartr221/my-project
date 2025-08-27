@@ -120,8 +120,10 @@ export default function CarStatusDisplay() {
     // Add timestamp based on status
     if (newStatus === "في الورشة") {
       updates.enteredWorkshopAt = new Date();
-    } else if (newStatus === "جاهزة للتسليم") {
-      updates.completedAt = new Date();
+    } else if (newStatus === "في الاستقبال") {
+      // عند تحديد "جاهزة للتسليم" نغير الحالة إلى "في الاستقبال" ونضيف returnedToReceptionAt
+      updates.returnedToReceptionAt = new Date();
+      updates.returnedBy = user?.username || "غير محدد";
     }
 
     updateStatusMutation.mutate({ id: carId, updates });
@@ -249,35 +251,16 @@ export default function CarStatusDisplay() {
                             </Button>
                           )}
                           {car.currentStatus === "في الورشة" && (
-                            <>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleStatusChange(car.id, "بانتظار قطع")}
-                                disabled={updateStatusMutation.isPending}
-                              >
-                                طلب قطع
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleStatusChange(car.id, "جاهزة للتسليم")}
-                                disabled={updateStatusMutation.isPending}
-                              >
-                                جاهزة للتسليم
-                              </Button>
-                            </>
-                          )}
-                          {car.currentStatus === "بانتظار قطع" && (
                             <Button
                               size="sm"
                               variant="outline"
-                              onClick={() => handleStatusChange(car.id, "جاهزة للتسليم")}
+                              onClick={() => handleStatusChange(car.id, "في الاستقبال")}
                               disabled={updateStatusMutation.isPending}
                             >
                               جاهزة للتسليم
                             </Button>
                           )}
+
                           
 
                           
