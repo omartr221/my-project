@@ -78,9 +78,9 @@ export default function Reception() {
     }));
   };
 
-  // Function to finish timer and deliver car (for بدوي)
+  // Function to finish timer and deliver car (only stops timer on actual delivery to customer)
   const finishTimerAndDeliver = async (entryId: number, licensePlate: string) => {
-    // Stop the timer first
+    // Stop the timer only when actually delivering to customer
     pauseReceptionTimer(entryId);
     
     // Update car status to delivered
@@ -92,7 +92,7 @@ export default function Reception() {
         },
         body: JSON.stringify({
           status: "مكتمل",
-          completedBy: "بدوي"
+          completedBy: "reception"
         }),
       });
       
@@ -264,7 +264,7 @@ export default function Reception() {
   useEffect(() => {
     if (Array.isArray(entries) && entries.length > 0) {
       (entries as ReceptionEntry[]).forEach((entry: ReceptionEntry) => {
-        if (!receptionTimer[entry.id] && (entry.status === "في الاستقبال" || entry.status === "reception")) {
+        if (!receptionTimer[entry.id] && entry.status !== "مكتمل") {
           // Use the exact entry time from database for accurate timing
           const entryTime = entry.entryTime ? new Date(entry.entryTime) : new Date();
           const now = new Date();
@@ -276,7 +276,7 @@ export default function Reception() {
             [entry.id]: {
               startTime: entryTime, // Store the exact entry time
               elapsed: Math.max(0, preciseElapsed),
-              isRunning: true // المؤقت يعمل فقط للسيارات في الاستقبال
+              isRunning: true // المؤقت يعمل من الاستقبال حتى التسليم للزبون
             }
           }));
         }
@@ -790,8 +790,7 @@ export default function Reception() {
                                 variant={receptionTimer[entry.id]?.isRunning ? "destructive" : "default"}
                                 onClick={() => {
                                   if (receptionTimer[entry.id]?.isRunning) {
-                                    // إيقاف المؤقت وإدخال للورشة
-                                    pauseReceptionTimer(entry.id);
+                                    // إدخال للورشة بدون إيقاف المؤقت - المؤقت يستمر حتى التسليم
                                     moveCarToWorkshop(entry.id, entry.licensePlate);
                                   } else {
                                     resumeReceptionTimer(entry.id);
@@ -816,13 +815,16 @@ export default function Reception() {
                           )}
                           
                           {/* Show in workshop status */}
-                          {entry.status === "في الورشة" && (
+                          {(entry.status === "في الورشة" || entry.status === "workshop") && (
                             <div className="text-center p-2 bg-blue-50 rounded">
                               <div className="text-sm text-blue-600 font-medium">
                                 في الورشة
                               </div>
                               <div className="text-xs text-gray-500">
-                                الوقت المنقضي: {formatTimerDisplay(entry.id)}
+                                المؤقت الإجمالي: {formatTimerDisplay(entry.id)}
+                              </div>
+                              <div className="text-xs text-blue-400">
+                                (المؤقت يستمر حتى التسليم)
                               </div>
                             </div>
                           )}
