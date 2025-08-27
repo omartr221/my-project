@@ -60,6 +60,30 @@ export default function CustomerDeliveryView() {
     actualCost: status.actualCost || 0
   }));
 
+  // فلترة السيارات المسلمة للزبائن
+  const deliveredCars = carStatuses.filter(car => {
+    return car.currentStatus === "مكتمل" && car.deliveredAt;
+  }).map((status: any) => ({
+    id: status.id,
+    licensePlate: status.licensePlate,
+    currentStatus: status.currentStatus,
+    customerName: status.customerName,
+    customerPhone: status.customerPhone,
+    carModel: status.carModel || status.carBrand,
+    carBrand: status.carBrand,
+    engineCode: status.engineCode,
+    entryTime: status.receivedAt,
+    enteredWorkshopAt: status.enteredWorkshopAt,
+    returnedToReceptionAt: status.returnedToReceptionAt,
+    deliveredAt: status.deliveredAt,
+    deliveredBy: status.deliveredBy,
+    returnedBy: status.returnedBy,
+    partsUsed: status.partsUsed || [],
+    serviceDescription: status.serviceDescription || "خدمة صيانة عامة",
+    estimatedCost: status.estimatedCost || 0,
+    actualCost: status.actualCost || 0
+  }));
+
   // تسليم السيارة للزبون
   const deliverToCustomerMutation = useMutation({
     mutationFn: async (carId: number) => {
@@ -274,13 +298,205 @@ export default function CustomerDeliveryView() {
             </div>
           )}
 
+        </CardContent>
+      </Card>
+
+      {/* قسم السيارات المسلمة */}
+      <Card className="mt-6">
+        <CardHeader>
+          <CardTitle className="flex items-center text-xl">
+            <CheckCircle className="ml-2 h-6 w-6 text-green-600" />
+            السيارات المسلمة
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {deliveredCars.length === 0 ? (
+            <div className="text-center py-8">
+              <CheckCircle className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-600 mb-2">
+                لا توجد سيارات مسلمة
+              </h3>
+              <p className="text-gray-500">
+                لم يتم تسليم أي سيارات للزبائن بعد
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {deliveredCars.map((car) => {
+                // حساب الأوقات والمدد
+                const entryTime = car.entryTime ? new Date(car.entryTime) : null;
+                const workshopEntryTime = car.enteredWorkshopAt ? new Date(car.enteredWorkshopAt) : null;
+                const returnTime = car.returnedToReceptionAt ? new Date(car.returnedToReceptionAt) : null;
+                const deliveryTime = car.deliveredAt ? new Date(car.deliveredAt) : null;
+                
+                // حساب المدد بالساعات والأيام
+                const calculateDuration = (start: Date | null, end: Date | null) => {
+                  if (!start || !end) return "غير محدد";
+                  const diffMs = end.getTime() - start.getTime();
+                  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+                  const diffDays = Math.floor(diffHours / 24);
+                  const remainingHours = diffHours % 24;
+                  
+                  if (diffDays > 0) {
+                    return `${diffDays} يوم و ${remainingHours} ساعة`;
+                  } else {
+                    return `${diffHours} ساعة`;
+                  }
+                };
+                
+                const receptionDuration = calculateDuration(entryTime, workshopEntryTime);
+                const workshopDuration = calculateDuration(workshopEntryTime, returnTime);
+                const totalDuration = calculateDuration(entryTime, deliveryTime);
+                
+                return (
+                  <Card key={car.id} className="border-l-4 border-l-green-500">
+                    <CardContent className="p-6">
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        {/* معلومات السيارة والزبون */}
+                        <div className="space-y-4">
+                          <div>
+                            <h3 className="font-bold text-xl text-gray-900 mb-2">
+                              {car.licensePlate}
+                            </h3>
+                            <Badge className="bg-green-100 text-green-800">
+                              تم التسليم ✓
+                            </Badge>
+                          </div>
+
+                          <div className="space-y-2">
+                            <div className="flex items-center text-sm">
+                              <User className="h-4 w-4 ml-2 text-gray-500" />
+                              <span className="font-medium">الزبون:</span>
+                              <span className="mr-2">{car.customerName || "غير محدد"}</span>
+                            </div>
+                            
+                            {car.customerPhone && (
+                              <div className="flex items-center text-sm">
+                                <span className="font-medium">الهاتف:</span>
+                                <span className="mr-2">{car.customerPhone}</span>
+                              </div>
+                            )}
+
+                            <div className="flex items-center text-sm">
+                              <Car className="h-4 w-4 ml-2 text-gray-500" />
+                              <span className="font-medium">السيارة:</span>
+                              <span className="mr-2">{car.carBrand} {car.carModel}</span>
+                            </div>
+
+                            {car.engineCode && (
+                              <div className="flex items-center text-sm">
+                                <span className="font-medium">رمز المحرك:</span>
+                                <span className="mr-2">{car.engineCode}</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* التوقيتات والمدد */}
+                        <div className="space-y-4">
+                          <h4 className="font-bold text-lg text-gray-800">تفاصيل الخدمة</h4>
+                          
+                          <div className="space-y-3 bg-gray-50 p-4 rounded-lg">
+                            <div className="flex items-center justify-between">
+                              <span className="font-medium text-sm">دخول الورشة:</span>
+                              <span className="text-sm">{entryTime?.toLocaleString('ar-SA') || "غير محدد"}</span>
+                            </div>
+                            
+                            <div className="flex items-center justify-between">
+                              <span className="font-medium text-sm">إدخال للورشة:</span>
+                              <span className="text-sm">{workshopEntryTime?.toLocaleString('ar-SA') || "غير محدد"}</span>
+                            </div>
+                            
+                            <div className="flex items-center justify-between">
+                              <span className="font-medium text-sm">إرجاع للاستقبال:</span>
+                              <span className="text-sm">{returnTime?.toLocaleString('ar-SA') || "غير محدد"}</span>
+                            </div>
+                            
+                            <div className="flex items-center justify-between">
+                              <span className="font-medium text-sm">تسليم للزبون:</span>
+                              <span className="text-sm">{deliveryTime?.toLocaleString('ar-SA') || "غير محدد"}</span>
+                            </div>
+                          </div>
+
+                          <div className="space-y-3 bg-blue-50 p-4 rounded-lg">
+                            <h5 className="font-bold text-sm text-blue-800">المدد الزمنية</h5>
+                            <div className="flex items-center justify-between">
+                              <span className="font-medium text-sm">مدة الاستقبال:</span>
+                              <span className="text-sm font-bold text-blue-600">{receptionDuration}</span>
+                            </div>
+                            
+                            <div className="flex items-center justify-between">
+                              <span className="font-medium text-sm">مدة الورشة:</span>
+                              <span className="text-sm font-bold text-orange-600">{workshopDuration}</span>
+                            </div>
+                            
+                            <div className="flex items-center justify-between">
+                              <span className="font-medium text-sm">المدة الإجمالية:</span>
+                              <span className="text-sm font-bold text-green-600">{totalDuration}</span>
+                            </div>
+                          </div>
+
+                          {/* القطع والخدمات */}
+                          {car.partsUsed && car.partsUsed.length > 0 && (
+                            <div className="space-y-2">
+                              <div className="flex items-center text-sm">
+                                <Package className="h-4 w-4 ml-2 text-gray-500" />
+                                <span className="font-medium">القطع المستخدمة:</span>
+                              </div>
+                              <div className="flex flex-wrap gap-1">
+                                {car.partsUsed.map((part, index) => (
+                                  <Badge key={index} variant="secondary" className="text-xs">
+                                    {part}
+                                  </Badge>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* التكاليف */}
+                          <div className="space-y-2 bg-green-50 p-3 rounded-lg">
+                            {car.estimatedCost > 0 && (
+                              <div className="flex items-center justify-between text-sm">
+                                <span className="font-medium">التكلفة المقدرة:</span>
+                                <span className="font-bold">{car.estimatedCost.toLocaleString()} ل.س</span>
+                              </div>
+                            )}
+                            
+                            {car.actualCost > 0 && (
+                              <div className="flex items-center justify-between text-sm">
+                                <span className="font-medium">التكلفة الفعلية:</span>
+                                <span className="font-bold text-green-600">{car.actualCost.toLocaleString()} ل.س</span>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* معلومات التسليم */}
+                          <div className="text-xs text-gray-500 bg-gray-100 p-2 rounded">
+                            <div>تم التسليم بواسطة: {car.deliveredBy || "غير محدد"}</div>
+                            {car.returnedBy && (
+                              <div>تم الإرجاع بواسطة: {car.returnedBy}</div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
+
           {/* إحصائيات */}
           <div className="mt-6 p-4 bg-gray-50 rounded-lg">
             <h4 className="font-medium text-gray-900 mb-2">إحصائيات التسليم</h4>
-            <div className="grid grid-cols-2 gap-4 text-sm">
+            <div className="grid grid-cols-3 gap-4 text-sm">
               <div>
                 <span className="text-gray-600">جاهزة للتسليم:</span>
                 <span className="font-bold text-blue-600 mr-2">{carsForDelivery.length}</span>
+              </div>
+              <div>
+                <span className="text-gray-600">تم التسليم:</span>
+                <span className="font-bold text-green-600 mr-2">{deliveredCars.length}</span>
               </div>
               <div>
                 <span className="text-gray-600">إجمالي السيارات:</span>
