@@ -264,7 +264,7 @@ export default function Reception() {
   useEffect(() => {
     if (Array.isArray(entries) && entries.length > 0) {
       (entries as ReceptionEntry[]).forEach((entry: ReceptionEntry) => {
-        if (!receptionTimer[entry.id] && entry.status === "في الاستقبال") {
+        if (!receptionTimer[entry.id] && (entry.status === "في الاستقبال" || entry.status === "reception")) {
           // Use the exact entry time from database for accurate timing
           const entryTime = entry.entryTime ? new Date(entry.entryTime) : new Date();
           const now = new Date();
@@ -638,12 +638,14 @@ export default function Reception() {
                             <h4 className="font-semibold">{entry.carOwnerName}</h4>
                             <Badge 
                               variant={
-                                entry.status === "في الاستقبال" ? "default" : 
-                                entry.status === "في الورشة" ? "secondary" : 
+                                (entry.status === "في الاستقبال" || entry.status === "reception") ? "default" : 
+                                (entry.status === "في الورشة" || entry.status === "workshop") ? "secondary" : 
                                 entry.status === "مكتمل" ? "outline" : "destructive"
                               }
                             >
-                              {entry.status}
+                              {entry.status === "reception" ? "في الاستقبال" : 
+                               entry.status === "workshop" ? "في الورشة" : 
+                               entry.status}
                             </Badge>
                           </div>
                           <div className="space-y-1 text-sm text-gray-600">
@@ -781,7 +783,7 @@ export default function Reception() {
                         {/* Timer controls and action buttons */}
                         <div className="flex flex-col gap-2 min-w-[200px]">
                           {/* Timer control buttons - only show for reception status */}
-                          {entry.status === "في الاستقبال" && (
+                          {(entry.status === "في الاستقبال" || entry.status === "reception") && (
                             <div className="flex flex-col gap-1">
                               <Button
                                 size="sm"
