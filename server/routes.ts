@@ -969,7 +969,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Update the reception entry status to completed
       const updatedEntry = await storage.updateReceptionEntry(entryId, { 
         status: status || "مكتمل",
-        completedAt: new Date(),
         completedBy: completedBy
       });
       
@@ -1016,9 +1015,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Update the reception entry to completed status
       const updatedEntry = await storage.updateReceptionEntry(entry.id, { 
         status: "مكتمل",
-        completedAt: new Date(),
-        completedBy: "الاستقبال",
-        stopReason: stopReason
+        completedBy: "الاستقبال"
       });
       
       // Broadcast timer stop update

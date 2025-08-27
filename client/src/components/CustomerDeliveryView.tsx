@@ -370,9 +370,17 @@ export default function CustomerDeliveryView() {
                   }
                 };
                 
+                // تسجيل البيانات للتصحيح
+                console.log(`🕐 Car ${car.licensePlate} times:`, {
+                  entryTime: car.entryTime,
+                  workshopEntryTime: car.enteredWorkshopAt,
+                  returnTime: car.returnedToReceptionAt,
+                  deliveryTime: car.deliveredAt
+                });
+                
                 // المدد الزمنية المطلوبة - مؤقت تصاعدي من الدخول
-                const receptionDuration = calculateDuration(entryTime, workshopEntryTime || returnTime || deliveryTime);
-                const workshopDuration = calculateDuration(workshopEntryTime, returnTime || deliveryTime);
+                const receptionDuration = calculateDuration(entryTime, workshopEntryTime);
+                const workshopDuration = calculateDuration(workshopEntryTime, returnTime);
                 const totalDuration = calculateDuration(entryTime, deliveryTime); // المدة الإجمالية من الدخول حتى التسليم
                 
                 return (
