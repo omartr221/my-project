@@ -977,8 +977,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Update the reception entry status to completed
       const updatedEntry = await storage.updateReceptionEntry(entryId, { 
-        status: status || "مكتمل",
-        completedBy: completedBy
+        status: status || "مكتمل"
       });
       
       // Update car status to delivered
@@ -1023,8 +1022,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Update the reception entry to completed status
       const updatedEntry = await storage.updateReceptionEntry(entry.id, { 
-        status: "مكتمل",
-        completedBy: "الاستقبال"
+        status: "مكتمل"
       });
       
       // Broadcast timer stop update
@@ -1258,9 +1256,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Create customer first
           const customer = await storage.createCustomer({
             name: customerData.name,
-            phone: customerData.phone || null,
+            phoneNumber: customerData.phone || "",
+            customerStatus: "A",
             address: null,
-            email: null
+            notes: null
           });
 
           // If car data exists, create car record
