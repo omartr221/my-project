@@ -4,6 +4,8 @@ import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { insertWorkerSchema, insertTaskSchema, insertCustomerSchema, insertCustomerCarSchema, insertPartsRequestSchema, insertReceptionEntrySchema } from "@shared/schema";
 import { z } from "zod";
+import multer from 'multer';
+import * as XLSX from 'xlsx';
 import { setupAuth } from "./auth";
 // import { createBackup, restoreFromBackup } from "./backup"; // Disabled for memory storage
 
@@ -15,6 +17,13 @@ let wss: WebSocketServer;
 const clients = new Set<WebSocketClient>();
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Multer configuration for file uploads
+  const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: {
+      fileSize: 10 * 1024 * 1024, // 10MB limit
+    },
+  });
   // Setup authentication
   setupAuth(app);
 
@@ -1160,6 +1169,128 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("خطأ في البحث عن سيارات الزبون:", error);
       res.status(500).json({ message: "فشل البحث عن سيارات الزبون" });
+    }
+  });
+
+  // Excel import endpoints
+  app.post('/api/import-excel', upload.single('excel'), async (req, res, next) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'لم يتم رفع أي ملف' });
+      }
+
+      const workbook = XLSX.read(req.file.buffer, { type: 'buffer' });
+      const sheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[sheetName];
+      const data = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as string[][];
+
+      if (data.length < 2) {
+        return res.status(400).json({ error: 'الملف فارغ أو لا يحتوي على بيانات كافية' });
+      }
+
+      const headers = data[0];
+      const rows = data.slice(1);
+      
+      // Map columns based on common Arabic names
+      const columnMap: { [key: string]: string } = {};
+      headers.forEach((header, index) => {
+        const lowerHeader = header?.toLowerCase().trim();
+        if (lowerHeader?.includes('اسم') || lowerHeader?.includes('name')) {
+          columnMap['name'] = header;
+        } else if (lowerHeader?.includes('هاتف') || lowerHeader?.includes('phone') || lowerHeader?.includes('رقم')) {
+          columnMap['phone'] = header;
+        } else if (lowerHeader?.includes('نوع') || lowerHeader?.includes('ماركة') || lowerHeader?.includes('brand')) {
+          columnMap['carBrand'] = header;
+        } else if (lowerHeader?.includes('موديل') || lowerHeader?.includes('model')) {
+          columnMap['carModel'] = header;
+        } else if (lowerHeader?.includes('لوحة') || lowerHeader?.includes('plate') || lowerHeader?.includes('رقم السيارة')) {
+          columnMap['licensePlate'] = header;
+        } else if (lowerHeader?.includes('محرك') || lowerHeader?.includes('engine') || lowerHeader?.includes('رمز')) {
+          columnMap['engineCode'] = header;
+        }
+      });
+
+      const customers = rows.map((row, index) => {
+        const customer: any = {
+          status: 'pending'
+        };
+
+        headers.forEach((header, colIndex) => {
+          const value = row[colIndex]?.toString().trim();
+          if (value) {
+            if (columnMap['name'] === header) customer.name = value;
+            else if (columnMap['phone'] === header) customer.phone = value;
+            else if (columnMap['carBrand'] === header) customer.carBrand = value;
+            else if (columnMap['carModel'] === header) customer.carModel = value;
+            else if (columnMap['licensePlate'] === header) customer.licensePlate = value;
+            else if (columnMap['engineCode'] === header) customer.engineCode = value;
+          }
+        });
+
+        // Validate required fields
+        if (!customer.name) {
+          customer.status = 'error';
+          customer.error = 'اسم الزبون مطلوب';
+        }
+
+        return customer;
+      }).filter(customer => customer.name); // Remove rows without names
+
+      res.json({ 
+        customers, 
+        message: `تم تحليل ${customers.length} زبون من الملف`,
+        columnMap 
+      });
+    } catch (error) {
+      console.error('Excel import error:', error);
+      res.status(500).json({ error: 'خطأ في تحليل ملف Excel' });
+    }
+  });
+
+  app.post('/api/import-customers', async (req, res, next) => {
+    try {
+      const { customers } = req.body;
+      let successCount = 0;
+      let errorCount = 0;
+
+      for (const customerData of customers) {
+        try {
+          // Create customer first
+          const customer = await storage.createCustomer({
+            name: customerData.name,
+            phone: customerData.phone || null,
+            address: null,
+            email: null
+          });
+
+          // If car data exists, create car record
+          if (customerData.carBrand || customerData.carModel || customerData.licensePlate) {
+            await storage.createCustomerCar({
+              customerId: customer.id,
+              carBrand: customerData.carBrand || 'غير محدد',
+              carModel: customerData.carModel || 'غير محدد',
+              licensePlate: customerData.licensePlate || `AUTO-${Date.now()}`,
+              engineCode: customerData.engineCode || null,
+              chassisNumber: null,
+              notes: `تم استيراده من Excel`
+            });
+          }
+
+          successCount++;
+        } catch (error) {
+          console.error(`Error importing customer ${customerData.name}:`, error);
+          errorCount++;
+        }
+      }
+
+      res.json({
+        message: `تم استيراد ${successCount} زبون بنجاح`,
+        successCount,
+        errorCount
+      });
+    } catch (error) {
+      console.error('Customer import error:', error);
+      res.status(500).json({ error: 'خطأ في استيراد بيانات الزبائن' });
     }
   });
 

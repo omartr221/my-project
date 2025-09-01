@@ -13,6 +13,7 @@ import { Plus, Car, Clock, User, Phone, MapPin, Fuel, Gauge, Search, Settings } 
 import { Checkbox } from "@/components/ui/checkbox";
 import type { ReceptionEntry, InsertReceptionEntry, Customer, CustomerCar } from "@shared/schema";
 import { useAuth } from "@/hooks/use-auth";
+import { ExcelImporter } from "@/components/ExcelImporter";
 
 export default function Reception() {
   const { toast } = useToast();
@@ -32,6 +33,9 @@ export default function Reception() {
   
   // Timer state for automatic timer on car reception
   const [receptionTimer, setReceptionTimer] = useState<{[key: number]: {startTime: Date, elapsed: number, isRunning: boolean, pausedAt5PM?: boolean}}>({});
+  
+  // Tab state for navigation
+  const [activeTab, setActiveTab] = useState<'reception' | 'import'>('reception');
   
   // Function to start reception timer with precise timing
   const startReceptionTimer = (entryId: number, entryTime?: Date) => {
@@ -838,6 +842,24 @@ export default function Reception() {
           </div>
         </CardContent>
       </Card>
+      
+      {/* Tab Content */}
+      {activeTab === 'reception' && (
+        <>
+          {/* استمرار المحتوى الحالي - موجود بالفعل أعلاه */}
+        </>
+      )}
+      
+      {activeTab === 'import' && (
+        <Card>
+          <CardHeader>
+            <CardTitle>استيراد بيانات الزبائن من Excel</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ExcelImporter />
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
