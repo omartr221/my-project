@@ -448,15 +448,46 @@ export default function Reception() {
               <Car className="ml-2 h-5 w-5" />
               قسم الاستقبال
             </CardTitle>
-            <Button onClick={() => setShowForm(true)}>
-              <Plus className="h-4 w-4 ml-1" />
-              استقبال سيارة
-            </Button>
+            {activeTab === 'reception' && (
+              <Button onClick={() => setShowForm(true)}>
+                <Plus className="h-4 w-4 ml-1" />
+                استقبال سيارة
+              </Button>
+            )}
+          </div>
+          
+          {/* Navigation Tabs */}
+          <div className="flex gap-2 mt-4 border-b">
+            <button
+              className={`px-4 py-2 rounded-t-lg transition-colors ${
+                activeTab === 'reception' 
+                  ? 'bg-blue-100 text-blue-700 border-b-2 border-blue-500' 
+                  : 'text-gray-600 hover:text-blue-600'
+              }`}
+              onClick={() => setActiveTab('reception')}
+            >
+              <Car className="ml-2 h-4 w-4 inline" />
+              استقبال السيارات
+            </button>
+            <button
+              className={`px-4 py-2 rounded-t-lg transition-colors ${
+                activeTab === 'import' 
+                  ? 'bg-green-100 text-green-700 border-b-2 border-green-500' 
+                  : 'text-gray-600 hover:text-green-600'
+              }`}
+              onClick={() => setActiveTab('import')}
+            >
+              <Settings className="ml-2 h-4 w-4 inline" />
+              استيراد من Excel
+            </button>
           </div>
         </CardHeader>
         <CardContent>
-          {/* Add new car form */}
-          {showForm && (
+          {/* Tab Content */}
+          {activeTab === 'reception' && (
+            <>
+              {/* Add new car form */}
+              {showForm && (
             <Card className="border-blue-200 bg-blue-50 mb-6">
               <CardHeader>
                 <CardTitle className="text-lg">استقبال سيارة جديدة</CardTitle>
@@ -840,26 +871,17 @@ export default function Reception() {
               </div>
             )}
           </div>
+            </>
+          )}
+          
+          {/* Tab Content for Import */}
+          {activeTab === 'import' && (
+            <div>
+              <ExcelImporter />
+            </div>
+          )}
         </CardContent>
       </Card>
-      
-      {/* Tab Content */}
-      {activeTab === 'reception' && (
-        <>
-          {/* استمرار المحتوى الحالي - موجود بالفعل أعلاه */}
-        </>
-      )}
-      
-      {activeTab === 'import' && (
-        <Card>
-          <CardHeader>
-            <CardTitle>استيراد بيانات الزبائن من Excel</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ExcelImporter />
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 }

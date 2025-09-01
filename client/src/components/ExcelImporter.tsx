@@ -1,240 +1,279 @@
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { useToast } from '@/hooks/use-toast';
-import { Upload, FileSpreadsheet, Check, X } from 'lucide-react';
-import { apiRequest, queryClient } from '@/lib/queryClient';
-import { useMutation } from '@tanstack/react-query';
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
+import { Upload, FileSpreadsheet, Check, AlertCircle } from "lucide-react";
+import * as XLSX from "xlsx";
 
-interface ImportedCustomer {
+interface CustomerData {
   name: string;
-  phone?: string;
-  carBrand?: string;
-  carModel?: string;
-  licensePlate?: string;
-  engineCode?: string;
-  status: 'pending' | 'success' | 'error';
-  error?: string;
+  phone: string;
+  carType: string;
+  carModel: string;
+  licensePlate: string;
+  engineCode: string;
 }
 
 export function ExcelImporter() {
   const [file, setFile] = useState<File | null>(null);
-  const [importedData, setImportedData] = useState<ImportedCustomer[]>([]);
+  const [data, setData] = useState<CustomerData[]>([]);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const { toast } = useToast();
 
-  const uploadMutation = useMutation({
-    mutationFn: async (file: File) => {
-      const formData = new FormData();
-      formData.append('excel', file);
-      
-      const response = await fetch('/api/import-excel', {
-        method: 'POST',
-        body: formData,
-      });
-      
-      if (!response.ok) {
-        throw new Error('فشل في رفع الملف');
-      }
-      
-      return response.json();
-    },
-    onSuccess: (data) => {
-      setImportedData(data.customers || []);
-      toast({
-        title: 'تم تحليل الملف بنجاح ✅',
-        description: `تم العثور على ${data.customers?.length || 0} زبون`,
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: 'خطأ في رفع الملف ❌',
-        description: error.message,
-        variant: 'destructive',
-      });
-    },
-  });
+  const columnMappings = {
+    // Arabic column names
+    'اسم الزبون': 'name',
+    'اسم العميل': 'name',
+    'الاسم': 'name',
+    'رقم الهاتف': 'phone',
+    'رقم الجوال': 'phone',
+    'الهاتف': 'phone',
+    'نوع السيارة': 'carType',
+    'نوع المركبة': 'carType',
+    'العلامة التجارية': 'carType',
+    'الموديل': 'carModel',
+    'الطراز': 'carModel',
+    'رقم اللوحة': 'licensePlate',
+    'لوحة السيارة': 'licensePlate',
+    'رقم المركبة': 'licensePlate',
+    'رمز المحرك': 'engineCode',
+    'كود المحرك': 'engineCode',
+    'محرك': 'engineCode',
+    // English column names
+    'name': 'name',
+    'customer name': 'name',
+    'client name': 'name',
+    'phone': 'phone',
+    'phone number': 'phone',
+    'mobile': 'phone',
+    'car type': 'carType',
+    'car brand': 'carType',
+    'brand': 'carType',
+    'model': 'carModel',
+    'car model': 'carModel',
+    'license plate': 'licensePlate',
+    'plate number': 'licensePlate',
+    'registration': 'licensePlate',
+    'engine code': 'engineCode',
+    'engine': 'engineCode',
+  };
 
-  const importMutation = useMutation({
-    mutationFn: async (customers: ImportedCustomer[]) => {
-      const response = await apiRequest('POST', '/api/import-customers', {
-        customers,
-      });
-      return response.json();
-    },
-    onSuccess: (data) => {
-      toast({
-        title: 'تم استيراد البيانات بنجاح ✅',
-        description: `تم إضافة ${data.successCount} زبون بنجاح`,
-      });
-      queryClient.invalidateQueries({ queryKey: ['/api/customers'] });
-      setImportedData([]);
-      setFile(null);
-    },
-    onError: (error: Error) => {
-      toast({
-        title: 'خطأ في استيراد البيانات ❌',
-        description: error.message,
-        variant: 'destructive',
-      });
-    },
-  });
-
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
     if (selectedFile) {
       if (selectedFile.type.includes('sheet') || selectedFile.name.endsWith('.xlsx') || selectedFile.name.endsWith('.xls')) {
         setFile(selectedFile);
-        setImportedData([]);
+        processFile(selectedFile);
       } else {
         toast({
-          title: 'نوع ملف غير صحيح ❌',
-          description: 'يرجى اختيار ملف Excel (.xlsx أو .xls)',
-          variant: 'destructive',
+          title: "نوع ملف غير صحيح",
+          description: "يرجى اختيار ملف Excel (.xlsx أو .xls)",
+          variant: "destructive",
         });
       }
     }
   };
 
-  const handleUpload = () => {
-    if (!file) return;
-    uploadMutation.mutate(file);
+  const processFile = async (file: File) => {
+    setIsProcessing(true);
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+      const sheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[sheetName];
+      const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+      if (jsonData.length < 2) {
+        throw new Error("الملف يجب أن يحتوي على بيانات وعناوين أعمدة");
+      }
+
+      const headers = jsonData[0] as string[];
+      const rows = jsonData.slice(1) as any[][];
+
+      // Map headers to our expected fields
+      const mappedHeaders = headers.map(header => {
+        const normalizedHeader = header?.toString().toLowerCase().trim();
+        return columnMappings[normalizedHeader as keyof typeof columnMappings] || null;
+      });
+
+      const processedData: CustomerData[] = rows
+        .filter(row => row.some(cell => cell !== null && cell !== undefined && cell !== ""))
+        .map((row, index) => {
+          const customer: any = {};
+          
+          mappedHeaders.forEach((mappedField, colIndex) => {
+            if (mappedField && row[colIndex]) {
+              customer[mappedField] = row[colIndex].toString().trim();
+            }
+          });
+
+          // Set defaults for missing fields
+          return {
+            name: customer.name || `زبون ${index + 1}`,
+            phone: customer.phone || "",
+            carType: customer.carType || "غير محدد",
+            carModel: customer.carModel || "غير محدد",
+            licensePlate: customer.licensePlate || "",
+            engineCode: customer.engineCode || ""
+          };
+        });
+
+      setData(processedData);
+      toast({
+        title: "تم تحليل الملف بنجاح",
+        description: `تم العثور على ${processedData.length} سجل`,
+      });
+    } catch (error) {
+      console.error('Error processing file:', error);
+      toast({
+        title: "خطأ في معالجة الملف",
+        description: "حدث خطأ أثناء قراءة ملف Excel",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
-  const handleImport = () => {
-    if (importedData.length === 0) return;
+  const handleImport = async () => {
+    if (data.length === 0) return;
+
     setIsImporting(true);
-    importMutation.mutate(importedData);
-    setIsImporting(false);
+    try {
+      const response = await fetch('/api/import-excel', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ customers: data }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        toast({
+          title: "تم الاستيراد بنجاح",
+          description: `تم استيراد ${result.imported} سجل، فشل ${result.failed} سجل`,
+        });
+        
+        // Reset form
+        setFile(null);
+        setData([]);
+        
+        // Reset file input
+        const fileInput = document.getElementById('excel-file') as HTMLInputElement;
+        if (fileInput) fileInput.value = '';
+      } else {
+        throw new Error(result.message);
+      }
+    } catch (error) {
+      console.error('Import error:', error);
+      toast({
+        title: "خطأ في الاستيراد",
+        description: "حدث خطأ أثناء استيراد البيانات",
+        variant: "destructive",
+      });
+    } finally {
+      setIsImporting(false);
+    }
   };
 
   return (
     <div className="space-y-6">
-      {/* رفع الملف */}
+      {/* File Upload Section */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center">
             <FileSpreadsheet className="ml-2 h-5 w-5" />
-            استيراد بيانات الزبائن من Excel
+            رفع ملف Excel
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="excel-file">اختر ملف Excel</Label>
-            <Input
-              id="excel-file"
-              type="file"
-              accept=".xlsx,.xls"
-              onChange={handleFileChange}
-              className="cursor-pointer"
-            />
-            <p className="text-sm text-gray-600">
-              يجب أن يحتوي الملف على الأعمدة التالية: اسم الزبون، رقم الهاتف، نوع السيارة، موديل السيارة، رقم اللوحة، رمز المحرك
-            </p>
-          </div>
-          
-          {file && (
-            <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
-              <div className="flex items-center">
-                <FileSpreadsheet className="h-4 w-4 ml-2 text-blue-600" />
-                <span className="text-sm font-medium">{file.name}</span>
+        <CardContent>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="excel-file">اختر ملف Excel</Label>
+              <Input
+                id="excel-file"
+                type="file"
+                accept=".xlsx,.xls"
+                onChange={handleFileSelect}
+                disabled={isProcessing}
+              />
+              <div className="text-xs text-gray-500 mt-1">
+                يجب أن يحتوي الملف على أعمدة: اسم الزبون، رقم الهاتف، نوع السيارة، الموديل، رقم اللوحة، رمز المحرك
               </div>
-              <Button
-                onClick={handleUpload}
-                disabled={uploadMutation.isPending}
-                size="sm"
-              >
-                {uploadMutation.isPending ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white ml-2"></div>
-                    جاري التحليل...
-                  </>
-                ) : (
-                  <>
-                    <Upload className="ml-2 h-4 w-4" />
-                    تحليل الملف
-                  </>
-                )}
-              </Button>
             </div>
-          )}
+
+            {file && (
+              <div className="flex items-center gap-2 p-2 bg-blue-50 rounded border">
+                <FileSpreadsheet className="h-4 w-4 text-blue-600" />
+                <span className="text-sm">{file.name}</span>
+                {isProcessing && (
+                  <Badge variant="secondary">جاري المعالجة...</Badge>
+                )}
+                {!isProcessing && data.length > 0 && (
+                  <Badge variant="default">
+                    <Check className="h-3 w-3 ml-1" />
+                    تم التحليل
+                  </Badge>
+                )}
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
 
-      {/* معاينة البيانات المستوردة */}
-      {importedData.length > 0 && (
+      {/* Data Preview Section */}
+      {data.length > 0 && (
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>معاينة البيانات المستوردة</CardTitle>
-              <Button
-                onClick={handleImport}
-                disabled={isImporting || importMutation.isPending}
-                className="bg-green-600 hover:bg-green-700"
-              >
-                {isImporting || importMutation.isPending ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white ml-2"></div>
-                    جاري الاستيراد...
-                  </>
-                ) : (
-                  <>
-                    <Check className="ml-2 h-4 w-4" />
-                    استيراد البيانات ({importedData.length})
-                  </>
-                )}
-              </Button>
-            </div>
+            <CardTitle className="flex items-center justify-between">
+              <span>معاينة البيانات</span>
+              <Badge variant="outline">{data.length} سجل</Badge>
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse border border-gray-300">
-                <thead>
-                  <tr className="bg-gray-50">
-                    <th className="border border-gray-300 p-2 text-right">الحالة</th>
-                    <th className="border border-gray-300 p-2 text-right">اسم الزبون</th>
-                    <th className="border border-gray-300 p-2 text-right">رقم الهاتف</th>
-                    <th className="border border-gray-300 p-2 text-right">نوع السيارة</th>
-                    <th className="border border-gray-300 p-2 text-right">الموديل</th>
-                    <th className="border border-gray-300 p-2 text-right">رقم اللوحة</th>
-                    <th className="border border-gray-300 p-2 text-right">رمز المحرك</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {importedData.map((customer, index) => (
-                    <tr key={index} className={customer.status === 'error' ? 'bg-red-50' : ''}>
-                      <td className="border border-gray-300 p-2">
-                        {customer.status === 'pending' && (
-                          <div className="flex items-center text-yellow-600">
-                            <div className="h-2 w-2 rounded-full bg-yellow-500 ml-2"></div>
-                            في الانتظار
-                          </div>
-                        )}
-                        {customer.status === 'success' && (
-                          <div className="flex items-center text-green-600">
-                            <Check className="h-4 w-4 ml-2" />
-                            نجح
-                          </div>
-                        )}
-                        {customer.status === 'error' && (
-                          <div className="flex items-center text-red-600">
-                            <X className="h-4 w-4 ml-2" />
-                            خطأ
-                          </div>
-                        )}
-                      </td>
-                      <td className="border border-gray-300 p-2">{customer.name || '-'}</td>
-                      <td className="border border-gray-300 p-2">{customer.phone || '-'}</td>
-                      <td className="border border-gray-300 p-2">{customer.carBrand || '-'}</td>
-                      <td className="border border-gray-300 p-2">{customer.carModel || '-'}</td>
-                      <td className="border border-gray-300 p-2">{customer.licensePlate || '-'}</td>
-                      <td className="border border-gray-300 p-2">{customer.engineCode || '-'}</td>
-                    </tr>
+            <div className="space-y-4">
+              <div className="max-h-96 overflow-y-auto">
+                <div className="grid gap-2">
+                  {data.slice(0, 10).map((customer, index) => (
+                    <div key={index} className="border rounded p-3 bg-gray-50">
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
+                        <div><strong>الاسم:</strong> {customer.name}</div>
+                        <div><strong>الهاتف:</strong> {customer.phone}</div>
+                        <div><strong>السيارة:</strong> {customer.carType}</div>
+                        <div><strong>الموديل:</strong> {customer.carModel}</div>
+                        <div><strong>اللوحة:</strong> {customer.licensePlate}</div>
+                        <div><strong>المحرك:</strong> {customer.engineCode}</div>
+                      </div>
+                    </div>
                   ))}
-                </tbody>
-              </table>
+                  
+                  {data.length > 10 && (
+                    <div className="text-center text-sm text-gray-500 p-2 border rounded bg-blue-50">
+                      و {data.length - 10} سجل إضافي آخر...
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex justify-between items-center pt-4 border-t">
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <AlertCircle className="h-4 w-4" />
+                  تأكد من صحة البيانات قبل الاستيراد
+                </div>
+                <Button 
+                  onClick={handleImport} 
+                  disabled={isImporting}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  {isImporting ? "جاري الاستيراد..." : "استيراد البيانات"}
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
