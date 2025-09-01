@@ -973,7 +973,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Import from attached Excel file
   app.post("/api/import-excel-file", async (req, res) => {
     try {
+      console.log("🔵 Starting Excel file import...");
       const { filename } = req.body;
+      console.log("📁 Filename:", filename);
       
       if (!filename) {
         return res.status(400).json({ message: "اسم الملف مطلوب" });
@@ -1017,6 +1019,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const headers = jsonData[headerRowIndex] as string[];
       const rows = jsonData.slice(headerRowIndex + 1) as any[][];
+      
+      console.log("📊 Headers found:", headers);
+      console.log("📊 Number of data rows:", rows.length);
+      console.log("📊 First 3 data rows:", rows.slice(0, 3));
 
       // Column mappings for Arabic and English
       const columnMappings: { [key: string]: string } = {
@@ -1095,8 +1101,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           // تجاهل الصفوف الفارغة أو التي تحتوي على قيم 0 فقط
           if (!customerData.name || customerData.name === 0 || customerData.name === "0") {
+            console.log("⏭️ Skipping empty/invalid row:", customerData);
             continue;
           }
+          
+          console.log("✅ Processing customer:", customerData.name);
 
           // Set defaults for missing fields
           const name = customerData.name.toString();
@@ -1135,8 +1144,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
 
           imported++;
+          console.log("✅ Successfully imported customer:", name);
         } catch (error) {
-          console.error("Error importing customer:", error);
+          console.error("❌ Error importing customer:", error);
           failed++;
         }
       }
