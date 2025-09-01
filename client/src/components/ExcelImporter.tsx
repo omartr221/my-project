@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { Upload, FileSpreadsheet, Check, AlertCircle } from "lucide-react";
 import * as XLSX from "xlsx";
+import React from "react";
 
 interface CustomerData {
   name: string;
@@ -22,7 +23,22 @@ export function ExcelImporter() {
   const [data, setData] = useState<CustomerData[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
+  const [attachedFiles, setAttachedFiles] = useState<string[]>([]);
   const { toast } = useToast();
+
+  // البحث عن ملفات Excel المرفقة
+  React.useEffect(() => {
+    const checkAttachedFiles = () => {
+      // ملفات Excel المرفقة المعروفة
+      const excelFiles = [
+        "Desktop.xlsx ]ملف الزبائن  _1756728567495.xlsx",
+        "Desktop.xlsx ]ملف الزبائن  _1756729003836.xlsx"
+      ];
+      setAttachedFiles(excelFiles);
+    };
+    
+    checkAttachedFiles();
+  }, []);
 
   const columnMappings = {
     // Arabic column names
@@ -182,8 +198,76 @@ export function ExcelImporter() {
     }
   };
 
+  const handleImportAttached = async (filename: string) => {
+    setIsImporting(true);
+    try {
+      const response = await fetch('/api/import-excel-file', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ filename }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        toast({
+          title: "تم الاستيراد بنجاح",
+          description: result.message,
+        });
+      } else {
+        throw new Error(result.message);
+      }
+    } catch (error) {
+      console.error('Import error:', error);
+      toast({
+        title: "خطأ في الاستيراد",
+        description: "حدث خطأ أثناء استيراد البيانات",
+        variant: "destructive",
+      });
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
+      {/* Attached Files Section */}
+      {attachedFiles.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <FileSpreadsheet className="ml-2 h-5 w-5 text-green-600" />
+              ملفات Excel المرفقة
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {attachedFiles.map((filename, index) => (
+                <div key={index} className="flex items-center justify-between p-3 border rounded-lg bg-green-50">
+                  <div className="flex items-center gap-3">
+                    <FileSpreadsheet className="h-5 w-5 text-green-600" />
+                    <div>
+                      <div className="font-medium text-sm">ملف الزبائن</div>
+                      <div className="text-xs text-gray-500">{filename}</div>
+                    </div>
+                  </div>
+                  <Button 
+                    onClick={() => handleImportAttached(filename)}
+                    disabled={isImporting}
+                    className="bg-green-600 hover:bg-green-700"
+                    size="sm"
+                  >
+                    {isImporting ? "جاري الاستيراد..." : "استيراد الآن"}
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* File Upload Section */}
       <Card>
         <CardHeader>

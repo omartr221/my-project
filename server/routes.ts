@@ -882,8 +882,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.createCarStatus({
         customerName: entry.carOwnerName,
         licensePlate: entry.licensePlate,
-        carBrand: entryData.carBrand || "غير محدد",
-        carModel: entryData.carModel || "غير محدد",
+        carBrand: "غير محدد",
+        carModel: "غير محدد",
         currentStatus: "في الاستقبال",
         maintenanceType: entry.serviceType,
         kmReading: entry.odometerReading,
@@ -917,6 +917,193 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(notifications);
     } catch (error) {
       next(error);
+    }
+  });
+
+  // Excel import endpoint
+  app.post("/api/import-excel", async (req, res) => {
+    try {
+      const { customers } = req.body;
+      
+      if (!customers || !Array.isArray(customers)) {
+        return res.status(400).json({ message: "بيانات الزبائن مطلوبة" });
+      }
+
+      let imported = 0;
+      let failed = 0;
+
+      for (const customerData of customers) {
+        try {
+          // إنشاء الزبون
+          const customer = await storage.createCustomer({
+            name: customerData.name,
+            phoneNumber: customerData.phone,
+            customerStatus: "A" as const,
+            address: customerData.address || "",
+            notes: customerData.notes || ""
+          });
+
+          // إنشاء السيارة
+          await storage.createCustomerCar({
+            customerId: customer.id,
+            carBrand: customerData.carType,
+            carModel: customerData.carModel,
+            licensePlate: customerData.licensePlate,
+            engineCode: customerData.engineCode
+          });
+
+          imported++;
+        } catch (error) {
+          console.error("Error importing customer:", error);
+          failed++;
+        }
+      }
+
+      res.json({ 
+        imported, 
+        failed, 
+        message: `تم استيراد ${imported} زبون، فشل ${failed} سجل` 
+      });
+    } catch (error) {
+      console.error("Error in Excel import:", error);
+      res.status(500).json({ message: "خطأ في الاستيراد" });
+    }
+  });
+
+  // Import from attached Excel file
+  app.post("/api/import-excel-file", async (req, res) => {
+    try {
+      const { filename } = req.body;
+      
+      if (!filename) {
+        return res.status(400).json({ message: "اسم الملف مطلوب" });
+      }
+
+      // Read file from attached_assets directory
+      const fs = await import('fs');
+      const path = await import('path');
+      const filePath = path.default.join(process.cwd(), 'attached_assets', filename);
+      
+      if (!fs.default.existsSync(filePath)) {
+        return res.status(404).json({ message: "الملف غير موجود" });
+      }
+
+      const fileBuffer = fs.default.readFileSync(filePath);
+      const workbook = XLSX.read(fileBuffer, { type: 'buffer' });
+      const sheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[sheetName];
+      const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+      if (jsonData.length < 2) {
+        return res.status(400).json({ message: "الملف يجب أن يحتوي على بيانات وعناوين أعمدة" });
+      }
+
+      const headers = jsonData[0] as string[];
+      const rows = jsonData.slice(1) as any[][];
+
+      // Column mappings for Arabic and English
+      const columnMappings: { [key: string]: string } = {
+        // Arabic column names
+        'اسم الزبون': 'name',
+        'اسم العميل': 'name',
+        'الاسم': 'name',
+        'رقم الهاتف': 'phone',
+        'رقم الجوال': 'phone',
+        'الهاتف': 'phone',
+        'نوع السيارة': 'carType',
+        'نوع المركبة': 'carType',
+        'العلامة التجارية': 'carType',
+        'الموديل': 'carModel',
+        'الطراز': 'carModel',
+        'رقم اللوحة': 'licensePlate',
+        'لوحة السيارة': 'licensePlate',
+        'رقم المركبة': 'licensePlate',
+        'رمز المحرك': 'engineCode',
+        'كود المحرك': 'engineCode',
+        'محرك': 'engineCode',
+        // English column names
+        'name': 'name',
+        'customer name': 'name',
+        'client name': 'name',
+        'phone': 'phone',
+        'phone number': 'phone',
+        'mobile': 'phone',
+        'car type': 'carType',
+        'car brand': 'carType',
+        'brand': 'carType',
+        'model': 'carModel',
+        'car model': 'carModel',
+        'license plate': 'licensePlate',
+        'plate number': 'licensePlate',
+        'registration': 'licensePlate',
+        'engine code': 'engineCode',
+        'engine': 'engineCode',
+      };
+
+      // Map headers to our expected fields
+      const mappedHeaders = headers.map(header => {
+        const normalizedHeader = header?.toString().toLowerCase().trim();
+        return columnMappings[normalizedHeader] || null;
+      });
+
+      let imported = 0;
+      let failed = 0;
+
+      for (const row of rows) {
+        if (!row.some(cell => cell !== null && cell !== undefined && cell !== "")) {
+          continue; // Skip empty rows
+        }
+
+        try {
+          const customerData: any = {};
+          
+          mappedHeaders.forEach((mappedField, colIndex) => {
+            if (mappedField && row[colIndex]) {
+              customerData[mappedField] = row[colIndex].toString().trim();
+            }
+          });
+
+          // Set defaults for missing fields
+          const name = customerData.name || `زبون ${imported + 1}`;
+          const phone = customerData.phone || "";
+          const carType = customerData.carType || "غير محدد";
+          const carModel = customerData.carModel || "غير محدد";
+          const licensePlate = customerData.licensePlate || "";
+          const engineCode = customerData.engineCode || "";
+
+          // إنشاء الزبون
+          const customer = await storage.createCustomer({
+            name,
+            phoneNumber: phone,
+            customerStatus: "A" as const,
+            address: "",
+            notes: ""
+          });
+
+          // إنشاء السيارة
+          await storage.createCustomerCar({
+            customerId: customer.id,
+            carBrand: carType,
+            carModel,
+            licensePlate,
+            engineCode
+          });
+
+          imported++;
+        } catch (error) {
+          console.error("Error importing customer:", error);
+          failed++;
+        }
+      }
+
+      res.json({ 
+        imported, 
+        failed, 
+        message: `تم استيراد ${imported} زبون، فشل ${failed} سجل` 
+      });
+    } catch (error) {
+      console.error("Error in Excel file import:", error);
+      res.status(500).json({ message: "خطأ في استيراد الملف" });
     }
   });
 
