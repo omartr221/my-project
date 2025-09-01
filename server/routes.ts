@@ -994,12 +994,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const worksheet = workbook.Sheets[sheetName];
       const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
 
-      if (jsonData.length < 2) {
+      if (jsonData.length < 3) {
         return res.status(400).json({ message: "الملف يجب أن يحتوي على بيانات وعناوين أعمدة" });
       }
 
-      const headers = jsonData[0] as string[];
-      const rows = jsonData.slice(1) as any[][];
+      // البحث عن السطر الذي يحتوي على العناوين الحقيقية
+      let headerRowIndex = -1;
+      for (let i = 0; i < jsonData.length; i++) {
+        const row = jsonData[i] as any[];
+        if (row && row.some(cell => 
+          cell && typeof cell === 'string' && 
+          (cell.includes('الاسم') || cell.includes('هاتف') || cell.includes('name') || cell.includes('phone'))
+        )) {
+          headerRowIndex = i;
+          break;
+        }
+      }
+
+      if (headerRowIndex === -1) {
+        return res.status(400).json({ message: "لم يتم العثور على عناوين الأعمدة في الملف" });
+      }
+
+      const headers = jsonData[headerRowIndex] as string[];
+      const rows = jsonData.slice(headerRowIndex + 1) as any[][];
 
       // Column mappings for Arabic and English
       const columnMappings: { [key: string]: string } = {
@@ -1010,9 +1027,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         'رقم الهاتف': 'phone',
         'رقم الجوال': 'phone',
         'الهاتف': 'phone',
-        'نوع السيارة': 'carType',
-        'نوع المركبة': 'carType',
-        'العلامة التجارية': 'carType',
+        'هاتف': 'phone',
+        'نوع السيارة': 'carBrand',
+        'نوع المركبة': 'carBrand',
+        'العلامة التجارية': 'carBrand',
+        'الصانع': 'carBrand',
         'الموديل': 'carModel',
         'الطراز': 'carModel',
         'رقم اللوحة': 'licensePlate',
@@ -1021,6 +1040,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         'رمز المحرك': 'engineCode',
         'كود المحرك': 'engineCode',
         'محرك': 'engineCode',
+        'اللون': 'color',
+        'سنة الصنع': 'year',
+        'رقم الشاسيه': 'chassisNumber',
+        'المالك السابق': 'previousOwner',
+        'رقم اللوحة السابق': 'previousLicensePlate',
         // English column names
         'name': 'name',
         'customer name': 'name',
@@ -1028,9 +1052,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         'phone': 'phone',
         'phone number': 'phone',
         'mobile': 'phone',
-        'car type': 'carType',
-        'car brand': 'carType',
-        'brand': 'carType',
+        'car type': 'carBrand',
+        'car brand': 'carBrand',
+        'brand': 'carBrand',
+        'manufacturer': 'carBrand',
         'model': 'carModel',
         'car model': 'carModel',
         'license plate': 'licensePlate',
@@ -1038,6 +1063,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         'registration': 'licensePlate',
         'engine code': 'engineCode',
         'engine': 'engineCode',
+        'color': 'color',
+        'year': 'year',
+        'chassis': 'chassisNumber',
+        'previous owner': 'previousOwner',
+        'previous plate': 'previousLicensePlate',
       };
 
       // Map headers to our expected fields
@@ -1063,13 +1093,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           });
 
+          // تجاهل الصفوف الفارغة أو التي تحتوي على قيم 0 فقط
+          if (!customerData.name || customerData.name === 0 || customerData.name === "0") {
+            continue;
+          }
+
           // Set defaults for missing fields
-          const name = customerData.name || `زبون ${imported + 1}`;
-          const phone = customerData.phone || "";
-          const carType = customerData.carType || "غير محدد";
-          const carModel = customerData.carModel || "غير محدد";
-          const licensePlate = customerData.licensePlate || "";
-          const engineCode = customerData.engineCode || "";
+          const name = customerData.name.toString();
+          const phone = customerData.phone ? customerData.phone.toString() : "";
+          const carBrand = customerData.carBrand ? customerData.carBrand.toString() : "غير محدد";
+          const carModel = customerData.carModel ? customerData.carModel.toString() : "غير محدد";
+          const licensePlate = customerData.licensePlate ? customerData.licensePlate.toString() : "";
+          const engineCode = customerData.engineCode ? customerData.engineCode.toString() : "";
+          const color = customerData.color ? customerData.color.toString() : "";
+          const year = customerData.year ? parseInt(customerData.year.toString()) || null : null;
+          const chassisNumber = customerData.chassisNumber ? customerData.chassisNumber.toString() : "";
+          const previousOwner = customerData.previousOwner ? customerData.previousOwner.toString() : "";
+          const previousLicensePlate = customerData.previousLicensePlate ? customerData.previousLicensePlate.toString() : "";
 
           // إنشاء الزبون
           const customer = await storage.createCustomer({
@@ -1083,10 +1123,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // إنشاء السيارة
           await storage.createCustomerCar({
             customerId: customer.id,
-            carBrand: carType,
+            carBrand,
             carModel,
             licensePlate,
-            engineCode
+            engineCode,
+            color: color || null,
+            year: year,
+            chassisNumber: chassisNumber || null,
+            previousOwner: previousOwner || null,
+            previousLicensePlate: previousLicensePlate || null
           });
 
           imported++;
