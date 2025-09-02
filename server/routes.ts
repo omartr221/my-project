@@ -1579,7 +1579,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // تحليل الصورة محلياً باستخدام OCR
       const { extractTextFromImage } = await import('./ocrEngine');
-      const result = await extractTextFromImage(image);
+      let result = await extractTextFromImage(image);
+      
+      // إذا لم يجد OCR رقماً، جرب البحث الذكي في النص
+      if (!result.licensePlate && result.rawText) {
+        const smartSearch = await searchInDatabaseByPattern(result.rawText);
+        if (smartSearch) {
+          result = {
+            ...result,
+            licensePlate: smartSearch,
+            confidence: 0.8,
+            rawText: result.rawText + '\n[تم العثور عليه بالبحث الذكي]'
+          };
+        }
+      }
       
       console.log('✅ نتيجة تحليل اللوحة:', result);
       res.json(result);
@@ -1592,6 +1605,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
+
+  // دالة البحث الذكي في قاعدة البيانات
+  async function searchInDatabaseByPattern(ocrText: string): Promise<string | null> {
+    try {
+      console.log('🔍 البحث الذكي في قاعدة البيانات للنص:', ocrText);
+      
+      // استخراج جميع الأرقام من النص
+      const numbers = ocrText.match(/\d+/g) || [];
+      console.log('🔢 الأرقام المستخرجة:', numbers);
+      
+      if (numbers.length === 0) return null;
+      
+      const customerCars = await storage.getCustomerCars();
+      
+      // البحث عن تطابقات محتملة
+      for (const number of numbers) {
+        if (number.length >= 3) { // على الأقل 3 خانات
+          const foundCar = customerCars.find(car => 
+            car.licensePlate && (
+              car.licensePlate.includes(number) ||
+              car.licensePlate.replace(/\D/g, '').includes(number)
+            )
+          );
+          
+          if (foundCar) {
+            console.log(`✅ تم العثور على مطابقة: ${number} -> ${foundCar.licensePlate}`);
+            return foundCar.licensePlate;
+          }
+        }
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('خطأ في البحث الذكي:', error);
+      return null;
+    }
+  }
 
   return httpServer;
 }
