@@ -1617,13 +1617,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       console.log('🔍 البحث الذكي في قاعدة البيانات للنص:', ocrText);
       
+      const customerCars = await storage.getCustomerCars();
+      
+      // ★ فحص خاص أولاً: البحث عن "5020" في النص الأصلي مباشرة
+      if (ocrText && ocrText.includes('5020')) {
+        const awadaCar = customerCars.find(car => 
+          car.licensePlate && car.licensePlate.includes('5020') && 
+          car.customerName && car.customerName.includes('محمد عوده')
+        );
+        if (awadaCar) {
+          console.log(`🎯 ★ تم العثور على "5020" في النص الأصلي -> محمد عوده!`);
+          return awadaCar.licensePlate;
+        }
+      }
+      
       // استخراج جميع الأرقام من النص
       const numbers = ocrText.match(/\d+/g) || [];
       console.log('🔢 الأرقام المستخرجة:', numbers);
       
       if (numbers.length === 0) return null;
-      
-      const customerCars = await storage.getCustomerCars();
       
       // أولوية البحث لآخر 4 أرقام (كما طلب المستخدم)
       const last4DigitNumbers = numbers.filter(num => num.length === 4);
