@@ -36,7 +36,7 @@ export default function Reception() {
   const [receptionTimer, setReceptionTimer] = useState<{[key: number]: {startTime: Date, elapsed: number, isRunning: boolean, pausedAt5PM?: boolean}}>({});
   
   // Tab state for navigation
-  const [activeTab, setActiveTab] = useState<'reception' | 'import'>('reception');
+  const [activeTab, setActiveTab] = useState<'reception' | 'camera' | 'import'>('reception');
   
   // Function to start reception timer with precise timing
   const startReceptionTimer = (entryId: number, entryTime?: Date) => {
@@ -501,6 +501,16 @@ export default function Reception() {
             </button>
             <button
               className={`px-4 py-2 rounded-t-lg transition-colors ${
+                activeTab === 'camera' 
+                  ? 'bg-purple-100 text-purple-700 border-b-2 border-purple-500' 
+                  : 'text-gray-600 hover:text-purple-600'
+              }`}
+              onClick={() => setActiveTab('camera')}
+            >
+              📸 كاميرا رقم اللوحة
+            </button>
+            <button
+              className={`px-4 py-2 rounded-t-lg transition-colors ${
                 activeTab === 'import' 
                   ? 'bg-green-100 text-green-700 border-b-2 border-green-500' 
                   : 'text-gray-600 hover:text-green-600'
@@ -909,6 +919,45 @@ export default function Reception() {
             </>
           )}
           
+          {/* Camera tab content */}
+          {activeTab === 'camera' && (
+            <div className="p-6">
+              <Card className="border-purple-200 bg-purple-50">
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    📸 كاميرا رقم اللوحة - البحث السريع
+                  </CardTitle>
+                  <CardDescription>
+                    التقط صورة لرقم اللوحة وسيتم البحث عن بيانات الزبون تلقائياً
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <LicensePlateCamera onCustomerFound={(customer) => {
+                    // Switch to reception tab and pre-fill the form
+                    setActiveTab('reception');
+                    setSelectedCustomer(customer);
+                    setFormData(prev => ({
+                      ...prev,
+                      customerName: customer.customerName,
+                      carBrand: customer.carBrand,
+                      carModel: customer.carModel,
+                      licensePlate: customer.licensePlate,
+                      chassisNumber: customer.chassisNumber || '',
+                      engineCode: customer.engineCode || '',
+                      year: customer.year || new Date().getFullYear(),
+                      color: customer.color || ''
+                    }));
+                    setShowForm(true);
+                    toast({
+                      title: "تم العثور على بيانات الزبون",
+                      description: `تم تحديد الزبون: ${customer.customerName} - ${customer.carBrand} ${customer.carModel}`,
+                    });
+                  }} />
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
           {/* Tab Content for Import */}
           {activeTab === 'import' && (
             <div>
