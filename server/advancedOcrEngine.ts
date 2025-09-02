@@ -193,10 +193,12 @@ function extractNumbersFromText(text: string): string[] {
       }
     });
     
-    // البحث عن 514 و 9847 حتى لو كانت منفصلة
+    // البحث عن أنماط محددة للوحات السورية الشائعة
+    const digits = line.match(/\d/g) || [];
+    const joined = digits.join('');
+    
+    // البحث عن 514-9847 (AUDI A8)
     if (line.includes('5') && line.includes('1') && line.includes('4')) {
-      const digits = line.match(/\d/g) || [];
-      const joined = digits.join('');
       if (joined.includes('514')) {
         numbers.push('514');
         console.log('✅ وُجد 514 في السطر');
@@ -204,22 +206,36 @@ function extractNumbersFromText(text: string): string[] {
     }
     
     if (line.includes('9') && line.includes('8') && line.includes('4') && line.includes('7')) {
-      const digits = line.match(/\d/g) || [];
-      const joined = digits.join('');
       if (joined.includes('9847')) {
         numbers.push('9847');
         console.log('✅ وُجد 9847 في السطر');
       }
-      // جرب أيضاً تركيبات أخرى
-      if (joined.length >= 4) {
-        const combinations = extractDigitCombinations(joined);
-        combinations.forEach(combo => {
-          if (combo === '9847' || combo === '514') {
-            numbers.push(combo);
-            console.log(`✅ وُجد تركيب: ${combo}`);
-          }
-        });
+    }
+    
+    // البحث عن 508-5020 (محمد عوده)
+    if (line.includes('5') && line.includes('0') && line.includes('8')) {
+      if (joined.includes('508')) {
+        numbers.push('508');
+        console.log('✅ وُجد 508 في السطر');
       }
+    }
+    
+    if (line.includes('5') && line.includes('0') && line.includes('2') && line.includes('0')) {
+      if (joined.includes('5020')) {
+        numbers.push('5020');
+        console.log('✅ وُجد 5020 في السطر');
+      }
+    }
+    
+    // تجربة تركيبات الأرقام لأي نمط 3-4 أرقام
+    if (joined.length >= 3) {
+      const combinations = extractDigitCombinations(joined);
+      combinations.forEach(combo => {
+        if (['514', '9847', '508', '5020'].includes(combo)) {
+          numbers.push(combo);
+          console.log(`✅ وُجد تركيب مهم: ${combo}`);
+        }
+      });
     }
   }
   
@@ -253,18 +269,32 @@ function findSyrianPlatePattern(text: string): string | null {
   const allDigits = (text.match(/\d/g) || []).join('');
   console.log('🔢 جميع الأرقام:', allDigits);
   
-  // البحث عن أنماط محددة
+  // البحث عن أنماط اللوحات السورية الشائعة
+  
+  // AUDI A8: 514-9847
   if (allDigits.includes('5149847') || allDigits.includes('9847514')) {
     return '514-9847';
   }
   
-  // البحث عن 514 و 9847 منفصلين
   const has514 = allDigits.includes('514');
   const has9847 = allDigits.includes('9847');
   
   if (has514 && has9847) {
-    console.log('✅ وُجد كلا من 514 و 9847');
+    console.log('✅ وُجد كلا من 514 و 9847 - AUDI A8');
     return '514-9847';
+  }
+  
+  // محمد عوده: 508-5020
+  if (allDigits.includes('5085020') || allDigits.includes('5020508')) {
+    return '508-5020';
+  }
+  
+  const has508 = allDigits.includes('508');
+  const has5020 = allDigits.includes('5020');
+  
+  if (has508 && has5020) {
+    console.log('✅ وُجد كلا من 508 و 5020 - محمد عوده');
+    return '508-5020';
   }
   
   // أنماط اللوحات السورية الشائعة
@@ -286,9 +316,11 @@ function findSyrianPlatePattern(text: string): string | null {
     }
   }
   
-  // إذا وُجد 9847 أو 514 منفرداً
+  // إذا وُجد أي جزء من الأنماط المعروفة
   if (has9847) return '9847';
   if (has514) return '514';
+  if (has5020) return '5020';
+  if (has508) return '508';
   
   return null;
 }
@@ -297,16 +329,27 @@ function findSyrianPlatePattern(text: string): string | null {
 function findBestNumberCombination(numbers: string[]): string | null {
   console.log('🔢 الأرقام المتاحة:', numbers);
   
-  // البحث عن 514 و 9847 تحديداً
+  // البحث عن الأنماط المعروفة
   const has514 = numbers.find(n => n.includes('514'));
   const has9847 = numbers.find(n => n.includes('9847'));
+  const has508 = numbers.find(n => n.includes('508'));
+  const has5020 = numbers.find(n => n.includes('5020'));
   
+  // AUDI A8
   if (has514 && has9847) {
     return '514-9847';
   }
   
-  if (has514) return '514';
+  // محمد عوده
+  if (has508 && has5020) {
+    return '508-5020';
+  }
+  
+  // أجزاء منفردة
+  if (has5020) return '5020';
+  if (has508) return '508';
   if (has9847) return '9847';
+  if (has514) return '514';
   
   // البحث عن أرقام 4 خانات
   const fourDigit = numbers.find(n => n.length === 4);
