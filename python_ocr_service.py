@@ -151,17 +151,22 @@ def find_syrian_plate_pattern(numbers, all_digits):
     print("❌ لم يتم العثور على نمط صالح")
     return None
 
-def process_license_plate(base64_image):
+def process_license_plate(image_path_or_base64):
     """
     معالجة شاملة لصورة لوحة السيارة
     """
     try:
         print("🚗 بدء معالجة لوحة السيارة...")
         
-        # فك تشفير الصورة
-        image_data = base64.b64decode(base64_image.split(',')[1] if ',' in base64_image else base64_image)
-        image_array = np.frombuffer(image_data, np.uint8)
-        image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
+        # تحديد ما إذا كان المدخل مسار ملف أم base64
+        if image_path_or_base64.startswith('data:image') or len(image_path_or_base64) > 500:
+            # base64 image
+            image_data = base64.b64decode(image_path_or_base64.split(',')[1] if ',' in image_path_or_base64 else image_path_or_base64)
+            image_array = np.frombuffer(image_data, np.uint8)
+            image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
+        else:
+            # file path
+            image = cv2.imread(image_path_or_base64, cv2.IMREAD_COLOR)
         
         if image is None:
             raise ValueError("فشل في فك تشفير الصورة")
@@ -226,9 +231,9 @@ def process_license_plate(base64_image):
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
-        print("Usage: python python_ocr_service.py <base64_image>")
+        print("Usage: python python_ocr_service.py <image_path_or_base64>")
         sys.exit(1)
     
-    base64_image = sys.argv[1]
-    result = process_license_plate(base64_image)
+    image_input = sys.argv[1]
+    result = process_license_plate(image_input)
     print(json.dumps(result, ensure_ascii=False, indent=2))

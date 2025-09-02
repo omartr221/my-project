@@ -1580,9 +1580,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // تحليل الصورة باستخدام نظام Python المحسن
       console.log('🐍 استخدام نظام Python OCR المحسن...');
       
+      const fs = await import('fs');
+      const path = await import('path');
       const { spawn } = await import('child_process');
+      
+      // حفظ الصورة في ملف مؤقت لتجنب مشكلة E2BIG
+      const tempImagePath = path.join(process.cwd(), `temp_image_${Date.now()}.jpg`);
+      const imageBuffer = Buffer.from(image.replace(/^data:image\/\w+;base64,/, ''), 'base64');
+      fs.writeFileSync(tempImagePath, imageBuffer);
+      
       const pythonResult = await new Promise<any>((resolve) => {
-        const pythonProcess = spawn('python3', ['python_ocr_service.py', image]);
+        const pythonProcess = spawn('python3', ['python_ocr_service.py', tempImagePath]);
         
         let output = '';
         pythonProcess.stdout.on('data', (data) => {
@@ -1594,6 +1602,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
         
         pythonProcess.on('close', (code) => {
+          // حذف الملف المؤقت
+          try {
+            fs.unlinkSync(tempImagePath);
+          } catch (e) {}
+          
           try {
             const lastLine = output.trim().split('\n').pop();
             const result = JSON.parse(lastLine);
