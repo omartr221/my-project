@@ -1577,17 +1577,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log('📸 استلام طلب تحليل صورة رقم اللوحة...');
       
-      // تحليل الصورة بالنظام المبسط الجديد
-      const { extractLicensePlateSimple } = await import('./simpleOcrEngine');
-      const simpleResult = await extractLicensePlateSimple(image);
+      // تحليل الصورة باستخدام نظام Python المحسن
+      console.log('🐍 استخدام نظام Python OCR المحسن...');
       
-      let result = {
-        licensePlate: simpleResult.licensePlate,
-        confidence: simpleResult.confidence,
-        rawText: simpleResult.rawText
-      };
+      const { spawn } = await import('child_process');
+      const pythonResult = await new Promise<any>((resolve) => {
+        const pythonProcess = spawn('python3', ['python_ocr_service.py', image]);
+        
+        let output = '';
+        pythonProcess.stdout.on('data', (data) => {
+          output += data.toString();
+        });
+        
+        pythonProcess.stderr.on('data', (data) => {
+          console.log('🐍 Python stderr:', data.toString());
+        });
+        
+        pythonProcess.on('close', (code) => {
+          try {
+            const lastLine = output.trim().split('\n').pop();
+            const result = JSON.parse(lastLine);
+            resolve(result);
+          } catch (e) {
+            console.error('❌ خطأ في تحليل نتيجة Python:', e);
+            resolve({ success: false, error: 'فشل في تحليل النتيجة' });
+          }
+        });
+      });
       
-      console.log('🔍 النظام المبسط - الأرقام الموجودة:', simpleResult.foundNumbers);
+      let result;
+      if (pythonResult.success) {
+        result = {
+          licensePlate: pythonResult.license_plate,
+          confidence: pythonResult.confidence,
+          rawText: pythonResult.raw_text
+        };
+        console.log('✅ نظام Python - النتيجة:', result);
+      } else {
+        console.log('❌ فشل نظام Python، التراجع للنظام المبسط...');
+        // التراجع للنظام المبسط
+        const { extractLicensePlateSimple } = await import('./simpleOcrEngine');
+        const simpleResult = await extractLicensePlateSimple(image);
+        
+        result = {
+          licensePlate: simpleResult.licensePlate,
+          confidence: simpleResult.confidence,
+          rawText: simpleResult.rawText
+        };
+      }
       
       // البحث الذكي سواء وُجد رقم أم لا (للتصحيح والتحقق)
       const smartSearch = await searchInDatabaseByPattern(result.rawText, result.licensePlate);
