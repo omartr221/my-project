@@ -1577,9 +1577,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log('📸 استلام طلب تحليل صورة رقم اللوحة...');
       
-      // تحليل الصورة محلياً باستخدام OCR
-      const { extractTextFromImage } = await import('./ocrEngine');
-      let result = await extractTextFromImage(image);
+      // تحليل الصورة محلياً باستخدام النظام المتقدم
+      const { extractSyrianLicensePlate } = await import('./advancedOcrEngine');
+      const advancedResult = await extractSyrianLicensePlate(image);
+      
+      let result = {
+        licensePlate: advancedResult.licensePlate,
+        confidence: advancedResult.confidence,
+        rawText: advancedResult.rawText
+      };
       
       // البحث الذكي سواء وُجد رقم أم لا (للتصحيح والتحقق)
       const smartSearch = await searchInDatabaseByPattern(result.rawText, result.licensePlate);
