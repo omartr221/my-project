@@ -517,7 +517,9 @@ export default function Reception() {
                   <div className="border-2 border-blue-300 rounded-lg p-4 bg-blue-50">
                     <div className="flex justify-between items-center mb-3">
                       <h4 className="font-medium text-blue-800">بيانات الزبون والسيارة</h4>
-                      <LicensePlateCamera onCustomerFound={handleCameraCustomerFound} />
+                      <div className="flex gap-2">
+                        <LicensePlateCamera onCustomerFound={handleCameraCustomerFound} />
+                      </div>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="relative">
