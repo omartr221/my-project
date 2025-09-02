@@ -60,39 +60,48 @@ export default function LicensePlateCamera({ onCustomerFound }: LicensePlateCame
       // عرض الصورة للمستخدم
       setCapturedImage(URL.createObjectURL(imageFile));
 
-      // إرسال الصورة للتحليل
-      const response = await fetch('/api/analyze-license-plate', {
-        method: 'POST',
-        body: JSON.stringify({ image: base64Image }),
-        headers: {
-          'Content-Type': 'application/json',
-        },
+      // محاولة استخراج رقم اللوحة تلقائياً (تجريبي)
+      try {
+        const response = await fetch('/api/analyze-license-plate', {
+          method: 'POST',
+          body: JSON.stringify({ image: base64Image }),
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          console.log('🔍 نتيجة تحليل اللوحة:', result);
+          setAnalysisResult(result);
+
+          if (result.licensePlate) {
+            toast({
+              title: "تم استخراج رقم اللوحة تلقائياً",
+              description: `رقم اللوحة: ${result.licensePlate}`,
+            });
+
+            // البحث عن بيانات الزبون
+            await searchCustomerByPlate(result.licensePlate);
+            return;
+          }
+        }
+      } catch (error) {
+        console.log('تعذر التحليل التلقائي، سيتم استخدام الإدخال اليدوي');
+      }
+
+      // إذا فشل التحليل التلقائي، اعرض إمكانية الإدخال اليدوي
+      toast({
+        title: "صورة اللوحة جاهزة",
+        description: "يمكنك الآن إدخال رقم اللوحة يدوياً من الصورة",
       });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const result = await response.json();
-
-      console.log('🔍 نتيجة تحليل اللوحة:', result);
-      setAnalysisResult(result);
-
-      if (result.licensePlate) {
-        toast({
-          title: "تم استخراج رقم اللوحة",
-          description: `رقم اللوحة: ${result.licensePlate}`,
-        });
-
-        // البحث عن بيانات الزبون
-        await searchCustomerByPlate(result.licensePlate);
-      } else {
-        toast({
-          title: "لم يتم العثور على رقم لوحة",
-          description: "يرجى التأكد من وضوح الصورة والمحاولة مرة أخرى",
-          variant: "destructive",
-        });
-      }
+      
+      setAnalysisResult({
+        licensePlate: null,
+        confidence: 0,
+        rawText: "إدخال يدوي مطلوب",
+        manualInput: ""
+      });
     } catch (error) {
       console.error('❌ خطأ في تحليل الصورة:', error);
       toast({
@@ -254,7 +263,41 @@ export default function LicensePlateCamera({ onCustomerFound }: LicensePlateCame
                     </div>
                   </CardContent>
                 </Card>
-              ) : analysisResult ? (
+              ) : (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-sm">إدخال رقم اللوحة يدوياً</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <p className="text-sm text-gray-600">
+                        من الصورة أعلاه، أدخل رقم اللوحة المرئي:
+                      </p>
+                      <Input
+                        placeholder="أدخل رقم اللوحة (مثل: 5020)"
+                        value={analysisResult?.manualInput || ""}
+                        onChange={(e) => setAnalysisResult({
+                          licensePlate: e.target.value,
+                          confidence: 1,
+                          rawText: e.target.value,
+                          manualInput: e.target.value
+                        })}
+                      />
+                      {analysisResult?.licensePlate && (
+                        <Button
+                          onClick={() => searchCustomerByPlate(analysisResult.licensePlate)}
+                          className="w-full"
+                        >
+                          <Search className="h-4 w-4 mr-2" />
+                          البحث عن الزبون
+                        </Button>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+              
+              {analysisResult ? (
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-sm">نتيجة التحليل</CardTitle>
