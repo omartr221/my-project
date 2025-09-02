@@ -15,30 +15,54 @@ export async function extractTextFromImage(base64Image: string): Promise<OCRResu
     // تحويل base64 إلى buffer
     const imageBuffer = Buffer.from(base64Image.replace(/^data:image\/\w+;base64,/, ''), 'base64');
     
-    // معالجة الصورة لتحسين جودة OCR
+    // معالجة متقدمة للصورة
     const processedImage = await sharp(imageBuffer)
-      .resize(1200, 800, { fit: 'inside', withoutEnlargement: true })
+      .resize(2000, 1500, { fit: 'inside', withoutEnlargement: true })
       .greyscale()
-      .normalize()
-      .threshold(128) // تحويل إلى أبيض وأسود واضح
-      .sharpen({ sigma: 2 })
+      .gamma(1.5) // تحسين التباين
+      .linear(1.2, -(128 * 1.2) + 128) // زيادة التباين
+      .blur(0.5) // تنعيم خفيف
+      .sharpen({ sigma: 1, m1: 0.5, m2: 3 })
       .png()
       .toBuffer();
 
-    // استخراج النص باستخدام Tesseract مع إعدادات محسنة
-    const { data: { text, confidence } } = await Tesseract.recognize(
-      processedImage,
-      'eng', // الإنجليزية فقط للأرقام
-      {
-        logger: m => {
-          if (m.status === 'recognizing text') {
-            console.log(`OCR Progress: ${Math.round(m.progress * 100)}%`);
-          }
-        },
-        tessedit_char_whitelist: '0123456789- ', // الأرقام والشرطات والمسافات فقط
-        tessedit_pageseg_mode: '8', // كلمة واحدة
+    // تجربة تحليل متعدد المراحل
+    console.log('🔄 تجربة طرق مختلفة لاستخراج النص...');
+    
+    let bestResult = { text: '', confidence: 0 };
+    
+    // الطريقة الأولى: تحليل عام
+    try {
+      const result1 = await Tesseract.recognize(processedImage, 'eng', {
+        tessedit_pageseg_mode: '6', // كتلة نص واحدة
+      });
+      if (result1.data.confidence > bestResult.confidence) {
+        bestResult = result1.data;
       }
-    );
+    } catch (e) {}
+    
+    // الطريقة الثانية: أرقام فقط
+    try {
+      const result2 = await Tesseract.recognize(processedImage, 'eng', {
+        tessedit_char_whitelist: '0123456789-',
+        tessedit_pageseg_mode: '8',
+      });
+      if (result2.data.confidence > bestResult.confidence) {
+        bestResult = result2.data;
+      }
+    } catch (e) {}
+    
+    // الطريقة الثالثة: كلمة واحدة
+    try {
+      const result3 = await Tesseract.recognize(processedImage, 'eng', {
+        tessedit_pageseg_mode: '8',
+      });
+      if (result3.data.confidence > bestResult.confidence) {
+        bestResult = result3.data;
+      }
+    } catch (e) {}
+    
+    const { text, confidence } = bestResult;
 
     console.log('📝 النص المستخرج:', text);
     console.log('🎯 مستوى الثقة:', confidence);

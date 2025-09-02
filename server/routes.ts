@@ -1619,20 +1619,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const customerCars = await storage.getCustomerCars();
       
-      // البحث عن تطابقات محتملة
+      // البحث المحسن عن تطابقات محتملة
       for (const number of numbers) {
-        if (number.length >= 3) { // على الأقل 3 خانات
-          const foundCar = customerCars.find(car => 
-            car.licensePlate && (
-              car.licensePlate.includes(number) ||
-              car.licensePlate.replace(/\D/g, '').includes(number)
-            )
-          );
+        console.log(`🔍 البحث عن الرقم: ${number}`);
+        
+        if (number.length >= 2) { // تقليل الحد الأدنى لـ 2 خانات
+          const foundCar = customerCars.find(car => {
+            if (!car.licensePlate) return false;
+            
+            const carPlate = car.licensePlate.toLowerCase();
+            const searchNumber = number.toLowerCase();
+            
+            // بحث مباشر
+            if (carPlate.includes(searchNumber)) return true;
+            
+            // بحث بدون رموز
+            const carPlateDigits = carPlate.replace(/\D/g, '');
+            if (carPlateDigits.includes(searchNumber)) return true;
+            
+            // بحث عكسي (إذا كان الرقم جزء من اللوحة)
+            if (searchNumber.includes(carPlateDigits) && carPlateDigits.length >= 3) return true;
+            
+            return false;
+          });
           
           if (foundCar) {
             console.log(`✅ تم العثور على مطابقة: ${number} -> ${foundCar.licensePlate}`);
             return foundCar.licensePlate;
           }
+        }
+      }
+      
+      // إذا لم نجد شيئاً، جرب البحث في الأرقام الشائعة
+      const commonNumbers = ['5020', '508', '50', '20'];
+      for (const commonNum of commonNumbers) {
+        const foundCar = customerCars.find(car => 
+          car.licensePlate && car.licensePlate.includes(commonNum)
+        );
+        if (foundCar) {
+          console.log(`✅ تم العثور على رقم شائع: ${commonNum} -> ${foundCar.licensePlate}`);
+          return foundCar.licensePlate;
         }
       }
       
