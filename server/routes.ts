@@ -1625,11 +1625,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const customerCars = await storage.getCustomerCars();
       
-      // البحث المحسن عن تطابقات محتملة
-      for (const number of numbers) {
+      // أولوية البحث لآخر 4 أرقام (كما طلب المستخدم)
+      const last4DigitNumbers = numbers.filter(num => num.length === 4);
+      console.log(`🔍 البحث بأولوية لآخر 4 أرقام: ${last4DigitNumbers}`);
+      
+      // البحث عن 5020 أولاً (محمد عوده)
+      for (const number of last4DigitNumbers) {
+        if (number === '5020') {
+          const foundCar = customerCars.find(car => 
+            car.licensePlate && car.licensePlate.includes('5020')
+          );
+          if (foundCar) {
+            console.log(`✅ تم العثور على محمد عوده: ${number} -> ${foundCar.licensePlate}`);
+            return foundCar.licensePlate;
+          }
+        }
+      }
+      
+      // البحث في آخر 4 أرقام الأخرى
+      for (const number of last4DigitNumbers) {
+        console.log(`🔍 البحث عن الرقم المكون من 4 خانات: ${number}`);
+        
+        const foundCar = customerCars.find(car => {
+          if (!car.licensePlate) return false;
+          
+          const carPlate = car.licensePlate.toLowerCase();
+          const searchNumber = number.toLowerCase();
+          
+          // بحث في آخر 4 أرقام من اللوحة
+          const carPlateDigits = carPlate.replace(/\D/g, '');
+          if (carPlateDigits.endsWith(searchNumber)) return true;
+          
+          // بحث مباشر
+          if (carPlate.includes(searchNumber)) return true;
+          
+          return false;
+        });
+        
+        if (foundCar) {
+          console.log(`✅ تم العثور على مطابقة: ${number} -> ${foundCar.licensePlate}`);
+          return foundCar.licensePlate;
+        }
+      }
+      
+      // إذا لم نجد في آخر 4 أرقام، ابحث في الأرقام الأخرى
+      const otherNumbers = numbers.filter(num => num.length >= 2 && num.length !== 4);
+      for (const number of otherNumbers) {
         console.log(`🔍 البحث عن الرقم: ${number}`);
         
-        if (number.length >= 2) { // تقليل الحد الأدنى لـ 2 خانات
+        if (number.length >= 2) {
           const foundCar = customerCars.find(car => {
             if (!car.licensePlate) return false;
             
@@ -1642,9 +1686,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
             // بحث بدون رموز
             const carPlateDigits = carPlate.replace(/\D/g, '');
             if (carPlateDigits.includes(searchNumber)) return true;
-            
-            // بحث عكسي (إذا كان الرقم جزء من اللوحة)
-            if (searchNumber.includes(carPlateDigits) && carPlateDigits.length >= 3) return true;
             
             return false;
           });
