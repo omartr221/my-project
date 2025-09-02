@@ -1594,18 +1594,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log('✅ الذكاء الاصطناعي - النتيجة:', result);
         
       } catch (error) {
-        console.log('❌ فشل الذكاء الاصطناعي، التراجع للنظام البديل...');
+        console.log('❌ فشل الذكاء الاصطناعي، التراجع للنظام الذكي المحسن...');
         console.error('خطأ AI:', error);
         
-        // التراجع للنظام المبسط
-        const { extractLicensePlateSimple } = await import('./simpleOcrEngine');
-        const simpleResult = await extractLicensePlateSimple(image);
+        // التراجع للنظام الذكي الجديد
+        const { extractSyrianLicensePlateSmart } = await import('./smartOcrEngine');
+        const smartResult = await extractSyrianLicensePlateSmart(image);
         
         result = {
-          licensePlate: simpleResult.licensePlate,
-          confidence: simpleResult.confidence,
-          rawText: simpleResult.rawText
+          licensePlate: smartResult.licensePlate,
+          confidence: smartResult.confidence,
+          rawText: smartResult.rawText
         };
+        
+        console.log('✅ النظام الذكي - النتيجة:', result);
       }
       
       // البحث الذكي سواء وُجد رقم أم لا (للتصحيح والتحقق)
