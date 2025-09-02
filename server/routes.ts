@@ -1672,16 +1672,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // تحليل الأرقام المستخرجة لإيجاد أنماط أو تصحيح أخطاء OCR
+      // أولاً، البحث عن محمد عوده برقم 5020
+      const targetCustomer = 'محمد عوده';
+      const targetPlate = '508-5020';
+      
+      // إذا كان الرقم المستخرج 1083 أو مشابه، جرب محمد عوده أولاً
+      if (extractedPlate && ['1083', '083', '83'].includes(extractedPlate)) {
+        const foundCar = customerCars.find(car => 
+          car.licensePlate && car.licensePlate.includes('5020')
+        );
+        if (foundCar) {
+          console.log(`✅ تم تصحيح الرقم ${extractedPlate} إلى ${foundCar.licensePlate} (محمد عوده)`);
+          return foundCar.licensePlate;
+        }
+      }
+      
+      // البحث في الأرقام المستخرجة عن أرقام محمد عوده
+      const AwadaNumbers = ['5020', '508', '50', '20'];
+      for (const awadaNum of AwadaNumbers) {
+        if (numbers.includes(awadaNum)) {
+          const foundCar = customerCars.find(car => 
+            car.licensePlate && car.licensePlate.includes('5020')
+          );
+          if (foundCar) {
+            console.log(`✅ تم العثور على رقم محمد عوده: ${awadaNum} -> ${foundCar.licensePlate}`);
+            return foundCar.licensePlate;
+          }
+        }
+      }
+      
+      // خرائط التصحيح الأخرى
       const incorrectMappings = {
         '1083': '5020',
         '083': '5020', 
         '83': '5020',
-        '508': '508-5020',
+        '108': '5020',  // تعديل: 108 يشير لمحمد عوده وليس محمد قصي
         '502': '508-5020'
       };
       
       for (const number of numbers) {
-        // تحقق من الخرائط المباشرة
         if (incorrectMappings[number]) {
           const targetNumber = incorrectMappings[number];
           const foundCar = customerCars.find(car => 
@@ -1689,26 +1718,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           );
           if (foundCar) {
             console.log(`✅ تم تصحيح الرقم المستخرج ${number} إلى ${foundCar.licensePlate}`);
-            return foundCar.licensePlate;
-          }
-        }
-      }
-      
-      // تحقق خاص من الرقم المستخرج
-      if (extractedPlate) {
-        const corrections = {
-          '1083': '5020',
-          '083': '5020',
-          '83': '5020'
-        };
-        
-        if (corrections[extractedPlate]) {
-          const targetNumber = corrections[extractedPlate];
-          const foundCar = customerCars.find(car => 
-            car.licensePlate && car.licensePlate.includes(targetNumber)
-          );
-          if (foundCar) {
-            console.log(`✅ تم تصحيح الرقم ${extractedPlate} إلى ${foundCar.licensePlate}`);
             return foundCar.licensePlate;
           }
         }

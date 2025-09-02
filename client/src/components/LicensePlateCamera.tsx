@@ -75,16 +75,29 @@ export default function LicensePlateCamera({ onCustomerFound }: LicensePlateCame
 
       const result = await response.json();
       console.log('🔍 نتيجة تحليل اللوحة:', result);
-      setAnalysisResult(result);
-
+      // البحث عن بيانات الزبون إذا وُجد رقم لوحة
+      let customerData = null;
       if (result.licensePlate) {
-        toast({
-          title: "تم استخراج رقم اللوحة تلقائياً",
-          description: `رقم اللوحة: ${result.licensePlate} (الثقة: ${Math.round(result.confidence * 100)}%)`,
-        });
+        try {
+          const response = await fetch(`/api/search-car-info/${encodeURIComponent(result.licensePlate)}`);
+          if (response.ok) {
+            customerData = await response.json();
+          }
+        } catch (error) {
+          console.log('لم يتم العثور على زبون لهذا الرقم');
+        }
+      }
 
-        // البحث عن بيانات الزبون تلقائياً
-        await searchCustomerByPlate(result.licensePlate);
+      setAnalysisResult({
+        ...result,
+        customerInfo: customerData
+      });
+
+      if (result.licensePlate && customerData) {
+        toast({
+          title: "تم العثور على الزبون!",
+          description: `${customerData.customerName} - ${customerData.carBrand} ${customerData.carModel}`,
+        });
       } else {
         toast({
           title: "لم يتم العثور على رقم لوحة صحيح",
@@ -96,7 +109,8 @@ export default function LicensePlateCamera({ onCustomerFound }: LicensePlateCame
         setAnalysisResult({
           ...result,
           manualInput: result.licensePlate || "",
-          requiresManualInput: true
+          requiresManualInput: true,
+          customerInfo: null  // Clear previous customer info
         });
       }
     } catch (error) {
