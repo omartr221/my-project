@@ -596,12 +596,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
         foundCar = customerCars.find(car => car.customerId === foundCustomer!.id);
         console.log(`✅ تم العثور على الزبون: ${foundCustomer.name}`);
       } else {
-        // البحث في بيانات السيارات (رقم اللوحة، رقم الشاسيه)
-        foundCar = customerCars.find(car => 
-          (car.licensePlate && car.licensePlate.toLowerCase().includes(searchTerm)) ||
-          (car.chassisNumber && car.chassisNumber.toLowerCase().includes(searchTerm)) ||
-          (car.previousLicensePlate && car.previousLicensePlate.toLowerCase().includes(searchTerm))
-        );
+        // البحث في بيانات السيارات (رقم اللوحة، رقم الشاسيه) مع تحسين البحث
+        foundCar = customerCars.find(car => {
+          // البحث في رقم اللوحة الحالي
+          if (car.licensePlate) {
+            const plateForSearch = car.licensePlate.toLowerCase();
+            // بحث مباشر
+            if (plateForSearch.includes(searchTerm)) return true;
+            // بحث بدون الشرطات والرموز
+            const plateDigitsOnly = plateForSearch.replace(/[^\u0660-\u06690-9]/g, '');
+            const searchDigitsOnly = searchTerm.replace(/[^\u0660-\u06690-9]/g, '');
+            if (plateDigitsOnly.includes(searchDigitsOnly) && searchDigitsOnly.length >= 3) return true;
+            // بحث عكسي (إذا كان المُدخل يحتوي على جزء من اللوحة)
+            if (searchTerm.includes(plateDigitsOnly) && plateDigitsOnly.length >= 3) return true;
+          }
+          
+          // البحث في رقم الشاسيه
+          if (car.chassisNumber && car.chassisNumber.toLowerCase().includes(searchTerm)) return true;
+          
+          // البحث في رقم اللوحة السابق
+          if (car.previousLicensePlate) {
+            const prevPlateForSearch = car.previousLicensePlate.toLowerCase();
+            if (prevPlateForSearch.includes(searchTerm)) return true;
+            const prevPlateDigitsOnly = prevPlateForSearch.replace(/[^\u0660-\u06690-9]/g, '');
+            const searchDigitsOnly = searchTerm.replace(/[^\u0660-\u06690-9]/g, '');
+            if (prevPlateDigitsOnly.includes(searchDigitsOnly) && searchDigitsOnly.length >= 3) return true;
+          }
+          
+          return false;
+        });
         
         if (foundCar) {
           foundCustomer = customers.find(customer => customer.id === foundCar!.customerId);
