@@ -4,6 +4,8 @@ import { ArrowLeft, Car, Clock } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useEffect, useRef } from "react";
+import { useAuth } from "@/hooks/use-auth";
 
 interface Car {
   id: number;
@@ -17,6 +19,102 @@ interface Car {
 export default function CarDeliveryView() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const wsRef = useRef<WebSocket | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  
+  // إعداد الصوت للتنبيه
+  useEffect(() => {
+    // إنشاء صوت التنبيه بطريقة برمجية
+    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    
+    const playNotificationSound = () => {
+      // إنشاء صوت تنبيه باستخدام Web Audio API
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+      oscillator.frequency.setValueAtTime(600, audioContext.currentTime + 0.1);
+      oscillator.frequency.setValueAtTime(800, audioContext.currentTime + 0.2);
+      
+      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+      
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.5);
+    };
+    
+    // حفظ دالة تشغيل الصوت
+    (window as any).playCarWorkshopNotification = playNotificationSound;
+    
+    return () => {
+      (window as any).playCarWorkshopNotification = null;
+    };
+  }, []);
+
+  // إعداد WebSocket للتنبيهات (فقط لحساب بدوي)
+  useEffect(() => {
+    if (user?.username !== 'بدوي') return;
+    
+    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    const wsUrl = `${protocol}//${window.location.host}/ws`;
+    
+    const connectWebSocket = () => {
+      wsRef.current = new WebSocket(wsUrl);
+      
+      wsRef.current.onopen = () => {
+        console.log('🔊 WebSocket connected for workshop notifications');
+      };
+      
+      wsRef.current.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          
+          // التحقق من إشعارات دخول السيارة للورشة
+          if (data.type === 'car_entered_workshop' && data.data?.notifyBadawi) {
+            console.log('🚗 New car entered workshop:', data.data);
+            
+            // تشغيل الصوت
+            if ((window as any).playCarWorkshopNotification) {
+              (window as any).playCarWorkshopNotification();
+            }
+            
+            // عرض التنبيه
+            toast({
+              title: "🚗 سيارة جديدة في الورشة",
+              description: `السيارة ${data.data.carInfo?.licensePlate} للعميل ${data.data.carInfo?.customerName} دخلت الورشة`,
+              duration: 5000,
+            });
+            
+            // تحديث البيانات
+            queryClient.invalidateQueries({ queryKey: ['/api/car-status'] });
+          }
+        } catch (error) {
+          console.error('Error parsing WebSocket message:', error);
+        }
+      };
+      
+      wsRef.current.onclose = () => {
+        console.log('🔊 WebSocket disconnected, attempting to reconnect...');
+        setTimeout(connectWebSocket, 3000);
+      };
+      
+      wsRef.current.onerror = (error) => {
+        console.error('🔊 WebSocket error:', error);
+      };
+    };
+    
+    connectWebSocket();
+    
+    return () => {
+      if (wsRef.current) {
+        wsRef.current.close();
+      }
+    };
+  }, [user, toast, queryClient]);
 
   // جلب حالات السيارات من API الصحيح
   const { data: carStatuses = [], isLoading, error } = useQuery<any[]>({

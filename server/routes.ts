@@ -1183,11 +1183,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Broadcast workshop entry update
+      // Broadcast workshop entry update with enhanced data for بدوي notifications
       broadcastUpdate("car_entered_workshop", {
         type: "car_workshop_entry",
         entry: entry,
-        message: `تم إدخال السيارة ${entry.licensePlate} إلى الورشة`
+        carInfo: {
+          licensePlate: entry.licensePlate,
+          customerName: entry.customerName,
+          carBrand: entry.carBrand || "غير محدد",
+          carModel: entry.carModel || "غير محدد"
+        },
+        message: `تم إدخال السيارة ${entry.licensePlate} إلى الورشة`,
+        timestamp: new Date().toISOString(),
+        notifyBadawi: true // تنبيه خاص لحساب بدوي
       });
       
       res.json(entry);
