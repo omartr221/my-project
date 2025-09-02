@@ -51,6 +51,9 @@ export default function TaskDistribution() {
     ...archivedTasks.map(task => task.technicianName).filter(Boolean),
     ...archivedTasks.map(task => task.assistantName).filter(Boolean),
     ...archivedTasks.map(task => task.supervisorName).filter(Boolean),
+    // Add technicians and assistants from the comma-separated fields
+    ...archivedTasks.flatMap(task => (task as any).technicians ? (task as any).technicians.split(',').map((name: string) => name.trim()) : []).filter(Boolean),
+    ...archivedTasks.flatMap(task => (task as any).assistants ? (task as any).assistants.split(',').map((name: string) => name.trim()) : []).filter(Boolean),
   ].filter(Boolean))).sort();
 
   // Filter tasks based on search and staff selection
@@ -66,7 +69,9 @@ export default function TaskDistribution() {
       task.engineerName === selectedStaff ||
       task.technicianName === selectedStaff ||
       task.assistantName === selectedStaff ||
-      task.supervisorName === selectedStaff;
+      task.supervisorName === selectedStaff ||
+      ((task as any).technicians && (task as any).technicians.includes(selectedStaff)) ||
+      ((task as any).assistants && (task as any).assistants.includes(selectedStaff));
 
     return matchesSearch && matchesStaff;
   });
@@ -84,9 +89,30 @@ export default function TaskDistribution() {
     const staff = [];
     if (task.workerName) staff.push({ name: task.workerName, role: "عامل" });
     if (task.engineerName) staff.push({ name: task.engineerName, role: "مهندس" });
-    if (task.technicianName) staff.push({ name: task.technicianName, role: "فني" });
-    if (task.assistantName) staff.push({ name: task.assistantName, role: "مساعد" });
     if (task.supervisorName) staff.push({ name: task.supervisorName, role: "مشرف" });
+    
+    // Add technicians from both fields
+    if (task.technicianName) staff.push({ name: task.technicianName, role: "فني" });
+    if ((task as any).technicians) {
+      const techs = (task as any).technicians.split(',').map((name: string) => name.trim()).filter(Boolean);
+      techs.forEach((name: string) => {
+        if (!staff.some(s => s.name === name)) {
+          staff.push({ name, role: "فني" });
+        }
+      });
+    }
+    
+    // Add assistants from both fields
+    if (task.assistantName) staff.push({ name: task.assistantName, role: "مساعد" });
+    if ((task as any).assistants) {
+      const assists = (task as any).assistants.split(',').map((name: string) => name.trim()).filter(Boolean);
+      assists.forEach((name: string) => {
+        if (!staff.some(s => s.name === name)) {
+          staff.push({ name, role: "مساعد" });
+        }
+      });
+    }
+    
     return staff;
   };
 
