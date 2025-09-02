@@ -60,48 +60,37 @@ export default function LicensePlateCamera({ onCustomerFound }: LicensePlateCame
       // عرض الصورة للمستخدم
       setCapturedImage(URL.createObjectURL(imageFile));
 
-      // محاولة استخراج رقم اللوحة تلقائياً (تجريبي)
-      try {
-        const response = await fetch('/api/analyze-license-plate', {
-          method: 'POST',
-          body: JSON.stringify({ image: base64Image }),
-          headers: {
-            'Content-Type': 'application/json',
-          },
+      // إرسال الصورة للخادم (حل محلي)
+      const response = await fetch('/api/analyze-license-plate', {
+        method: 'POST',
+        body: JSON.stringify({ image: base64Image }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('🔍 نتيجة استلام الصورة:', result);
+
+        // عرض رسالة للإدخال اليدوي
+        toast({
+          title: "صورة اللوحة جاهزة",
+          description: "أدخل رقم اللوحة المرئي في الصورة أدناه",
+          duration: 5000,
         });
-
-        if (response.ok) {
-          const result = await response.json();
-          console.log('🔍 نتيجة تحليل اللوحة:', result);
-          setAnalysisResult(result);
-
-          if (result.licensePlate) {
-            toast({
-              title: "تم استخراج رقم اللوحة تلقائياً",
-              description: `رقم اللوحة: ${result.licensePlate}`,
-            });
-
-            // البحث عن بيانات الزبون
-            await searchCustomerByPlate(result.licensePlate);
-            return;
-          }
-        }
-      } catch (error) {
-        console.log('تعذر التحليل التلقائي، سيتم استخدام الإدخال اليدوي');
+        
+        // تعيين حالة تتطلب إدخال يدوي
+        setAnalysisResult({
+          licensePlate: null,
+          confidence: 0,
+          rawText: "إدخال يدوي مطلوب",
+          manualInput: "",
+          requiresManualInput: true
+        });
+      } else {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
-
-      // إذا فشل التحليل التلقائي، اعرض إمكانية الإدخال اليدوي
-      toast({
-        title: "صورة اللوحة جاهزة",
-        description: "يمكنك الآن إدخال رقم اللوحة يدوياً من الصورة",
-      });
-      
-      setAnalysisResult({
-        licensePlate: null,
-        confidence: 0,
-        rawText: "إدخال يدوي مطلوب",
-        manualInput: ""
-      });
     } catch (error) {
       console.error('❌ خطأ في تحليل الصورة:', error);
       toast({

@@ -1566,7 +1566,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // License plate analysis endpoint
+  // License plate analysis endpoint - Local solution
   app.post("/api/analyze-license-plate", async (req, res) => {
     try {
       const { image } = req.body;
@@ -1577,15 +1577,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log('📸 استلام طلب تحليل صورة رقم اللوحة...');
       
-      // استيراد دالة تحليل اللوحة
-      const { analyzeLicensePlate } = await import('./anthropic');
+      // حل محلي مؤقت - يتطلب إدخال يدوي
+      const result = {
+        licensePlate: null,
+        confidence: 0,
+        rawText: "يرجى إدخال رقم اللوحة يدوياً من الصورة المرفوعة",
+        requiresManualInput: true
+      };
       
-      // تحليل الصورة
-      const result = await analyzeLicensePlate(image);
-      
-      console.log('✅ نتيجة تحليل اللوحة:', result);
-      
+      console.log('✓ تم استلام الصورة، يتطلب إدخال يدوي');
       res.json(result);
+      
     } catch (error) {
       console.error('❌ خطأ في تحليل صورة اللوحة:', error);
       res.status(500).json({ 
