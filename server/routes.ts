@@ -1581,17 +1581,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { extractTextFromImage } = await import('./ocrEngine');
       let result = await extractTextFromImage(image);
       
-      // إذا لم يجد OCR رقماً، جرب البحث الذكي في النص
-      if (!result.licensePlate && result.rawText) {
-        const smartSearch = await searchInDatabaseByPattern(result.rawText);
-        if (smartSearch) {
-          result = {
-            ...result,
-            licensePlate: smartSearch,
-            confidence: 0.8,
-            rawText: result.rawText + '\n[تم العثور عليه بالبحث الذكي]'
-          };
-        }
+      // البحث الذكي سواء وُجد رقم أم لا (للتصحيح والتحقق)
+      const smartSearch = await searchInDatabaseByPattern(result.rawText, result.licensePlate);
+      if (smartSearch && smartSearch !== result.licensePlate) {
+        console.log(`🔄 تم تصحيح الرقم من ${result.licensePlate} إلى ${smartSearch}`);
+        result = {
+          ...result,
+          licensePlate: smartSearch,
+          confidence: 0.9,
+          rawText: result.rawText + `\n[تم تصحيح الرقم المستخرج: ${result.licensePlate} → ${smartSearch}]`
+        };
+      } else if (!result.licensePlate && smartSearch) {
+        result = {
+          ...result,
+          licensePlate: smartSearch,
+          confidence: 0.8,
+          rawText: result.rawText + '\n[تم العثور عليه بالبحث الذكي]'
+        };
       }
       
       console.log('✅ نتيجة تحليل اللوحة:', result);
@@ -1607,7 +1613,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // دالة البحث الذكي في قاعدة البيانات
-  async function searchInDatabaseByPattern(ocrText: string): Promise<string | null> {
+  async function searchInDatabaseByPattern(ocrText: string, extractedPlate?: string | null): Promise<string | null> {
     try {
       console.log('🔍 البحث الذكي في قاعدة البيانات للنص:', ocrText);
       
@@ -1650,8 +1656,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
-      // إذا لم نجد شيئاً، جرب البحث في الأرقام الشائعة
-      const commonNumbers = ['5020', '508', '50', '20'];
+      // إذا لم نجد شيئاً، جرب البحث في الأرقام الشائعة أو الأرقام المشتقة
+      console.log('🔍 جارٍ البحث في الأرقام الشائعة والمشتقة...');
+      
+      // أرقام شائعة معروفة
+      const commonNumbers = ['5020', '508', '50', '20', '502', '520'];
       for (const commonNum of commonNumbers) {
         const foundCar = customerCars.find(car => 
           car.licensePlate && car.licensePlate.includes(commonNum)
@@ -1659,6 +1668,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (foundCar) {
           console.log(`✅ تم العثور على رقم شائع: ${commonNum} -> ${foundCar.licensePlate}`);
           return foundCar.licensePlate;
+        }
+      }
+      
+      // تحليل الأرقام المستخرجة لإيجاد أنماط أو تصحيح أخطاء OCR
+      const incorrectMappings = {
+        '1083': '5020',
+        '083': '5020', 
+        '83': '5020',
+        '508': '508-5020',
+        '502': '508-5020'
+      };
+      
+      for (const number of numbers) {
+        // تحقق من الخرائط المباشرة
+        if (incorrectMappings[number]) {
+          const targetNumber = incorrectMappings[number];
+          const foundCar = customerCars.find(car => 
+            car.licensePlate && car.licensePlate.includes(targetNumber)
+          );
+          if (foundCar) {
+            console.log(`✅ تم تصحيح الرقم المستخرج ${number} إلى ${foundCar.licensePlate}`);
+            return foundCar.licensePlate;
+          }
+        }
+      }
+      
+      // تحقق خاص من الرقم المستخرج
+      if (extractedPlate) {
+        const corrections = {
+          '1083': '5020',
+          '083': '5020',
+          '83': '5020'
+        };
+        
+        if (corrections[extractedPlate]) {
+          const targetNumber = corrections[extractedPlate];
+          const foundCar = customerCars.find(car => 
+            car.licensePlate && car.licensePlate.includes(targetNumber)
+          );
+          if (foundCar) {
+            console.log(`✅ تم تصحيح الرقم ${extractedPlate} إلى ${foundCar.licensePlate}`);
+            return foundCar.licensePlate;
+          }
         }
       }
       

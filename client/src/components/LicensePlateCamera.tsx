@@ -87,15 +87,15 @@ export default function LicensePlateCamera({ onCustomerFound }: LicensePlateCame
         await searchCustomerByPlate(result.licensePlate);
       } else {
         toast({
-          title: "لم يتم العثور على رقم لوحة",
-          description: "يرجى التأكد من وضوح الصورة أو استخدام الإدخال اليدوي",
+          title: "لم يتم العثور على رقم لوحة صحيح",
+          description: `تم استخراج: ${result.licensePlate || 'لا شيء'} - جرب الإدخال اليدوي`,
           variant: "destructive",
         });
         
-        // إظهار خيار الإدخال اليدوي في حالة فشل التحليل
+        // إظهار خيار الإدخال اليدوي مع الرقم المستخرج كاقتراح
         setAnalysisResult({
           ...result,
-          manualInput: "",
+          manualInput: result.licensePlate || "",
           requiresManualInput: true
         });
       }
