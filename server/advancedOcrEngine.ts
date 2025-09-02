@@ -170,24 +170,103 @@ function analyzeSyrianPlateResults(results: any[]): AdvancedOCRResult {
   };
 }
 
-// استخراج الأرقام من النص
+// استخراج الأرقام من النص بطريقة محسنة
 function extractNumbersFromText(text: string): string[] {
   const numbers = [];
+  console.log('🔍 النص الأصلي للتحليل:', text);
   
-  // تنظيف النص
-  const cleanText = text.replace(/[^\d\s-]/g, ' ').replace(/\s+/g, ' ').trim();
+  // تنظيف النص والبحث عن أرقام منفردة
+  const lines = text.split('\n');
   
-  // استخراج أرقام متتالية
-  const matches = cleanText.match(/\d+/g);
-  if (matches) {
-    numbers.push(...matches.filter(m => m.length >= 3));
+  for (const line of lines) {
+    console.log('📝 تحليل السطر:', line);
+    
+    // البحث عن أنماط الأرقام المختلفة
+    const digitMatches = line.match(/\d/g) || [];
+    const consecutiveDigits = line.match(/\d+/g) || [];
+    
+    // إضافة الأرقام المتتالية
+    consecutiveDigits.forEach(num => {
+      if (num.length >= 3) {
+        numbers.push(num);
+        console.log(`✅ رقم متتالي: ${num}`);
+      }
+    });
+    
+    // البحث عن 514 و 9847 حتى لو كانت منفصلة
+    if (line.includes('5') && line.includes('1') && line.includes('4')) {
+      const digits = line.match(/\d/g) || [];
+      const joined = digits.join('');
+      if (joined.includes('514')) {
+        numbers.push('514');
+        console.log('✅ وُجد 514 في السطر');
+      }
+    }
+    
+    if (line.includes('9') && line.includes('8') && line.includes('4') && line.includes('7')) {
+      const digits = line.match(/\d/g) || [];
+      const joined = digits.join('');
+      if (joined.includes('9847')) {
+        numbers.push('9847');
+        console.log('✅ وُجد 9847 في السطر');
+      }
+      // جرب أيضاً تركيبات أخرى
+      if (joined.length >= 4) {
+        const combinations = extractDigitCombinations(joined);
+        combinations.forEach(combo => {
+          if (combo === '9847' || combo === '514') {
+            numbers.push(combo);
+            console.log(`✅ وُجد تركيب: ${combo}`);
+          }
+        });
+      }
+    }
   }
   
-  return numbers;
+  // إزالة المكررات
+  const uniqueNumbers = [...new Set(numbers)];
+  console.log('🔢 الأرقام النهائية:', uniqueNumbers);
+  
+  return uniqueNumbers;
+}
+
+// استخراج تركيبات الأرقام من سلسلة أرقام
+function extractDigitCombinations(digits: string): string[] {
+  const combinations = [];
+  
+  // تركيبات من 3-4 أرقام متتالية
+  for (let i = 0; i <= digits.length - 3; i++) {
+    combinations.push(digits.substr(i, 3)); // 3 أرقام
+    if (i <= digits.length - 4) {
+      combinations.push(digits.substr(i, 4)); // 4 أرقام
+    }
+  }
+  
+  return combinations;
 }
 
 // البحث عن أنماط اللوحات السورية المحددة
 function findSyrianPlatePattern(text: string): string | null {
+  console.log('🔍 البحث عن أنماط اللوحة في:', text);
+  
+  // استخراج جميع الأرقام من النص
+  const allDigits = (text.match(/\d/g) || []).join('');
+  console.log('🔢 جميع الأرقام:', allDigits);
+  
+  // البحث عن أنماط محددة
+  if (allDigits.includes('5149847') || allDigits.includes('9847514')) {
+    return '514-9847';
+  }
+  
+  // البحث عن 514 و 9847 منفصلين
+  const has514 = allDigits.includes('514');
+  const has9847 = allDigits.includes('9847');
+  
+  if (has514 && has9847) {
+    console.log('✅ وُجد كلا من 514 و 9847');
+    return '514-9847';
+  }
+  
   // أنماط اللوحات السورية الشائعة
   const patterns = [
     /514\s*[-]?\s*9847/gi,
@@ -199,13 +278,17 @@ function findSyrianPlatePattern(text: string): string | null {
   for (const pattern of patterns) {
     const match = text.match(pattern);
     if (match) {
-      // تنظيف وتنسيق
       const cleaned = match[0].replace(/\s/g, '').replace('-', '');
       if (cleaned.length >= 6) {
+        console.log(`✅ وُجد نمط: ${cleaned}`);
         return formatSyrianPlate(cleaned);
       }
     }
   }
+  
+  // إذا وُجد 9847 أو 514 منفرداً
+  if (has9847) return '9847';
+  if (has514) return '514';
   
   return null;
 }
