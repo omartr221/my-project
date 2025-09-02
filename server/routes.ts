@@ -1577,57 +1577,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log('📸 استلام طلب تحليل صورة رقم اللوحة...');
       
-      // تحليل الصورة باستخدام نظام Python المحسن
-      console.log('🐍 استخدام نظام Python OCR المحسن...');
-      
-      const fs = await import('fs');
-      const path = await import('path');
-      const { spawn } = await import('child_process');
-      
-      // حفظ الصورة في ملف مؤقت لتجنب مشكلة E2BIG
-      const tempImagePath = path.join(process.cwd(), `temp_image_${Date.now()}.jpg`);
-      const imageBuffer = Buffer.from(image.replace(/^data:image\/\w+;base64,/, ''), 'base64');
-      fs.writeFileSync(tempImagePath, imageBuffer);
-      
-      const pythonResult = await new Promise<any>((resolve) => {
-        const pythonProcess = spawn('python3', ['python_ocr_service.py', tempImagePath]);
-        
-        let output = '';
-        pythonProcess.stdout.on('data', (data) => {
-          output += data.toString();
-        });
-        
-        pythonProcess.stderr.on('data', (data) => {
-          console.log('🐍 Python stderr:', data.toString());
-        });
-        
-        pythonProcess.on('close', (code) => {
-          // حذف الملف المؤقت
-          try {
-            fs.unlinkSync(tempImagePath);
-          } catch (e) {}
-          
-          try {
-            const lastLine = output.trim().split('\n').pop();
-            const result = JSON.parse(lastLine);
-            resolve(result);
-          } catch (e) {
-            console.error('❌ خطأ في تحليل نتيجة Python:', e);
-            resolve({ success: false, error: 'فشل في تحليل النتيجة' });
-          }
-        });
-      });
+      // تحليل الصورة بالذكاء الاصطناعي (Claude) - الأكثر دقة
+      console.log('🧠 استخدام الذكاء الاصطناعي لقراءة اللوحة...');
       
       let result;
-      if (pythonResult.success) {
+      try {
+        const { extractLicensePlateWithAI } = await import('./aiOcrEngine');
+        const aiResult = await extractLicensePlateWithAI(image);
+        
         result = {
-          licensePlate: pythonResult.license_plate,
-          confidence: pythonResult.confidence,
-          rawText: pythonResult.raw_text
+          licensePlate: aiResult.licensePlate,
+          confidence: aiResult.confidence,
+          rawText: aiResult.rawText
         };
-        console.log('✅ نظام Python - النتيجة:', result);
-      } else {
-        console.log('❌ فشل نظام Python، التراجع للنظام المبسط...');
+        
+        console.log('✅ الذكاء الاصطناعي - النتيجة:', result);
+        
+      } catch (error) {
+        console.log('❌ فشل الذكاء الاصطناعي، التراجع للنظام البديل...');
+        console.error('خطأ AI:', error);
+        
         // التراجع للنظام المبسط
         const { extractLicensePlateSimple } = await import('./simpleOcrEngine');
         const simpleResult = await extractLicensePlateSimple(image);
