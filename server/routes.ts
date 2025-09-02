@@ -386,18 +386,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/customers", async (req, res) => {
     try {
       const customerData = insertCustomerSchema.parse(req.body);
+      
+      // Trim name to avoid whitespace issues
+      customerData.name = customerData.name.trim();
+      
       const customer = await storage.createCustomer(customerData);
       
       broadcastUpdate("customer_created", customer);
       res.status(201).json(customer);
     } catch (error) {
       console.error("Error creating customer:", error);
+      
       if (error instanceof z.ZodError) {
         return res.status(400).json({ 
           message: "Invalid customer data", 
           errors: error.errors 
         });
       }
+      
+      // Check if it's a duplicate customer error
+      if (error instanceof Error && error.message.includes("موجود مسبقاً")) {
+        return res.status(409).json({ 
+          message: error.message 
+        });
+      }
+      
       res.status(500).json({ message: "Failed to create customer" });
     }
   });

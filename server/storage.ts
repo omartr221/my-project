@@ -900,6 +900,22 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createCustomer(customer: InsertCustomer): Promise<Customer> {
+    // Check for existing customer with same name AND phone number
+    const existingCustomer = await db.query.customers.findFirst({
+      where: or(
+        and(
+          eq(customers.name, customer.name),
+          eq(customers.phoneNumber, customer.phoneNumber)
+        ),
+        // Also check just name for exact duplicates
+        eq(customers.name, customer.name)
+      )
+    });
+
+    if (existingCustomer) {
+      throw new Error(`زبون بالاسم "${customer.name}" موجود مسبقاً. يرجى استخدام اسم مختلف.`);
+    }
+
     const [newCustomer] = await db.insert(customers).values(customer).returning();
     return newCustomer;
   }
