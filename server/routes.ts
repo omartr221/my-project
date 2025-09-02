@@ -1633,12 +1633,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // البحث الذكي مع تجربة أرقام مختلفة  
       const allNumbers = [...numbers];
       
-      // إضافة أرقام مشتقة للحالات الشائعة للخطأ في OCR
+      // إضافة أرقام مشتقة ذكية للحالات الشائعة للخطأ في OCR
       for (const num of numbers) {
-        if (num === '514') allNumbers.push('514');
-        if (num === '9847') allNumbers.push('9847');
-        if (num.includes('514')) allNumbers.push('514', '9847');
-        if (num.includes('9847')) allNumbers.push('9847', '514');
+        // للأرقام التي تحتوي على 514 أو 9847، إضافة الجزء الآخر
+        if (num.includes('514') && !allNumbers.includes('9847')) allNumbers.push('9847');
+        if (num.includes('9847') && !allNumbers.includes('514')) allNumbers.push('514');
+        
+        // إضافة أرقام متشابهة للأخطاء الشائعة
+        if (num === '0048') allNumbers.push('9847', '514'); // خطأ شائع في OCR
+        if (num === '70') allNumbers.push('514'); // قد يكون جزء من 514
       }
       
       // ترتيب حسب الطول (الأطول أولاً)

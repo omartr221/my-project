@@ -15,14 +15,14 @@ export async function extractTextFromImage(base64Image: string): Promise<OCRResu
     // تحويل base64 إلى buffer
     const imageBuffer = Buffer.from(base64Image.replace(/^data:image\/\w+;base64,/, ''), 'base64');
     
-    // معالجة متقدمة للصورة
+    // معالجة محسنة للصورة مخصصة لأرقام اللوحات
     const processedImage = await sharp(imageBuffer)
-      .resize(2000, 1500, { fit: 'inside', withoutEnlargement: true })
+      .resize(1600, 1200, { fit: 'inside', withoutEnlargement: true })
       .greyscale()
-      .gamma(1.5) // تحسين التباين
-      .linear(1.2, -(128 * 1.2) + 128) // زيادة التباين
-      .blur(0.5) // تنعيم خفيف
-      .sharpen({ sigma: 1, m1: 0.5, m2: 3 })
+      .normalize() // توزيع أفضل للإضاءة
+      .modulate({ brightness: 1.3, contrast: 1.8 }) // تباين عالي
+      .sharpen({ sigma: 2, m1: 0.8, m2: 5 }) // حدة عالية
+      .threshold(140) // تحويل لأبيض وأسود واضح
       .png()
       .toBuffer();
 
@@ -31,34 +31,50 @@ export async function extractTextFromImage(base64Image: string): Promise<OCRResu
     
     let bestResult = { text: '', confidence: 0 };
     
-    // الطريقة الأولى: تحليل عام
+    // الطريقة الأولى: أرقام فقط مع تحسينات
     try {
       const result1 = await Tesseract.recognize(processedImage, 'eng', {
-        tessedit_pageseg_mode: '6', // كتلة نص واحدة
+        tessedit_char_whitelist: '0123456789-',
+        tessedit_pageseg_mode: '8', // كلمة واحدة
+        tessedit_ocr_engine_mode: '1', // LSTM فقط
+        preserve_interword_spaces: '0'
       });
       if (result1.data.confidence > bestResult.confidence) {
         bestResult = result1.data;
       }
     } catch (e) {}
     
-    // الطريقة الثانية: أرقام فقط
+    // الطريقة الثانية: كتلة نص واحدة
     try {
       const result2 = await Tesseract.recognize(processedImage, 'eng', {
-        tessedit_char_whitelist: '0123456789-',
-        tessedit_pageseg_mode: '8',
+        tessedit_char_whitelist: '0123456789- ',
+        tessedit_pageseg_mode: '6',
+        tessedit_ocr_engine_mode: '1'
       });
       if (result2.data.confidence > bestResult.confidence) {
         bestResult = result2.data;
       }
     } catch (e) {}
     
-    // الطريقة الثالثة: كلمة واحدة
+    // الطريقة الثالثة: تحليل عام محسن
     try {
       const result3 = await Tesseract.recognize(processedImage, 'eng', {
-        tessedit_pageseg_mode: '8',
+        tessedit_pageseg_mode: '7', // كتلة نص واحدة
+        tessedit_ocr_engine_mode: '1'
       });
       if (result3.data.confidence > bestResult.confidence) {
         bestResult = result3.data;
+      }
+    } catch (e) {}
+    
+    // الطريقة الرابعة: خط واحد
+    try {
+      const result4 = await Tesseract.recognize(processedImage, 'eng', {
+        tessedit_char_whitelist: '0123456789-',
+        tessedit_pageseg_mode: '13' // خط نص خام
+      });
+      if (result4.data.confidence > bestResult.confidence) {
+        bestResult = result4.data;
       }
     } catch (e) {}
     
@@ -97,18 +113,18 @@ function extractLicensePlateFromText(text: string): string | null {
   // تحويل الأرقام العربية إلى إنجليزية
   cleanText = cleanText.replace(/[\u0660-\u0669]/g, (d) => String.fromCharCode(d.charCodeAt(0) - '\u0660'.charCodeAt(0) + '0'.charCodeAt(0)));
   
-  // أنماط محسنة لاستخراج أرقام اللوحات
+  // أنماط محسنة للوحات السورية
   const patterns = [
-    // نمط 508-5020 أو 508 5020
+    // نمط كامل للوحة سورية: 514-9847
     /(\d{3}[-\s]*\d{4})/g,
-    // نمط 5020 (4 أرقام متتالية)
+    // نمط عكسي: 9847-514
+    /(\d{4}[-\s]*\d{3})/g,
+    // 4 أرقام متتالية (الجزء الثاني من اللوحة)
     /(\d{4})/g,
-    // نمط 50 20 (رقمان منفصلان)
-    /(\d{2}\s+\d{2})/g,
-    // نمط 502 0 (3 أرقام ورقم)
-    /(\d{3}\s+\d{1})/g,
-    // أي مجموعة من 3-6 أرقام
-    /(\d{3,6})/g
+    // 3 أرقام متتالية (الجزء الأول من اللوحة)  
+    /(\d{3})/g,
+    // أي مجموعة أرقام
+    /(\d{2,6})/g
   ];
 
   const allMatches = [];
