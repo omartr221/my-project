@@ -1566,7 +1566,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // License plate analysis endpoint - Local solution
+  // License plate analysis endpoint - OCR Local solution
   app.post("/api/analyze-license-plate", async (req, res) => {
     try {
       const { image } = req.body;
@@ -1577,15 +1577,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log('📸 استلام طلب تحليل صورة رقم اللوحة...');
       
-      // حل محلي مؤقت - يتطلب إدخال يدوي
-      const result = {
-        licensePlate: null,
-        confidence: 0,
-        rawText: "يرجى إدخال رقم اللوحة يدوياً من الصورة المرفوعة",
-        requiresManualInput: true
-      };
+      // تحليل الصورة محلياً باستخدام OCR
+      const { extractTextFromImage } = await import('./ocrEngine');
+      const result = await extractTextFromImage(image);
       
-      console.log('✓ تم استلام الصورة، يتطلب إدخال يدوي');
+      console.log('✅ نتيجة تحليل اللوحة:', result);
       res.json(result);
       
     } catch (error) {

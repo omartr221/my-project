@@ -60,7 +60,7 @@ export default function LicensePlateCamera({ onCustomerFound }: LicensePlateCame
       // عرض الصورة للمستخدم
       setCapturedImage(URL.createObjectURL(imageFile));
 
-      // إرسال الصورة للخادم (حل محلي)
+      // تحليل الصورة محلياً باستخدام OCR
       const response = await fetch('/api/analyze-license-plate', {
         method: 'POST',
         body: JSON.stringify({ image: base64Image }),
@@ -69,27 +69,35 @@ export default function LicensePlateCamera({ onCustomerFound }: LicensePlateCame
         },
       });
 
-      if (response.ok) {
-        const result = await response.json();
-        console.log('🔍 نتيجة استلام الصورة:', result);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
-        // عرض رسالة للإدخال اليدوي
+      const result = await response.json();
+      console.log('🔍 نتيجة تحليل اللوحة:', result);
+      setAnalysisResult(result);
+
+      if (result.licensePlate) {
         toast({
-          title: "صورة اللوحة جاهزة",
-          description: "أدخل رقم اللوحة المرئي في الصورة أدناه",
-          duration: 5000,
+          title: "تم استخراج رقم اللوحة تلقائياً",
+          description: `رقم اللوحة: ${result.licensePlate} (الثقة: ${Math.round(result.confidence * 100)}%)`,
+        });
+
+        // البحث عن بيانات الزبون تلقائياً
+        await searchCustomerByPlate(result.licensePlate);
+      } else {
+        toast({
+          title: "لم يتم العثور على رقم لوحة",
+          description: "يرجى التأكد من وضوح الصورة أو استخدام الإدخال اليدوي",
+          variant: "destructive",
         });
         
-        // تعيين حالة تتطلب إدخال يدوي
+        // إظهار خيار الإدخال اليدوي في حالة فشل التحليل
         setAnalysisResult({
-          licensePlate: null,
-          confidence: 0,
-          rawText: "إدخال يدوي مطلوب",
+          ...result,
           manualInput: "",
           requiresManualInput: true
         });
-      } else {
-        throw new Error(`HTTP error! status: ${response.status}`);
       }
     } catch (error) {
       console.error('❌ خطأ في تحليل الصورة:', error);
