@@ -1619,30 +1619,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const customerCars = await storage.getCustomerCars();
       
-      // ★ فحص خاص أولاً: البحث عن الأرقام المهمة في النص الأصلي مباشرة
-      
-      // البحث عن محمد عوده (5020)
-      if (ocrText && ocrText.includes('5020')) {
-        const awadaCar = customerCars.find(car => 
-          car.licensePlate && car.licensePlate.includes('5020') && 
-          car.customerName && car.customerName.includes('محمد عوده')
-        );
-        if (awadaCar) {
-          console.log(`🎯 ★ تم العثور على "5020" في النص الأصلي -> محمد عوده!`);
-          return awadaCar.licensePlate;
-        }
-      }
-      
-      // البحث عن أرقام AUDI A8 (514-9847)
-      if (ocrText && (ocrText.includes('514') || ocrText.includes('9847'))) {
-        const audiCar = customerCars.find(car => 
-          car.licensePlate && (car.licensePlate.includes('514') || car.licensePlate.includes('9847'))
-        );
-        if (audiCar) {
-          console.log(`🎯 ★ تم العثور على AUDI A8 في النص: ${audiCar.licensePlate} -> ${audiCar.customerName}`);
-          return audiCar.licensePlate;
-        }
-      }
+
       
       // استخراج جميع الأرقام من النص
       const numbers = ocrText.match(/\d+/g) || [];
@@ -1650,66 +1627,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (numbers.length === 0) return null;
       
-      // أولوية البحث لآخر 4 أرقام (كما طلب المستخدم)
-      const last4DigitNumbers = numbers.filter(num => num.length === 4);
-      console.log(`🔍 البحث بأولوية لآخر 4 أرقام: ${last4DigitNumbers}`);
+      // البحث البسيط في جميع الأرقام المستخرجة
+      console.log(`🔍 بحث بسيط عن أي مطابقة في قاعدة البيانات...`);
       
-      // البحث عن 5020 أولاً (محمد عوده) مع التأكد من الاسم
-      for (const number of last4DigitNumbers) {
-        if (number === '5020') {
-          const foundCar = customerCars.find(car => 
-            car.licensePlate && car.licensePlate.includes('5020') &&
-            car.customerName && car.customerName.includes('محمد عوده')
-          );
-          if (foundCar) {
-            console.log(`✅ تم العثور على محمد عوده بالتأكيد: ${number} -> ${foundCar.licensePlate}`);
-            return foundCar.licensePlate;
-          }
-        }
-      }
-      
-      // البحث في آخر 4 أرقام الأخرى
-      for (const number of last4DigitNumbers) {
-        console.log(`🔍 البحث عن الرقم المكون من 4 خانات: ${number}`);
-        
-        const foundCar = customerCars.find(car => {
-          if (!car.licensePlate) return false;
+      // البحث في جميع الأرقام المستخرجة بدون أولويات
+      for (const number of numbers) {
+        if (number.length >= 3) { // على الأقل 3 خانات
+          console.log(`🔍 البحث عن الرقم: ${number}`);
           
-          const carPlate = car.licensePlate.toLowerCase();
-          const searchNumber = number.toLowerCase();
-          
-          // بحث في آخر 4 أرقام من اللوحة
-          const carPlateDigits = carPlate.replace(/\D/g, '');
-          if (carPlateDigits.endsWith(searchNumber)) return true;
-          
-          // بحث مباشر
-          if (carPlate.includes(searchNumber)) return true;
-          
-          return false;
-        });
-        
-        if (foundCar) {
-          console.log(`✅ تم العثور على مطابقة: ${number} -> ${foundCar.licensePlate}`);
-          return foundCar.licensePlate;
-        }
-      }
-      
-      // إذا لم نجد في آخر 4 أرقام، ابحث في الأرقام الأخرى
-      const otherNumbers = numbers.filter(num => num.length >= 2 && num.length !== 4);
-      for (const number of otherNumbers) {
-        console.log(`🔍 البحث عن الرقم: ${number}`);
-        
-        if (number.length >= 2) {
           const foundCar = customerCars.find(car => {
             if (!car.licensePlate) return false;
             
             const carPlate = car.licensePlate.toLowerCase();
             const searchNumber = number.toLowerCase();
             
-            // بحث مباشر
+            // بحث مباشر في رقم اللوحة
             if (carPlate.includes(searchNumber)) return true;
             
-            // بحث بدون رموز
+            // بحث في الأرقام فقط بدون رموز
             const carPlateDigits = carPlate.replace(/\D/g, '');
             if (carPlateDigits.includes(searchNumber)) return true;
             
@@ -1722,55 +1657,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         }
       }
-      
-      // إذا لم نجد شيئاً، جرب البحث في الأرقام الشائعة أو الأرقام المشتقة
-      console.log('🔍 جارٍ البحث في الأرقام الشائعة والمشتقة...');
-      
-      // أرقام شائعة معروفة
-      const commonNumbers = ['5020', '508', '50', '20', '502', '520'];
-      for (const commonNum of commonNumbers) {
-        const foundCar = customerCars.find(car => 
-          car.licensePlate && car.licensePlate.includes(commonNum)
-        );
-        if (foundCar) {
-          console.log(`✅ تم العثور على رقم شائع: ${commonNum} -> ${foundCar.licensePlate}`);
-          return foundCar.licensePlate;
-        }
-      }
-      
-      // تحليل الأرقام المستخرجة لإيجاد أنماط أو تصحيح أخطاء OCR
-      // حل نهائي: إعطاء أولوية مطلقة لمحمد عوده عند استخراج أرقام معينة
-      console.log(`🎯 فحص خاص لمحمد عوده...`);
-      
-      // إذا كان الرقم المستخرج يحتوي على أي من هذه الأرقام، ارجع محمد عوده فوراً
-      const AwadaIndicators = ['1083', '083', '83', '108', '5020', '502', '20'];
-      
-      if (extractedPlate && AwadaIndicators.some(indicator => extractedPlate.includes(indicator))) {
-        const awadaCar = customerCars.find(car => 
-          car.licensePlate && car.licensePlate.includes('5020') && 
-          car.customerName && car.customerName.includes('محمد عوده')
-        );
-        if (awadaCar) {
-          console.log(`✅ تم إجبار النتيجة لمحمد عوده: ${extractedPlate} -> ${awadaCar.licensePlate}`);
-          return awadaCar.licensePlate;
-        }
-      }
-      
-      // أيضاً تحقق من الأرقام المستخرجة
-      for (const number of numbers) {
-        if (AwadaIndicators.includes(number)) {
-          const awadaCar = customerCars.find(car => 
-            car.licensePlate && car.licensePlate.includes('5020') && 
-            car.customerName && car.customerName.includes('محمد عوده')
-          );
-          if (awadaCar) {
-            console.log(`✅ تم إجبار النتيجة لمحمد عوده: ${number} -> ${awadaCar.licensePlate}`);
-            return awadaCar.licensePlate;
-          }
-        }
-      }
-      
-      console.log(`⚠️ لم يتم العثور على محمد عوده، البحث في بقية الأرقام...`);
       
       return null;
     } catch (error) {

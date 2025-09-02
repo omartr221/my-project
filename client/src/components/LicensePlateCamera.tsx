@@ -285,39 +285,7 @@ export default function LicensePlateCamera({ onCustomerFound }: LicensePlateCame
                     </div>
                   </CardContent>
                 </Card>
-              ) : (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-sm">إدخال رقم اللوحة يدوياً</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      <p className="text-sm text-gray-600">
-                        من الصورة أعلاه، أدخل رقم اللوحة المرئي:
-                      </p>
-                      <Input
-                        placeholder="أدخل رقم اللوحة (مثل: 5020)"
-                        value={analysisResult?.manualInput || ""}
-                        onChange={(e) => setAnalysisResult({
-                          licensePlate: e.target.value,
-                          confidence: 1,
-                          rawText: e.target.value,
-                          manualInput: e.target.value
-                        })}
-                      />
-                      {analysisResult?.licensePlate && (
-                        <Button
-                          onClick={() => searchCustomerByPlate(analysisResult.licensePlate)}
-                          className="w-full"
-                        >
-                          <Search className="h-4 w-4 mr-2" />
-                          البحث عن الزبون
-                        </Button>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
+              ) : null}
               
               {analysisResult ? (
                 <Card>
