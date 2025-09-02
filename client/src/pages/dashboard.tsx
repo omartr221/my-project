@@ -15,6 +15,7 @@ import ArchiveView from "@/components/ArchiveView";
 import AddWorkerForm from "@/components/AddWorkerForm";
 import PausedTasksList from "@/components/PausedTasksList";
 import CustomerCard from "@/components/CustomerCard";
+import CustomerAccount from "@/components/CustomerAccount";
 import PartsRequestForm from "@/components/PartsRequestForm";
 import PartsRequestsList from "@/components/PartsRequestsList";
 import RequestsList from "@/components/RequestsList";
@@ -31,7 +32,7 @@ import Reception from "@/pages/Reception";
 import Workshop from "@/pages/Workshop";
 import { useNotifications } from "@/hooks/useNotifications";
 
-type TabType = "dashboard" | "timers" | "history" | "archive" | "addworker" | "customercard" | "parts-requests" | "requests" | "car-status" | "car-positions" | "car-receipts" | "reception" | "workshop" | "car-delivery" | "customer-delivery";
+type TabType = "dashboard" | "timers" | "history" | "archive" | "addworker" | "customercard" | "customer-account" | "parts-requests" | "requests" | "car-status" | "car-positions" | "car-receipts" | "reception" | "workshop" | "car-delivery" | "customer-delivery";
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<TabType>("dashboard");
@@ -183,6 +184,9 @@ export default function Dashboard() {
       
       case "customercard":
         return <CustomerCard />;
+      
+      case "customer-account":
+        return <CustomerAccount />;
       
       case "parts-requests":
         return (
@@ -385,7 +389,7 @@ export default function Dashboard() {
                   </Button>
                 )}
                 
-                {(canRead("customers") || user?.username === "فارس") && (
+                {(canRead("customers") || user?.username === "فارس" || user?.username === "ملك") && (
                   <Button
                     variant={activeTab === "customercard" ? "default" : "ghost"}
                     onClick={() => setActiveTab("customercard")}
@@ -393,6 +397,18 @@ export default function Dashboard() {
                   >
                     <Users className="ml-2 h-4 w-4" />
                     بطاقة زبون
+                  </Button>
+                )}
+
+                {/* حساب الزبون - متاح لملك */}
+                {user?.username === "ملك" && (
+                  <Button
+                    variant={activeTab === "customer-account" ? "default" : "ghost"}
+                    onClick={() => setActiveTab("customer-account")}
+                    className="font-medium"
+                  >
+                    <Users className="ml-2 h-4 w-4" />
+                    حساب الزبون
                   </Button>
                 )}
 
