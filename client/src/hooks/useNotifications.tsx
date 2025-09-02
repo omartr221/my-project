@@ -197,14 +197,21 @@ export function useNotifications() {
   // مراقبة الأحداث المخصصة للطلبات الجديدة
   useEffect(() => {
     const handleNewPartsRequest = (event: CustomEvent) => {
+      console.log('🔔 تم استلام حدث newPartsRequest:', event.detail);
+      console.log('🔔 المستخدم الحالي:', user?.username);
+      
       if (user?.username === 'هبة') {
         const request = event.detail;
+        console.log('🔔 ✅ إرسال إشعار صوتي لهبة');
+        
         // تشغيل التنبيه مرة واحدة فقط عند استلام طلب جديد
         startRepeatingAlert(
           '📦 طلب قطعة جديد',
           `طلب جديد من ${request.engineer || request.engineerName}: ${request.partName}`
         );
         setNewRequestsCount(prev => prev + 1);
+      } else {
+        console.log('🔔 ❌ المستخدم ليس هبة، لا إشعار');
       }
     };
     

@@ -92,13 +92,26 @@ export function useWebSocket() {
         
         // إرسال إشعار فوري للمستخدم هبة
         const user = queryClient.getQueryData(['/api/user']) as any;
+        console.log('🔔 تم استلام طلب قطعة جديد - المستخدم الحالي:', user?.username);
+        console.log('🔔 بيانات الطلب:', message.data);
+        
         if (user?.username === 'هبة') {
           // إرسال الإشعار عبر custom event مع تفاصيل كاملة
           window.dispatchEvent(new CustomEvent('newPartsRequest', { 
-            detail: message.data 
+            detail: {
+              id: message.data.id,
+              engineer: message.data.engineerName || message.data.engineer,
+              engineerName: message.data.engineerName || message.data.engineer,
+              partName: message.data.partName,
+              requestNumber: message.data.requestNumber,
+              carInfo: message.data.carInfo || `${message.data.carBrand || ''} ${message.data.carModel || ''}`.trim(),
+              licensePlate: message.data.licensePlate
+            }
           }));
           
-          console.log('🔔 إشعار جديد لهبة:', message.data);
+          console.log('🔔 ✅ تم إرسال إشعار لهبة عن طلب قطعة جديد');
+        } else {
+          console.log('🔔 ❌ المستخدم الحالي ليس هبة، لا يتم إرسال إشعار');
         }
         break;
         
