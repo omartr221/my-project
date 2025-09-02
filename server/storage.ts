@@ -568,6 +568,26 @@ export class DatabaseStorage implements IStorage {
       .where(eq(tasks.id, taskId))
       .returning();
 
+    // Automatically archive the task after completion
+    if (task) {
+      console.log(`🏁 تم إنهاء المهمة ${taskId}، جاري الأرشفة التلقائية...`);
+      
+      try {
+        // Archive with completed status and details
+        const archivedTask = await this.archiveTask(
+          taskId, 
+          'بدوي', // المستخدم المسؤول عن الأرشفة
+          `مهمة مكتملة تلقائياً - ${task.description}`, 
+          3 // تقييم افتراضي
+        );
+        console.log(`✅ تم أرشفة المهمة ${taskId} تلقائياً`);
+        return archivedTask;
+      } catch (archiveError) {
+        console.error('خطأ في الأرشفة التلقائية:', archiveError);
+        return task; // إرجاع المهمة حتى لو فشلت الأرشفة
+      }
+    }
+
     return task;
   }
 

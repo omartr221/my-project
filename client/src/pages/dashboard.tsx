@@ -16,6 +16,7 @@ import AddWorkerForm from "@/components/AddWorkerForm";
 import PausedTasksList from "@/components/PausedTasksList";
 import CustomerCard from "@/components/CustomerCard";
 import CustomerAccount from "@/components/CustomerAccount";
+import TaskDistribution from "@/components/TaskDistribution";
 import PartsRequestForm from "@/components/PartsRequestForm";
 import PartsRequestsList from "@/components/PartsRequestsList";
 import RequestsList from "@/components/RequestsList";
@@ -32,7 +33,7 @@ import Reception from "@/pages/Reception";
 import Workshop from "@/pages/Workshop";
 import { useNotifications } from "@/hooks/useNotifications";
 
-type TabType = "dashboard" | "timers" | "history" | "archive" | "addworker" | "customercard" | "customer-account" | "parts-requests" | "requests" | "car-status" | "car-positions" | "car-receipts" | "reception" | "workshop" | "car-delivery" | "customer-delivery";
+type TabType = "dashboard" | "timers" | "history" | "archive" | "addworker" | "customercard" | "customer-account" | "task-distribution" | "parts-requests" | "requests" | "car-status" | "car-positions" | "car-receipts" | "reception" | "workshop" | "car-delivery" | "customer-delivery";
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<TabType>("dashboard");
@@ -187,6 +188,9 @@ export default function Dashboard() {
       
       case "customer-account":
         return <CustomerAccount />;
+      
+      case "task-distribution":
+        return <TaskDistribution />;
       
       case "parts-requests":
         return (
@@ -409,6 +413,18 @@ export default function Dashboard() {
                   >
                     <Users className="ml-2 h-4 w-4" />
                     حساب الزبون
+                  </Button>
+                )}
+
+                {/* توزيع المهام - متاح لملك */}
+                {user?.username === "ملك" && (
+                  <Button
+                    variant={activeTab === "task-distribution" ? "default" : "ghost"}
+                    onClick={() => setActiveTab("task-distribution")}
+                    className="font-medium"
+                  >
+                    <Archive className="ml-2 h-4 w-4" />
+                    توزيع المهام
                   </Button>
                 )}
 

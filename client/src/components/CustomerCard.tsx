@@ -162,6 +162,11 @@ export default function CustomerCard() {
 
   const addCustomerMutation = useMutation({
     mutationFn: async (data: InsertCustomer) => {
+      // Check for duplicate customer name before creating
+      if (customers && customers.some(c => c.name.toLowerCase().trim() === data.name.toLowerCase().trim())) {
+        throw new Error(`زبون بالاسم "${data.name}" موجود مسبقاً. يرجى استخدام اسم مختلف أو رقم هاتف مختلف.`);
+      }
+      
       // First create the customer
       const customerResponse = await apiRequest("POST", "/api/customers", data);
       const customer = await customerResponse.json();
@@ -190,7 +195,7 @@ export default function CustomerCard() {
         title: "تم إضافة الزبون بنجاح",
         description: `تم إضافة ${customerForm.name} والسيارة إلى قاعدة البيانات`,
       });
-      resetCustomerForm();
+      resetForm();
       setShowAddForm(false);
     },
     onError: (error: Error) => {
