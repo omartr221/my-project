@@ -307,9 +307,9 @@ export default function ArchiveView() {
               const ratingText = task.rating === 1 ? 'مقبول' : task.rating === 2 ? 'جيد' : task.rating === 3 ? 'ممتاز' : '--';
               const engineerName = task.engineerName || '--';
               const supervisorName = task.supervisorName || '--';
-              const actualDuration = (task as any).timerType === 'manual' && (task as any).consumedTime 
-                ? (task as any).consumedTime * 60 
-                : task.totalDuration;
+              const actualDuration = (task as any).consumedTime && (task as any).consumedTime > 0
+                ? (task as any).consumedTime 
+                : (task.totalDuration || 0);
               const workPercentage = task.estimatedDuration ? 
                 Math.round(((task.estimatedDuration * 60) / actualDuration) * 100) + '%' : '--';
               
@@ -337,9 +337,9 @@ export default function ArchiveView() {
                     (task as any).assistants : 
                     ((task as any).assistantName || '--')}</td>
                   <td>${task.estimatedDuration ? task.estimatedDuration + ' دقيقة' : 'غير محدد'}</td>
-                  <td>${(task as any).timerType === 'manual' && (task as any).consumedTime 
-                    ? formatDuration((task as any).consumedTime * 60) 
-                    : formatDuration(task.totalDuration)}</td>
+                  <td>${(task as any).consumedTime && (task as any).consumedTime > 0
+                    ? formatDuration((task as any).consumedTime) 
+                    : formatDuration(task.totalDuration || 0)}</td>
                   <td>${workPercentage}</td>
                   <td>${ratingText}</td>
                   <td>${endDate}</td>
@@ -517,17 +517,22 @@ export default function ArchiveView() {
                         <span className="font-medium">الوقت المقدر:</span> {task.estimatedDuration ? `${task.estimatedDuration} دقيقة` : '--'}
                       </div>
                       <div>
-                        <span className="font-medium">المدة الفعلية:</span> {(task as any).timerType === 'manual' && (task as any).consumedTime 
-                          ? formatDuration((task as any).consumedTime * 60) 
-                          : formatDuration(task.totalDuration)}
+                        <span className="font-medium">المدة الفعلية:</span> {(() => {
+                          // Use consumedTime from database if available (more accurate for archived tasks)
+                          if ((task as any).consumedTime && (task as any).consumedTime > 0) {
+                            return formatDuration((task as any).consumedTime);
+                          }
+                          // Fallback to totalDuration
+                          return formatDuration(task.totalDuration || 0);
+                        })()}
                       </div>
                       <div>
                         <span className="font-medium">نسبة العمل المئوية:</span> 
                         {task.estimatedDuration && task.estimatedDuration > 0 ? (() => {
                           const estimatedSeconds = task.estimatedDuration * 60;
-                          const actualSeconds = (task as any).timerType === 'manual' && (task as any).consumedTime 
-                            ? (task as any).consumedTime * 60 
-                            : task.totalDuration;
+                          const actualSeconds = (task as any).consumedTime && (task as any).consumedTime > 0
+                            ? (task as any).consumedTime 
+                            : (task.totalDuration || 0);
                           // حساب الكفاءة: الوقت المقدر ÷ الوقت الفعلي × 100
                           const efficiency = Math.round((estimatedSeconds / actualSeconds) * 100);
                           return (
