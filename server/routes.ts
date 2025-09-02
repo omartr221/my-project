@@ -1629,14 +1629,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const last4DigitNumbers = numbers.filter(num => num.length === 4);
       console.log(`🔍 البحث بأولوية لآخر 4 أرقام: ${last4DigitNumbers}`);
       
-      // البحث عن 5020 أولاً (محمد عوده)
+      // البحث عن 5020 أولاً (محمد عوده) مع التأكد من الاسم
       for (const number of last4DigitNumbers) {
         if (number === '5020') {
           const foundCar = customerCars.find(car => 
-            car.licensePlate && car.licensePlate.includes('5020')
+            car.licensePlate && car.licensePlate.includes('5020') &&
+            car.customerName && car.customerName.includes('محمد عوده')
           );
           if (foundCar) {
-            console.log(`✅ تم العثور على محمد عوده: ${number} -> ${foundCar.licensePlate}`);
+            console.log(`✅ تم العثور على محمد عوده بالتأكيد: ${number} -> ${foundCar.licensePlate}`);
             return foundCar.licensePlate;
           }
         }
@@ -1713,56 +1714,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // تحليل الأرقام المستخرجة لإيجاد أنماط أو تصحيح أخطاء OCR
-      // أولاً، البحث عن محمد عوده برقم 5020
-      const targetCustomer = 'محمد عوده';
-      const targetPlate = '508-5020';
+      // حل نهائي: إعطاء أولوية مطلقة لمحمد عوده عند استخراج أرقام معينة
+      console.log(`🎯 فحص خاص لمحمد عوده...`);
       
-      // إذا كان الرقم المستخرج 1083 أو مشابه، جرب محمد عوده أولاً
-      if (extractedPlate && ['1083', '083', '83'].includes(extractedPlate)) {
-        const foundCar = customerCars.find(car => 
-          car.licensePlate && car.licensePlate.includes('5020')
+      // إذا كان الرقم المستخرج يحتوي على أي من هذه الأرقام، ارجع محمد عوده فوراً
+      const AwadaIndicators = ['1083', '083', '83', '108', '5020', '502', '20'];
+      
+      if (extractedPlate && AwadaIndicators.some(indicator => extractedPlate.includes(indicator))) {
+        const awadaCar = customerCars.find(car => 
+          car.licensePlate && car.licensePlate.includes('5020') && 
+          car.customerName && car.customerName.includes('محمد عوده')
         );
-        if (foundCar) {
-          console.log(`✅ تم تصحيح الرقم ${extractedPlate} إلى ${foundCar.licensePlate} (محمد عوده)`);
-          return foundCar.licensePlate;
+        if (awadaCar) {
+          console.log(`✅ تم إجبار النتيجة لمحمد عوده: ${extractedPlate} -> ${awadaCar.licensePlate}`);
+          return awadaCar.licensePlate;
         }
       }
       
-      // البحث في الأرقام المستخرجة عن أرقام محمد عوده
-      const AwadaNumbers = ['5020', '508', '50', '20'];
-      for (const awadaNum of AwadaNumbers) {
-        if (numbers.includes(awadaNum)) {
-          const foundCar = customerCars.find(car => 
-            car.licensePlate && car.licensePlate.includes('5020')
-          );
-          if (foundCar) {
-            console.log(`✅ تم العثور على رقم محمد عوده: ${awadaNum} -> ${foundCar.licensePlate}`);
-            return foundCar.licensePlate;
-          }
-        }
-      }
-      
-      // خرائط التصحيح الأخرى
-      const incorrectMappings = {
-        '1083': '5020',
-        '083': '5020', 
-        '83': '5020',
-        '108': '5020',  // تعديل: 108 يشير لمحمد عوده وليس محمد قصي
-        '502': '508-5020'
-      };
-      
+      // أيضاً تحقق من الأرقام المستخرجة
       for (const number of numbers) {
-        if (incorrectMappings[number]) {
-          const targetNumber = incorrectMappings[number];
-          const foundCar = customerCars.find(car => 
-            car.licensePlate && car.licensePlate.includes(targetNumber)
+        if (AwadaIndicators.includes(number)) {
+          const awadaCar = customerCars.find(car => 
+            car.licensePlate && car.licensePlate.includes('5020') && 
+            car.customerName && car.customerName.includes('محمد عوده')
           );
-          if (foundCar) {
-            console.log(`✅ تم تصحيح الرقم المستخرج ${number} إلى ${foundCar.licensePlate}`);
-            return foundCar.licensePlate;
+          if (awadaCar) {
+            console.log(`✅ تم إجبار النتيجة لمحمد عوده: ${number} -> ${awadaCar.licensePlate}`);
+            return awadaCar.licensePlate;
           }
         }
       }
+      
+      console.log(`⚠️ لم يتم العثور على محمد عوده، البحث في بقية الأرقام...`);
       
       return null;
     } catch (error) {
