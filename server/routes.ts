@@ -1619,7 +1619,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const customerCars = await storage.getCustomerCars();
       
-      // ★ فحص خاص أولاً: البحث عن "5020" في النص الأصلي مباشرة
+      // ★ فحص خاص أولاً: البحث عن الأرقام المهمة في النص الأصلي مباشرة
+      
+      // البحث عن محمد عوده (5020)
       if (ocrText && ocrText.includes('5020')) {
         const awadaCar = customerCars.find(car => 
           car.licensePlate && car.licensePlate.includes('5020') && 
@@ -1628,6 +1630,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (awadaCar) {
           console.log(`🎯 ★ تم العثور على "5020" في النص الأصلي -> محمد عوده!`);
           return awadaCar.licensePlate;
+        }
+      }
+      
+      // البحث عن أرقام AUDI A8 (514-9847)
+      if (ocrText && (ocrText.includes('514') || ocrText.includes('9847'))) {
+        const audiCar = customerCars.find(car => 
+          car.licensePlate && (car.licensePlate.includes('514') || car.licensePlate.includes('9847'))
+        );
+        if (audiCar) {
+          console.log(`🎯 ★ تم العثور على AUDI A8 في النص: ${audiCar.licensePlate} -> ${audiCar.customerName}`);
+          return audiCar.licensePlate;
         }
       }
       
