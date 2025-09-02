@@ -14,6 +14,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import type { ReceptionEntry, InsertReceptionEntry, Customer, CustomerCar } from "@shared/schema";
 import { useAuth } from "@/hooks/use-auth";
 import { ExcelImporter } from "@/components/ExcelImporter";
+import LicensePlateCamera from "@/components/LicensePlateCamera";
 
 export default function Reception() {
   const { toast } = useToast();
@@ -245,6 +246,24 @@ export default function Reception() {
   const [showCustomerSuggestions, setShowCustomerSuggestions] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [selectedCar, setSelectedCar] = useState<CustomerCar | null>(null);
+
+  // معالج لبيانات الزبون من الكاميرا
+  const handleCameraCustomerFound = (customerData: any) => {
+    console.log('📸 تم العثور على بيانات الزبون من الكاميرا:', customerData);
+    
+    // ملء النموذج ببيانات الزبون
+    setFormData(prev => ({
+      ...prev,
+      carOwnerName: customerData.customerName,
+      licensePlate: customerData.licensePlate,
+    }));
+
+    // عرض رسالة النجاح
+    toast({
+      title: "تم العثور على الزبون",
+      description: `الزبون: ${customerData.customerName} - السيارة: ${customerData.carBrand} ${customerData.carModel}`,
+    });
+  };
 
   // Fetch reception entries
   const { data: entries = [], isLoading } = useQuery({
@@ -496,7 +515,10 @@ export default function Reception() {
                 <form onSubmit={handleSubmit} className="space-y-4">
                   {/* Customer and Car Selection - Combined in one row */}
                   <div className="border-2 border-blue-300 rounded-lg p-4 bg-blue-50">
-                    <h4 className="font-medium mb-3 text-blue-800">بيانات الزبون والسيارة</h4>
+                    <div className="flex justify-between items-center mb-3">
+                      <h4 className="font-medium text-blue-800">بيانات الزبون والسيارة</h4>
+                      <LicensePlateCamera onCustomerFound={handleCameraCustomerFound} />
+                    </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="relative">
                         <Label htmlFor="customerSearch">اسم صاحب السيارة *</Label>

@@ -1543,6 +1543,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // License plate analysis endpoint
+  app.post("/api/analyze-license-plate", async (req, res) => {
+    try {
+      const { image } = req.body;
+      
+      if (!image) {
+        return res.status(400).json({ error: "لم يتم إرسال صورة" });
+      }
+
+      console.log('📸 استلام طلب تحليل صورة رقم اللوحة...');
+      
+      // استيراد دالة تحليل اللوحة
+      const { analyzeLicensePlate } = await import('./anthropic');
+      
+      // تحليل الصورة
+      const result = await analyzeLicensePlate(image);
+      
+      console.log('✅ نتيجة تحليل اللوحة:', result);
+      
+      res.json(result);
+    } catch (error) {
+      console.error('❌ خطأ في تحليل صورة اللوحة:', error);
+      res.status(500).json({ 
+        error: 'خطأ في تحليل صورة رقم اللوحة',
+        details: error instanceof Error ? error.message : 'خطأ غير محدد'
+      });
+    }
+  });
+
   return httpServer;
 }
 

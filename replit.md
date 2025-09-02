@@ -19,8 +19,15 @@ Current active workers in the system:
 - عبد الحفيظ
 - مصطفى
 
-## Recent Changes (August 16, 2025)
-### System Administration Centralization
+## Recent Changes (September 2, 2025)
+### Camera-Based License Plate Recognition System
+- Integrated Anthropic AI for license plate text recognition from images
+- Added LicensePlateCamera component for uploading and analyzing license plate photos
+- Automatic customer data lookup based on extracted license plate numbers
+- Auto-fill reception form with customer information when license plate is recognized
+- Camera accessible from reception form for streamlined car registration process
+
+### System Administration Centralization (Previous)
 - All system modifications and permissions management now centralized under فارس account
 - فارس has complete administrative control over all system features and user permissions
 - Unified timestamp handling using Syrian timezone (UTC+3) across all parts requests
