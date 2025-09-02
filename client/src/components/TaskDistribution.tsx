@@ -17,6 +17,7 @@ type TaskDistributionEntry = {
   startTime: string;
   endTime: string;
   totalDuration: number;
+  consumedTime?: number;
   workerName: string;
   engineerName?: string;
   technicianName?: string;
@@ -145,7 +146,7 @@ export default function TaskDistribution() {
               <CardContent className="p-4">
                 <div className="text-center">
                   <p className="text-2xl font-bold text-blue-600">
-                    {formatDuration(filteredTasks.reduce((total, task) => total + task.totalDuration, 0))}
+                    {formatDuration(filteredTasks.reduce((total, task) => total + (task.consumedTime || task.totalDuration || 0), 0))}
                   </p>
                   <p className="text-sm text-gray-600">إجمالي الوقت</p>
                 </div>
@@ -201,7 +202,7 @@ export default function TaskDistribution() {
                         <div className="flex items-center gap-2">
                           <Clock className="h-4 w-4 text-green-500" />
                           <span className="text-sm font-medium text-green-600">
-                            {formatDuration(task.totalDuration)}
+                            المدة الفعلية: {formatDuration(task.consumedTime || task.totalDuration || 0)}
                           </span>
                         </div>
                       </div>
