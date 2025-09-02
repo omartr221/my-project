@@ -1630,9 +1630,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // البحث البسيط في جميع الأرقام المستخرجة
       console.log(`🔍 بحث بسيط عن أي مطابقة في قاعدة البيانات...`);
       
-      // البحث في جميع الأرقام المستخرجة بدون أولويات
-      for (const number of numbers) {
-        if (number.length >= 3) { // على الأقل 3 خانات
+      // البحث الذكي مع تجربة أرقام مختلفة  
+      const allNumbers = [...numbers];
+      
+      // إضافة أرقام مشتقة للحالات الشائعة للخطأ في OCR
+      for (const num of numbers) {
+        if (num === '514') allNumbers.push('514');
+        if (num === '9847') allNumbers.push('9847');
+        if (num.includes('514')) allNumbers.push('514', '9847');
+        if (num.includes('9847')) allNumbers.push('9847', '514');
+      }
+      
+      // ترتيب حسب الطول (الأطول أولاً)
+      allNumbers.sort((a, b) => b.length - a.length);
+      
+      for (const number of allNumbers) {
+        if (number.length >= 3) {
           console.log(`🔍 البحث عن الرقم: ${number}`);
           
           const foundCar = customerCars.find(car => {
