@@ -258,10 +258,21 @@ export default function Reception() {
       licensePlate: customerData.licensePlate,
     }));
 
-    // عرض رسالة النجاح
+    // تحضير تفاصيل السيارة الكاملة
+    const carDetails = [
+      `🚗 السيارة: ${customerData.carBrand || 'غير محدد'} ${customerData.carModel || ''}`,
+      customerData.year ? `📅 سنة الصنع: ${customerData.year}` : null,
+      customerData.color ? `🎨 اللون: ${customerData.color}` : null,
+      customerData.engineCode ? `🔧 كود المحرك: ${customerData.engineCode}` : null,
+      customerData.chassisNumber ? `🔍 رقم الشاسيه: ${customerData.chassisNumber}` : null,
+      customerData.previousLicensePlate ? `🔄 رقم اللوحة السابق: ${customerData.previousLicensePlate}` : null
+    ].filter(Boolean);
+
+    // عرض كافة تفاصيل السيارة
     toast({
-      title: "تم العثور على الزبون",
-      description: `الزبون: ${customerData.customerName} - السيارة: ${customerData.carBrand} ${customerData.carModel}`,
+      title: `✅ تم العثور على الزبون: ${customerData.customerName}`,
+      description: carDetails.join('\n'),
+      duration: 10000,
     });
   };
 
