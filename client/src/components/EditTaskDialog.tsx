@@ -83,8 +83,16 @@ export default function EditTaskDialog({ task, disabled }: EditTaskDialogProps) 
       supervisorName: (task as any).supervisorName || "",
       technicianName: (task as any).technicianName || "",
       assistantName: (task as any).assistantName || "",
-      technicians: (task as any).technicians || [],
-      assistants: (task as any).assistants || [],
+      technicians: Array.isArray((task as any).technicians) 
+        ? (task as any).technicians 
+        : typeof (task as any).technicians === 'string' && (task as any).technicians.trim()
+        ? (task as any).technicians.split(',').map((name: string) => name.trim())
+        : [],
+      assistants: Array.isArray((task as any).assistants) 
+        ? (task as any).assistants 
+        : typeof (task as any).assistants === 'string' && (task as any).assistants.trim()
+        ? (task as any).assistants.split(',').map((name: string) => name.trim())
+        : [],
       timerType: (task as any).timerType || "automatic",
       consumedTime: (task as any).consumedTime,
       endTime: task.endTime ? format(new Date(task.endTime), "yyyy-MM-dd'T'HH:mm") : "",
