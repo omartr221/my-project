@@ -21,15 +21,20 @@ Current active workers in the system:
 
 ## Recent Changes (September 3, 2025)
 ### Task Duration Tracking System Improvements (Complete Fix)
-- Fixed actual duration calculation and display in archive view for ALL tasks
+- **CRITICAL**: Fixed actual duration calculation and display across ALL system components
 - Enhanced duration tracking to match timer display exactly when "إنهاء" is pressed
-- Implemented proper duration storage in `totalPausedDuration` field (in seconds)
-- Archive view now shows accurate actual duration using stored calculated values
-- Fixed efficiency percentage calculation: (estimated time ÷ actual time) × 100
-- Automatic duration calculation and storage for both automatic and manual timer types
-- Resolved issues with duration display showing 00:00:00 instead of actual work time
-- Updated all existing archived tasks to display correct actual duration from time_entries
-- System now automatically calculates and saves proper duration for all future archived tasks
+- Implemented comprehensive duration storage in `totalPausedDuration` field (in seconds)
+- Fixed `finishTask`: Now calculates and saves duration from `time_entries` when completing tasks
+- Fixed `deliverTask`: Now calculates and saves duration from `time_entries` when archiving tasks
+- Fixed `getTaskHistory`: Uses stored `totalPausedDuration` for completed tasks awaiting delivery
+- Fixed `getArchivedTasks`: Uses stored `totalPausedDuration` for archived tasks
+- Fixed `TaskHistoryTable.tsx`: Simplified to use `totalDuration` directly
+- Fixed `TaskDistribution.tsx`: Uses `totalDuration` for consistent display
+- Fixed `ArchiveView.tsx`: Uses `totalDuration` for accurate archived task display
+- Updated all 21 existing archived tasks to display correct actual duration
+- System now automatically calculates and saves proper duration at ALL stages
+- Efficiency percentage calculation: (estimated time ÷ actual time) × 100
+- **Result**: Actual duration displays correctly in timer, task log, archive, and distribution views
 
 ### Camera-Based License Plate Recognition System (September 2, 2025)
 - Integrated Anthropic AI (Claude Sonnet 4) for license plate text recognition from images
