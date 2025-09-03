@@ -19,8 +19,17 @@ Current active workers in the system:
 - عبد الحفيظ
 - مصطفى
 
-## Recent Changes (September 2, 2025)
-### Camera-Based License Plate Recognition System
+## Recent Changes (September 3, 2025)
+### Task Duration Tracking System Improvements
+- Fixed actual duration calculation and display in archive view
+- Enhanced duration tracking to match timer display exactly when "إنهاء" is pressed
+- Implemented proper duration storage in `totalPausedDuration` field (in seconds)
+- Archive view now shows accurate actual duration using stored calculated values
+- Fixed efficiency percentage calculation: (estimated time ÷ actual time) × 100
+- Automatic duration calculation and storage for both automatic and manual timer types
+- Resolved issues with duration display showing 00:00:00 instead of actual work time
+
+### Camera-Based License Plate Recognition System (September 2, 2025)
 - Integrated Anthropic AI (Claude Sonnet 4) for license plate text recognition from images
 - Advanced AI-powered OCR system with high accuracy for Syrian license plates
 - Added LicensePlateCamera component for uploading and analyzing license plate photos
