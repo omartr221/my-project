@@ -359,16 +359,6 @@ export default function ActiveTimers({
                         <CheckCircle className="ml-1 h-3 w-3" />
                         إنهاء
                       </Button>
-                      
-                      <Button
-                        size="sm"
-                        onClick={() => deliverTaskMutation.mutate({ taskId: task.id, rating: 3 })}
-                        disabled={deliverTaskMutation.isPending}
-                        className="bg-green-600 hover:bg-green-700 text-white"
-                      >
-                        <Package className="ml-1 h-3 w-3" />
-                        تسليم
-                      </Button>
 
 
 
