@@ -20,14 +20,16 @@ Current active workers in the system:
 - مصطفى
 
 ## Recent Changes (September 3, 2025)
-### Task Duration Tracking System Improvements
-- Fixed actual duration calculation and display in archive view
+### Task Duration Tracking System Improvements (Complete Fix)
+- Fixed actual duration calculation and display in archive view for ALL tasks
 - Enhanced duration tracking to match timer display exactly when "إنهاء" is pressed
 - Implemented proper duration storage in `totalPausedDuration` field (in seconds)
 - Archive view now shows accurate actual duration using stored calculated values
 - Fixed efficiency percentage calculation: (estimated time ÷ actual time) × 100
 - Automatic duration calculation and storage for both automatic and manual timer types
 - Resolved issues with duration display showing 00:00:00 instead of actual work time
+- Updated all existing archived tasks to display correct actual duration from time_entries
+- System now automatically calculates and saves proper duration for all future archived tasks
 
 ### Camera-Based License Plate Recognition System (September 2, 2025)
 - Integrated Anthropic AI (Claude Sonnet 4) for license plate text recognition from images
