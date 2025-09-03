@@ -517,31 +517,22 @@ export default function ArchiveView() {
                         <span className="font-medium">الوقت المقدر:</span> {task.estimatedDuration ? `${task.estimatedDuration} دقيقة` : '--'}
                       </div>
                       <div>
-                        <span className="font-medium">المدة الفعلية:</span> {(() => {
-                          // Use consumedTime from database if available (more accurate for archived tasks)
-                          if ((task as any).consumedTime && (task as any).consumedTime > 0) {
-                            return formatDuration((task as any).consumedTime);
-                          }
-                          // Fallback to totalDuration
-                          return formatDuration(task.totalDuration || 0);
-                        })()}
+                        <span className="font-medium">المدة الفعلية:</span> {formatDuration(task.totalDuration || 0)}
                       </div>
                       <div>
                         <span className="font-medium">نسبة العمل المئوية:</span> 
                         {task.estimatedDuration && task.estimatedDuration > 0 ? (() => {
                           const estimatedSeconds = task.estimatedDuration * 60;
-                          const actualSeconds = (task as any).consumedTime && (task as any).consumedTime > 0
-                            ? (task as any).consumedTime 
-                            : (task.totalDuration || 0);
+                          const actualSeconds = task.totalDuration || 0;
                           // حساب الكفاءة: الوقت المقدر ÷ الوقت الفعلي × 100
-                          const efficiency = Math.round((estimatedSeconds / actualSeconds) * 100);
+                          const efficiency = actualSeconds > 0 ? Math.round((estimatedSeconds / actualSeconds) * 100) : 0;
                           return (
                             <span className={`font-bold ml-2 ${
                               actualSeconds <= estimatedSeconds ? 'text-green-600' : 'text-red-600'
                             }`}>
                               {efficiency}% 
                               <span className="text-xs text-gray-500 mr-1">
-                                ({task.estimatedDuration}د مقابل {Math.round(actualSeconds/60)}د)
+                                ({task.estimatedDuration}د مقابل {formatDuration(actualSeconds)})
                               </span>
                             </span>
                           );
