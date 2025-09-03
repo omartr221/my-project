@@ -29,30 +29,77 @@ export default function HabaNotificationDialog() {
 
     // طلب إذن الإشعارات فور دخول هبة للنظام
     const requestNotificationPermission = async () => {
-      if ('Notification' in window && Notification.permission === 'default') {
-        try {
-          const permission = await Notification.requestPermission();
-          if (permission === 'granted') {
-            console.log('✅ تم منح إذن الإشعارات لهبة');
+      console.log('🔔 بدء طلب إذن الإشعارات لهبة...');
+      
+      if ('Notification' in window) {
+        console.log('🔔 حالة إذن الإشعارات الحالي:', Notification.permission);
+        
+        if (Notification.permission === 'default') {
+          try {
+            // عرض رسالة للمستخدم قبل طلب الإذن
+            alert('هبة، سيتم طلب إذن الإشعارات لتتمكني من استلام التنبيهات الصوتية لطلبات القطع حتى لو كان المتصفح مصغر. يرجى الضغط على "السماح" أو "Allow".');
             
-            // إرسال إشعار ترحيب لتأكيد العمل
-            new Notification('مرحباً هبة! 👋', {
-              body: 'الإشعارات الصوتية لطلبات القطع مفعلة الآن',
-              icon: '/favicon.ico',
-              silent: false
-            });
-          } else {
-            console.log('❌ تم رفض إذن الإشعارات من قبل هبة');
+            const permission = await Notification.requestPermission();
+            console.log('🔔 نتيجة طلب الإذن:', permission);
+            
+            if (permission === 'granted') {
+              console.log('✅ تم منح إذن الإشعارات لهبة');
+              
+              // إرسال إشعار ترحيب لتأكيد العمل
+              setTimeout(() => {
+                try {
+                  const welcomeNotification = new Notification('مرحباً هبة! 👋', {
+                    body: 'الإشعارات الصوتية لطلبات القطع مفعلة الآن. سوف تصلك إشعارات حتى لو كان المتصفح مصغر.',
+                    icon: '/favicon.ico',
+                    requireInteraction: true,
+                    silent: false
+                  });
+                  
+                  welcomeNotification.onclick = function() {
+                    this.close();
+                  };
+                  
+                  console.log('✅ تم إرسال إشعار الترحيب');
+                } catch (error) {
+                  console.log('❌ خطأ في إرسال إشعار الترحيب:', error);
+                }
+              }, 1000);
+            } else {
+              console.log('❌ تم رفض إذن الإشعارات من قبل هبة');
+              alert('تم رفض إذن الإشعارات. لن تتمكني من استلام التنبيهات الصوتية عند تصغير المتصفح.');
+            }
+          } catch (error) {
+            console.error('❌ خطأ في طلب إذن الإشعارات:', error);
           }
-        } catch (error) {
-          console.error('Error requesting notification permission:', error);
+        } else if (Notification.permission === 'granted') {
+          console.log('✅ إذن الإشعارات متوفر بالفعل لهبة');
+          
+          // إرسال إشعار تأكيد
+          setTimeout(() => {
+            try {
+              new Notification('الإشعارات مفعلة! ✅', {
+                body: 'سوف تصلك التنبيهات الصوتية لطلبات القطع حتى لو كان المتصفح مصغر',
+                icon: '/favicon.ico',
+                silent: false
+              });
+            } catch (error) {
+              console.log('❌ خطأ في إرسال إشعار التأكيد:', error);
+            }
+          }, 500);
+        } else {
+          console.log('❌ الإشعارات مرفوضة مسبقاً');
+          alert('الإشعارات مرفوضة في المتصفح. يرجى السماح بالإشعارات من إعدادات المتصفح لاستلام التنبيهات الصوتية.');
         }
-      } else if (Notification.permission === 'granted') {
-        console.log('✅ إذن الإشعارات متوفر بالفعل لهبة');
+      } else {
+        console.log('❌ المتصفح لا يدعم الإشعارات');
+        alert('متصفحك لا يدعم الإشعارات.');
       }
     };
     
-    requestNotificationPermission();
+    // تشغيل الطلب مع تأخير بسيط للتأكد من تحميل المكونات
+    setTimeout(() => {
+      requestNotificationPermission();
+    }, 2000);
 
     const handleNewPartsRequest = (event: CustomEvent) => {
       const data = event.detail;
