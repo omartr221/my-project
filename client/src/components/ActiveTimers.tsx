@@ -313,12 +313,29 @@ export default function ActiveTimers({
                         </Button>
                       )}
 
-                      {/* زر الإيقاف للمهام النشطة - إخفاء عن بدوي */}
-                      {isActive && !isBadawi && (
-                        <PauseTaskDialog 
-                          taskId={task.id} 
+                      {/* زر إيقاف مؤقت / استئناف للمهام النشطة */}
+                      {isActive ? (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => pauseTaskMutation.mutate(task.id)}
                           disabled={pauseTaskMutation.isPending}
-                        />
+                          className="bg-yellow-50 border-yellow-300 text-yellow-700 hover:bg-yellow-100"
+                        >
+                          <Pause className="ml-1 h-3 w-3" />
+                          إيقاف مؤقت
+                        </Button>
+                      ) : (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => resumeTaskMutation.mutate(task.id)}
+                          disabled={resumeTaskMutation.isPending}
+                          className="bg-green-50 border-green-300 text-green-700 hover:bg-green-100"
+                        >
+                          <Play className="ml-1 h-3 w-3" />
+                          استئناف
+                        </Button>
                       )}
                       
                       <EditTaskDialog 
