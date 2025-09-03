@@ -561,12 +561,34 @@ export class DatabaseStorage implements IStorage {
         .where(eq(timeEntries.id, currentEntry.id));
     }
 
+    // حساب المدة الفعلية وقت الإنهاء
+    const existingTask = await db.query.tasks.findFirst({
+      where: eq(tasks.id, taskId),
+    });
+
+    let actualDurationSeconds = 0;
+    if (existingTask) {
+      if (existingTask.timerType === 'manual' && existingTask.consumedTime) {
+        // للمهام اليدوية: استخدم الوقت المدخل
+        actualDurationSeconds = existingTask.consumedTime * 60;
+      } else if (existingTask.startTime) {
+        // للمهام الأوتوماتيكية: احسب الوقت الفعلي
+        const startTime = new Date(existingTask.startTime).getTime();
+        const endTime = now.getTime();
+        
+        const totalSeconds = (endTime - startTime) / 1000;
+        const pausedSeconds = existingTask.totalPausedDuration || 0;
+        actualDurationSeconds = Math.max(0, totalSeconds - pausedSeconds);
+      }
+    }
+
     // Update task status to completed (will show in task history)
     const [task] = await db
       .update(tasks)
       .set({
         status: "completed",
         endTime: now, // تاريخ إنهاء المهمة - وقت الضغط على "إنهاء"
+        consumedTime: Math.round(actualDurationSeconds / 60), // حفظ المدة الفعلية بالدقائق
       })
       .where(eq(tasks.id, taskId))
       .returning();
