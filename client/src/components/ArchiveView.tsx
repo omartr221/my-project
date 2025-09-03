@@ -275,7 +275,7 @@ export default function ArchiveView() {
               <th>المدة الفعلية</th>
               <th>نسبة العمل المئوية</th>
               <th>التقييم</th>
-              <th>تاريخ انتهاء المهمة</th>
+              <th>تاريخ إنهاء المهمة</th>
               <th>تاريخ التسليم</th>
               <th>تم التسليم بواسطة</th>
             </tr>
@@ -570,7 +570,7 @@ export default function ArchiveView() {
                         ) : '--'}
                       </div>
                       <div>
-                        <span className="font-medium">تاريخ انتهاء المهمة:</span> {task.endTime ? 
+                        <span className="font-medium">تاريخ إنهاء المهمة:</span> {task.endTime ? 
                           new Intl.DateTimeFormat('ar-EG', {
                             day: 'numeric',
                             month: 'numeric',

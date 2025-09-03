@@ -561,47 +561,31 @@ export class DatabaseStorage implements IStorage {
         .where(eq(timeEntries.id, currentEntry.id));
     }
 
-    // Update task status
+    // Update task status to completed (will show in task history)
     const [task] = await db
       .update(tasks)
       .set({
         status: "completed",
-        endTime: now,
+        endTime: now, // تاريخ إنهاء المهمة - وقت الضغط على "إنهاء"
       })
       .where(eq(tasks.id, taskId))
       .returning();
 
-    // Automatically archive the task after completion
-    if (task) {
-      console.log(`🏁 تم إنهاء المهمة ${taskId}، جاري الأرشفة التلقائية...`);
-      
-      try {
-        // Archive with completed status and details
-        const archivedTask = await this.archiveTask(
-          taskId, 
-          'بدوي', // المستخدم المسؤول عن الأرشفة
-          `مهمة مكتملة تلقائياً - ${task.description}`, 
-          3 // تقييم افتراضي
-        );
-        console.log(`✅ تم أرشفة المهمة ${taskId} تلقائياً`);
-        return archivedTask;
-      } catch (archiveError) {
-        console.error('خطأ في الأرشفة التلقائية:', archiveError);
-        return task; // إرجاع المهمة حتى لو فشلت الأرشفة
-      }
-    }
-
+    console.log(`🏁 تم إنهاء المهمة ${taskId} - تنتقل الآن لسجل المهام`);
     return task;
   }
 
   async getTaskHistory(limit: number = 50): Promise<TaskHistory[]> {
     const tasksData = await db.query.tasks.findMany({
-      where: eq(tasks.isArchived, false),
+      where: and(
+        eq(tasks.status, "completed"), // فقط المهام المكتملة وليس المؤرشفة
+        eq(tasks.isArchived, false) // وليست مؤرشفة بعد
+      ),
       with: {
         worker: true,
         timeEntries: true,
       },
-      orderBy: [desc(tasks.createdAt)],
+      orderBy: [desc(tasks.endTime)], // ترتيب حسب وقت الإنهاء
       limit,
     });
 
@@ -626,7 +610,7 @@ export class DatabaseStorage implements IStorage {
       .update(tasks)
       .set({
         isArchived: true,
-        archivedAt: now,
+        archivedAt: now, // تاريخ التسليم - وقت الضغط على "تسليم" من السجل
         archivedBy,
         archiveNotes: notes,
         rating: rating || null,
@@ -636,6 +620,7 @@ export class DatabaseStorage implements IStorage {
       .where(eq(tasks.id, taskId))
       .returning();
 
+    console.log(`📦 تم تسليم المهمة ${taskId} للأرشيف بواسطة ${archivedBy}`);
     return task;
   }
 
