@@ -7,6 +7,7 @@ import { Search, Clock, Users, Wrench, Package, Car, Calendar } from "lucide-rea
 import { useQuery } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 import { ar } from "date-fns/locale";
+import { formatDuration } from "@/lib/utils";
 
 // Types for archived tasks with staff details
 type TaskDistributionEntry = {
@@ -228,7 +229,7 @@ export default function TaskDistribution() {
                         <div className="flex items-center gap-2">
                           <Clock className="h-4 w-4 text-green-500" />
                           <span className="text-sm font-medium text-green-600">
-                            المدة الفعلية: {formatDuration(task.consumedTime || task.totalDuration || 0)}
+                            المدة الفعلية: {formatDuration(task.totalDuration || 0)}
                           </span>
                         </div>
                       </div>
