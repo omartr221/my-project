@@ -449,7 +449,10 @@ export class DatabaseStorage implements IStorage {
       .limit(1);
 
     if (currentEntry) {
-      currentSessionTime = Math.floor((now.getTime() - currentEntry.startTime.getTime()) / 1000);
+      const startTime = currentEntry.startTime instanceof Date 
+        ? currentEntry.startTime 
+        : new Date(currentEntry.startTime);
+      currentSessionTime = Math.floor((now.getTime() - startTime.getTime()) / 1000);
       
       // End current time entry
       await db
