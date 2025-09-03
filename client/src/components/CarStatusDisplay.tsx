@@ -240,7 +240,7 @@ export default function CarStatusDisplay() {
                         
                         {/* Quick Status Change Buttons */}
                         <div className="flex flex-wrap gap-1">
-                          {car.currentStatus === "في الاستقبال" && (
+                          {car.currentStatus === "في الاستقبال" && user?.username === 'بدوي' && (
                             <Button
                               size="sm"
                               variant="outline"

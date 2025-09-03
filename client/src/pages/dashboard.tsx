@@ -57,6 +57,47 @@ export default function Dashboard() {
     return () => clearInterval(interval);
   }, []);
 
+  // Add notification listener for new car receptions (بدوي only)
+  useEffect(() => {
+    if (user?.username !== 'بدوي') return;
+
+    const handleNewCarReception = (event: CustomEvent) => {
+      const { licensePlate, carOwnerName, message } = event.detail;
+      
+      // Show notification toast
+      const toast = document.createElement('div');
+      toast.className = 'fixed top-4 right-4 bg-green-500 text-white p-4 rounded-lg shadow-lg z-50 max-w-md';
+      toast.innerHTML = `
+        <div class="flex items-center">
+          <div class="flex-shrink-0 mr-3">
+            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          </div>
+          <div>
+            <p class="font-medium">🚗 سيارة جديدة في الاستقبال!</p>
+            <p class="text-sm">${carOwnerName} - ${licensePlate}</p>
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(toast);
+      
+      // Remove toast after 5 seconds
+      setTimeout(() => {
+        if (document.body.contains(toast)) {
+          document.body.removeChild(toast);
+        }
+      }, 5000);
+    };
+
+    window.addEventListener('newCarReception', handleNewCarReception as EventListener);
+    
+    return () => {
+      window.removeEventListener('newCarReception', handleNewCarReception as EventListener);
+    };
+  }, [user?.username]);
+
   // Fetch dashboard stats
   const { data: stats } = useQuery({
     queryKey: ['/api/stats'],

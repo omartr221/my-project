@@ -120,6 +120,33 @@ export function useWebSocket() {
         queryClient.invalidateQueries({ queryKey: ['/api/parts-requests'] });
         break;
         
+      case 'reception_entry_created':
+        // إشعار بدوي عند استقبال سيارة جديدة
+        const currentUser = queryClient.getQueryData(['/api/user']) as any;
+        console.log('🚗 تم استلام إشعار سيارة جديدة - المستخدم الحالي:', currentUser?.username);
+        
+        if (currentUser?.username === 'بدوي') {
+          // تشغيل صوت التنبيه
+          const audio = new Audio('/notification.mp3');
+          audio.play().catch(e => console.log('Could not play notification sound:', e));
+          
+          // إرسال إشعار مرئي
+          window.dispatchEvent(new CustomEvent('newCarReception', {
+            detail: {
+              licensePlate: message.data.entry?.licensePlate,
+              carOwnerName: message.data.entry?.carOwnerName,
+              message: message.data.message || `سيارة جديدة في الاستقبال`
+            }
+          }));
+          
+          console.log('🔔 ✅ تم إرسال إشعار صوتي لبدوي عن سيارة جديدة');
+        }
+        
+        // تحديث بيانات الاستقبال
+        queryClient.invalidateQueries({ queryKey: ['/api/reception-entries'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/workshop-notifications'] });
+        break;
+        
       case 'CAR_RECEIPT_CREATED':
       case 'CAR_POSTPONED':
       case 'CAR_ENTERED_WORKSHOP':
