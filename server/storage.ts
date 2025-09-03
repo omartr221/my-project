@@ -674,43 +674,30 @@ export class DatabaseStorage implements IStorage {
       throw new Error('المهمة غير موجودة');
     }
     
-    // حساب المدة الفعلية الكاملة من time_entries
-    const taskTimeEntries = await db.query.timeEntries.findMany({
-      where: eq(timeEntries.taskId, taskId)
-    });
-    
+    // حساب المدة الفعلية - نفس منطق getActiveTasks
     let actualDurationSeconds = 0;
     
-    if (taskTimeEntries.length > 0) {
-      // جمع كل فترات العمل من time_entries
-      actualDurationSeconds = taskTimeEntries.reduce((total, entry) => {
-        return total + (entry.duration || 0);
-      }, 0);
-    } else if (existingTask.startTime && existingTask.endTime) {
-      // إذا لم توجد time_entries، احسب من بداية المهمة حتى نهايتها
-      const startTime = new Date(existingTask.startTime);
-      const endTime = new Date(existingTask.endTime);
-      actualDurationSeconds = Math.floor((endTime.getTime() - startTime.getTime()) / 1000);
+    if (existingTask.timerType === 'manual' && existingTask.consumedTime) {
+      // للمهام اليدوية: استخدم الوقت المدخل
+      actualDurationSeconds = existingTask.consumedTime * 60;
+    } else if (existingTask.startTime) {
+      // للمهام الأوتوماتيكية: احسب كما في getActiveTasks
+      const startTime = new Date(existingTask.startTime).getTime();
+      const endTime = new Date(endTimeStr).getTime(); // استخدم وقت التسليم
+      
+      const totalSeconds = (endTime - startTime) / 1000;
+      const pausedSeconds = existingTask.totalPausedDuration || 0;
+      actualDurationSeconds = Math.max(0, totalSeconds - pausedSeconds);
     }
     
-    // للمهام اليدوية: استخدم consumedTime المدخل يدوياً إذا كان موجوداً
-    if (existingTask.timerType === 'manual' && (existingTask as any).consumedTime) {
-      actualDurationSeconds = (existingTask as any).consumedTime * 60; // تحويل من دقائق إلى ثوان
-    }
-    
-    // حساب النسبة المئوية بناءً على المدة الفعلية مقابل الوقت المقدر
-    let efficiencyPercentage = 100; // افتراضي
+    // حساب النسبة المئوية (الكفاءة)
+    let efficiencyPercentage = 100;
     
     if (existingTask.estimatedDuration && existingTask.estimatedDuration > 0 && actualDurationSeconds > 0) {
-      // إذا كانت المدة الفعلية أقل من أو تساوي المقدرة = 100%
-      // إذا كانت أكثر، نقلل النسبة تدريجياً
-      if (actualDurationSeconds <= existingTask.estimatedDuration) {
-        efficiencyPercentage = 100;
-      } else {
-        // حساب النسبة: كلما زادت المدة الفعلية عن المقدرة، قلت النسبة
-        const ratio = existingTask.estimatedDuration / actualDurationSeconds;
-        efficiencyPercentage = Math.max(Math.round(ratio * 100), 20); // حد أدنى 20%
-      }
+      const estimatedSeconds = existingTask.estimatedDuration * 60; // تحويل من دقائق إلى ثوان
+      // الكفاءة = (الوقت المقدر ÷ الوقت الفعلي) × 100
+      efficiencyPercentage = Math.round((estimatedSeconds / actualDurationSeconds) * 100);
+      efficiencyPercentage = Math.max(efficiencyPercentage, 10); // حد أدنى 10%
     }
     
     // الحصول على آخر رقم تسليم
