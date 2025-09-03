@@ -38,6 +38,10 @@ type TaskDistributionEntry = {
 export default function TaskDistribution() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStaff, setSelectedStaff] = useState("الكل");
+  const [activeTab, setActiveTab] = useState("distribution"); // distribution, cost-center, vehicle-history
+  const [selectedWorker, setSelectedWorker] = useState("");
+  const [selectedVehicle, setSelectedVehicle] = useState("");
+  const [timePeriod, setTimePeriod] = useState("week"); // week, month
 
   // Fetch archived tasks
   const { data: archivedTasks = [] } = useQuery<TaskDistributionEntry[]>({
@@ -117,39 +121,103 @@ export default function TaskDistribution() {
     return staff;
   };
 
+  // Get unique vehicles
+  const allVehicles = Array.from(new Set(
+    archivedTasks.map(task => `${task.carBrand} ${task.carModel} - ${task.licensePlate}`)
+  )).sort();
+
+  // Calculate worker hours for selected period
+  const calculateWorkerHours = (workerName: string) => {
+    const now = new Date();
+    const periodStart = timePeriod === 'week' 
+      ? new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+      : new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+    return archivedTasks.filter(task => {
+      const taskDate = new Date(task.archivedAt);
+      const isInPeriod = taskDate >= periodStart;
+      const workedOnTask = getTaskStaff(task).some(staff => staff.name === workerName);
+      return isInPeriod && workedOnTask;
+    });
+  };
+
+  // Get vehicle history
+  const getVehicleHistory = (vehicleInfo: string) => {
+    return archivedTasks.filter(task => 
+      `${task.carBrand} ${task.carModel} - ${task.licensePlate}` === vehicleInfo
+    ).sort((a, b) => new Date(b.archivedAt).getTime() - new Date(a.archivedAt).getTime());
+  };
+
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Users className="h-5 w-5" />
-            توزيع المهام - الأرشيف
+            إدارة المهام المتقدمة
           </CardTitle>
+          
+          {/* Navigation Tabs */}
+          <div className="flex space-x-reverse space-x-4 border-b">
+            <button
+              onClick={() => setActiveTab("distribution")}
+              className={`px-4 py-2 border-b-2 font-medium text-sm ${
+                activeTab === "distribution"
+                  ? "border-blue-500 text-blue-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              توزيع المهام
+            </button>
+            <button
+              onClick={() => setActiveTab("cost-center")}
+              className={`px-4 py-2 border-b-2 font-medium text-sm ${
+                activeTab === "cost-center"
+                  ? "border-blue-500 text-blue-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              مركز الكلفة
+            </button>
+            <button
+              onClick={() => setActiveTab("vehicle-history")}
+              className={`px-4 py-2 border-b-2 font-medium text-sm ${
+                activeTab === "vehicle-history"
+                  ? "border-blue-500 text-blue-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              حركة السيارة
+            </button>
+          </div>
         </CardHeader>
         <CardContent>
-          {/* Filters */}
-          <div className="flex gap-4 mb-6">
-            <div className="flex-1 relative">
-              <Search className="absolute right-3 top-3 h-4 w-4 text-gray-400" />
-              <Input
-                type="text"
-                placeholder="البحث في المهام..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pr-10"
-              />
-            </div>
-            <select
-              value={selectedStaff}
-              onChange={(e) => setSelectedStaff(e.target.value)}
-              className="px-3 py-2 border rounded-md"
-            >
-              <option value="الكل">جميع الموظفين</option>
-              {allStaff.map(staff => (
-                <option key={staff} value={staff}>{staff}</option>
-              ))}
-            </select>
-          </div>
+          {/* Tab Content */}
+          {activeTab === "distribution" && (
+            <>
+              {/* Filters */}
+              <div className="flex gap-4 mb-6">
+                <div className="flex-1 relative">
+                  <Search className="absolute right-3 top-3 h-4 w-4 text-gray-400" />
+                  <Input
+                    type="text"
+                    placeholder="البحث في المهام..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pr-10"
+                  />
+                </div>
+                <select
+                  value={selectedStaff}
+                  onChange={(e) => setSelectedStaff(e.target.value)}
+                  className="px-3 py-2 border rounded-md"
+                >
+                  <option value="الكل">جميع الموظفين</option>
+                  {allStaff.map(staff => (
+                    <option key={staff} value={staff}>{staff}</option>
+                  ))}
+                </select>
+              </div>
 
           {/* Statistics */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
@@ -313,6 +381,190 @@ export default function TaskDistribution() {
               ))
             )}
           </div>
+            </>
+          )}
+
+          {/* Cost Center Tab */}
+          {activeTab === "cost-center" && (
+            <div className="space-y-6">
+              <div className="flex gap-4 mb-6">
+                <select
+                  value={selectedWorker}
+                  onChange={(e) => setSelectedWorker(e.target.value)}
+                  className="px-3 py-2 border rounded-md"
+                >
+                  <option value="">اختر العامل</option>
+                  {allStaff.map(staff => (
+                    <option key={staff} value={staff}>{staff}</option>
+                  ))}
+                </select>
+                
+                <select
+                  value={timePeriod}
+                  onChange={(e) => setTimePeriod(e.target.value)}
+                  className="px-3 py-2 border rounded-md"
+                >
+                  <option value="week">أسبوع</option>
+                  <option value="month">شهر</option>
+                </select>
+              </div>
+
+              {selectedWorker ? (
+                (() => {
+                  const workerTasks = calculateWorkerHours(selectedWorker);
+                  const totalHours = workerTasks.reduce((total, task) => total + (task.totalDuration || 0), 0);
+                  
+                  return (
+                    <div className="space-y-4">
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>إحصائيات العامل: {selectedWorker}</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="grid grid-cols-3 gap-4 mb-4">
+                            <div className="text-center">
+                              <p className="text-2xl font-bold text-blue-600">{workerTasks.length}</p>
+                              <p className="text-sm text-gray-600">عدد المهام</p>
+                            </div>
+                            <div className="text-center">
+                              <p className="text-2xl font-bold text-green-600">{formatDuration(totalHours)}</p>
+                              <p className="text-sm text-gray-600">إجمالي الساعات</p>
+                            </div>
+                            <div className="text-center">
+                              <p className="text-2xl font-bold text-orange-600">
+                                {workerTasks.length > 0 ? Math.round(totalHours / workerTasks.length / 60) : 0} دقيقة
+                              </p>
+                              <p className="text-sm text-gray-600">متوسط الوقت لكل مهمة</p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      <div className="space-y-3">
+                        {workerTasks.map((task) => (
+                          <Card key={task.id} className="border-r-4 border-r-blue-500">
+                            <CardContent className="p-4">
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                  <h4 className="font-medium">{task.description}</h4>
+                                  <p className="text-sm text-gray-600">{task.carBrand} {task.carModel} - {task.licensePlate}</p>
+                                </div>
+                                <div>
+                                  <p className="text-sm text-gray-600">تاريخ الإنجاز:</p>
+                                  <p className="font-medium">{new Date(task.archivedAt).toLocaleDateString('ar-SY')}</p>
+                                </div>
+                                <div>
+                                  <p className="text-sm text-gray-600">المدة:</p>
+                                  <p className="font-medium text-green-600">{formatDuration(task.totalDuration || 0)}</p>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()
+              ) : (
+                <div className="text-center py-12 text-gray-500">
+                  اختر عاملاً لعرض إحصائياته
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Vehicle History Tab */}
+          {activeTab === "vehicle-history" && (
+            <div className="space-y-6">
+              <div className="flex gap-4 mb-6">
+                <select
+                  value={selectedVehicle}
+                  onChange={(e) => setSelectedVehicle(e.target.value)}
+                  className="flex-1 px-3 py-2 border rounded-md"
+                >
+                  <option value="">اختر السيارة</option>
+                  {allVehicles.map(vehicle => (
+                    <option key={vehicle} value={vehicle}>{vehicle}</option>
+                  ))}
+                </select>
+              </div>
+
+              {selectedVehicle ? (
+                (() => {
+                  const vehicleHistory = getVehicleHistory(selectedVehicle);
+                  const totalHours = vehicleHistory.reduce((total, task) => total + (task.totalDuration || 0), 0);
+                  
+                  return (
+                    <div className="space-y-4">
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>تاريخ السيارة: {selectedVehicle}</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="grid grid-cols-3 gap-4 mb-4">
+                            <div className="text-center">
+                              <p className="text-2xl font-bold text-blue-600">{vehicleHistory.length}</p>
+                              <p className="text-sm text-gray-600">عدد الزيارات</p>
+                            </div>
+                            <div className="text-center">
+                              <p className="text-2xl font-bold text-green-600">{formatDuration(totalHours)}</p>
+                              <p className="text-sm text-gray-600">إجمالي ساعات العمل</p>
+                            </div>
+                            <div className="text-center">
+                              <p className="text-2xl font-bold text-orange-600">
+                                {vehicleHistory.length > 0 
+                                  ? formatDistanceToNow(new Date(vehicleHistory[vehicleHistory.length - 1].archivedAt), { locale: ar, addSuffix: true })
+                                  : '--'
+                                }
+                              </p>
+                              <p className="text-sm text-gray-600">آخر زيارة</p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      <div className="space-y-3">
+                        {vehicleHistory.map((task) => (
+                          <Card key={task.id} className="border-r-4 border-r-purple-500">
+                            <CardContent className="p-4">
+                              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                <div>
+                                  <h4 className="font-medium">{task.description}</h4>
+                                  <p className="text-sm text-gray-600">نوع: {task.taskType}</p>
+                                </div>
+                                <div>
+                                  <p className="text-sm text-gray-600">التاريخ:</p>
+                                  <p className="font-medium">{new Date(task.archivedAt).toLocaleDateString('ar-SY')}</p>
+                                </div>
+                                <div>
+                                  <p className="text-sm text-gray-600">المدة:</p>
+                                  <p className="font-medium text-green-600">{formatDuration(task.totalDuration || 0)}</p>
+                                </div>
+                                <div>
+                                  <p className="text-sm text-gray-600">العمال:</p>
+                                  <div className="flex flex-wrap gap-1">
+                                    {getTaskStaff(task).map((member, index) => (
+                                      <Badge key={index} variant="secondary" className="text-xs">
+                                        {member.name}
+                                      </Badge>
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()
+              ) : (
+                <div className="text-center py-12 text-gray-500">
+                  اختر سيارة لعرض تاريخها
+                </div>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
