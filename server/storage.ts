@@ -771,7 +771,7 @@ export class DatabaseStorage implements IStorage {
 
     return tasksData.map(task => ({
       ...task,
-      totalDuration: this.calculateCurrentDuration(task),
+      totalDuration: task.totalPausedDuration || this.calculateCurrentDuration(task),
     }));
   }
 
