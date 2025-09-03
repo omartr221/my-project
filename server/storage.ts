@@ -674,33 +674,28 @@ export class DatabaseStorage implements IStorage {
       throw new Error('المهمة غير موجودة');
     }
     
-    // حساب المدة الفعلية الكاملة
+    // حساب المدة الفعلية الكاملة من time_entries
+    const taskTimeEntries = await db.query.timeEntries.findMany({
+      where: eq(timeEntries.taskId, taskId)
+    });
+    
     let actualDurationSeconds = 0;
     
-    // إذا كانت المهمة يدوية واستخدمت consumedTime
-    if (existingTask.timerType === 'manual' && (existingTask as any).consumedTime) {
-      actualDurationSeconds = (existingTask as any).consumedTime * 60; // تحويل من دقائق إلى ثوان
-    } else {
-      // للمؤقت الأوتوماتيكي: حساب مجموع أوقات العمل الفعلية
-      const timeEntries = await db.query.timeEntries.findMany({
-        where: eq(timeEntries.taskId, taskId)
-      });
-      
-      actualDurationSeconds = timeEntries.reduce((total, entry) => {
-        if (entry.endTime && entry.startTime) {
-          const start = new Date(entry.startTime);
-          const end = new Date(entry.endTime);
-          return total + Math.floor((end.getTime() - start.getTime()) / 1000);
-        }
+    if (taskTimeEntries.length > 0) {
+      // جمع كل فترات العمل من time_entries
+      actualDurationSeconds = taskTimeEntries.reduce((total, entry) => {
         return total + (entry.duration || 0);
       }, 0);
-      
-      // إذا لم نجد أي وقت، احسب من بداية المهمة حتى الآن
-      if (actualDurationSeconds === 0 && existingTask.startTime && existingTask.endTime) {
-        const startTime = new Date(existingTask.startTime);
-        const endTime = new Date(existingTask.endTime);
-        actualDurationSeconds = Math.floor((endTime.getTime() - startTime.getTime()) / 1000);
-      }
+    } else if (existingTask.startTime && existingTask.endTime) {
+      // إذا لم توجد time_entries، احسب من بداية المهمة حتى نهايتها
+      const startTime = new Date(existingTask.startTime);
+      const endTime = new Date(existingTask.endTime);
+      actualDurationSeconds = Math.floor((endTime.getTime() - startTime.getTime()) / 1000);
+    }
+    
+    // للمهام اليدوية: استخدم consumedTime المدخل يدوياً إذا كان موجوداً
+    if (existingTask.timerType === 'manual' && (existingTask as any).consumedTime) {
+      actualDurationSeconds = (existingTask as any).consumedTime * 60; // تحويل من دقائق إلى ثوان
     }
     
     // حساب النسبة المئوية بناءً على المدة الفعلية مقابل الوقت المقدر
