@@ -674,11 +674,33 @@ export class DatabaseStorage implements IStorage {
       throw new Error('المهمة غير موجودة');
     }
     
-    // حساب المدة الفعلية الكاملة من البداية حتى الآن
+    // حساب المدة الفعلية الكاملة
     let actualDurationSeconds = 0;
-    if (existingTask.startTime) {
-      const startTime = new Date(existingTask.startTime);
-      actualDurationSeconds = Math.floor((now.getTime() - startTime.getTime()) / 1000);
+    
+    // إذا كانت المهمة يدوية واستخدمت consumedTime
+    if (existingTask.timerType === 'manual' && (existingTask as any).consumedTime) {
+      actualDurationSeconds = (existingTask as any).consumedTime * 60; // تحويل من دقائق إلى ثوان
+    } else {
+      // للمؤقت الأوتوماتيكي: حساب مجموع أوقات العمل الفعلية
+      const timeEntries = await db.query.timeEntries.findMany({
+        where: eq(timeEntries.taskId, taskId)
+      });
+      
+      actualDurationSeconds = timeEntries.reduce((total, entry) => {
+        if (entry.endTime && entry.startTime) {
+          const start = new Date(entry.startTime);
+          const end = new Date(entry.endTime);
+          return total + Math.floor((end.getTime() - start.getTime()) / 1000);
+        }
+        return total + (entry.duration || 0);
+      }, 0);
+      
+      // إذا لم نجد أي وقت، احسب من بداية المهمة حتى الآن
+      if (actualDurationSeconds === 0 && existingTask.startTime && existingTask.endTime) {
+        const startTime = new Date(existingTask.startTime);
+        const endTime = new Date(existingTask.endTime);
+        actualDurationSeconds = Math.floor((endTime.getTime() - startTime.getTime()) / 1000);
+      }
     }
     
     // حساب النسبة المئوية بناءً على المدة الفعلية مقابل الوقت المقدر
