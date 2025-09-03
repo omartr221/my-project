@@ -96,6 +96,27 @@ export function useWebSocket() {
         console.log('🔔 بيانات الطلب:', message.data);
         
         if (user?.username === 'هبة') {
+          // تشغيل صوت التنبيه
+          const audio = new Audio('/notification.mp3');
+          audio.play().catch(e => console.log('Could not play notification sound:', e));
+          
+          // إرسال Browser Push Notification (يعمل حتى لو التطبيق مصغر)
+          if ('Notification' in window && Notification.permission === 'granted') {
+            const notification = new Notification('🔧 طلب قطعة جديد!', {
+              body: `${message.data.partName} - ${message.data.engineerName || message.data.engineer}\nالسيارة: ${message.data.licensePlate}`,
+              icon: '/favicon.ico',
+              tag: 'parts-request',
+              requireInteraction: true, // يبقى الإشعار ظاهر حتى يتفاعل معه المستخدم
+              silent: false // تشغيل صوت النظام
+            });
+            
+            // عند الضغط على الإشعار، فتح التطبيق
+            notification.onclick = function() {
+              window.focus();
+              this.close();
+            };
+          }
+          
           // إرسال الإشعار عبر custom event مع تفاصيل كاملة
           window.dispatchEvent(new CustomEvent('newPartsRequest', { 
             detail: {
@@ -109,7 +130,7 @@ export function useWebSocket() {
             }
           }));
           
-          console.log('🔔 ✅ تم إرسال إشعار لهبة عن طلب قطعة جديد');
+          console.log('🔔 ✅ تم إرسال إشعار صوتي ومرئي لهبة عن طلب قطعة جديد');
         } else {
           console.log('🔔 ❌ المستخدم الحالي ليس هبة، لا يتم إرسال إشعار');
         }
@@ -130,6 +151,22 @@ export function useWebSocket() {
           const audio = new Audio('/notification.mp3');
           audio.play().catch(e => console.log('Could not play notification sound:', e));
           
+          // إرسال Browser Push Notification للسيارات الجديدة
+          if ('Notification' in window && Notification.permission === 'granted') {
+            const notification = new Notification('🚗 سيارة جديدة في الاستقبال!', {
+              body: `${message.data.entry?.carOwnerName} - ${message.data.entry?.licensePlate}`,
+              icon: '/favicon.ico',
+              tag: 'car-reception',
+              requireInteraction: true,
+              silent: false
+            });
+            
+            notification.onclick = function() {
+              window.focus();
+              this.close();
+            };
+          }
+          
           // إرسال إشعار مرئي
           window.dispatchEvent(new CustomEvent('newCarReception', {
             detail: {
@@ -139,7 +176,7 @@ export function useWebSocket() {
             }
           }));
           
-          console.log('🔔 ✅ تم إرسال إشعار صوتي لبدوي عن سيارة جديدة');
+          console.log('🔔 ✅ تم إرسال إشعار صوتي ومرئي لبدوي عن سيارة جديدة');
         }
         
         // تحديث بيانات الاستقبال

@@ -27,6 +27,33 @@ export default function HabaNotificationDialog() {
       return;
     }
 
+    // طلب إذن الإشعارات فور دخول هبة للنظام
+    const requestNotificationPermission = async () => {
+      if ('Notification' in window && Notification.permission === 'default') {
+        try {
+          const permission = await Notification.requestPermission();
+          if (permission === 'granted') {
+            console.log('✅ تم منح إذن الإشعارات لهبة');
+            
+            // إرسال إشعار ترحيب لتأكيد العمل
+            new Notification('مرحباً هبة! 👋', {
+              body: 'الإشعارات الصوتية لطلبات القطع مفعلة الآن',
+              icon: '/favicon.ico',
+              silent: false
+            });
+          } else {
+            console.log('❌ تم رفض إذن الإشعارات من قبل هبة');
+          }
+        } catch (error) {
+          console.error('Error requesting notification permission:', error);
+        }
+      } else if (Notification.permission === 'granted') {
+        console.log('✅ إذن الإشعارات متوفر بالفعل لهبة');
+      }
+    };
+    
+    requestNotificationPermission();
+
     const handleNewPartsRequest = (event: CustomEvent) => {
       const data = event.detail;
       setNotificationData({
