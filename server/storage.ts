@@ -726,13 +726,21 @@ export class DatabaseStorage implements IStorage {
     
     const nextDeliveryNumber = (lastArchivedTask?.deliveryNumber || 0) + 1;
     
+    console.log(`📊 حساب المدة الفعلية للمهمة ${taskId}:`, {
+      actualDurationSeconds,
+      estimatedDuration: existingTask.estimatedDuration,
+      efficiencyPercentage,
+      timerType: existingTask.timerType
+    });
+
     // تحديث المهمة للأرشيف مع كامل المعلومات والحسابات الصحيحة  
     const [task] = await db
       .update(tasks)
       .set({
         status: "archived",
         endTime: endTimeStr,
-        consumedTime: actualDurationSeconds,
+        consumedTime: Math.round(actualDurationSeconds / 60), // حفظ بالدقائق
+        totalPausedDuration: actualDurationSeconds, // حفظ بالثواني في totalPausedDuration
         isArchived: true,
         archivedAt: endTimeStr,
         archivedBy: deliveredBy,
