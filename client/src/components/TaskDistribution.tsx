@@ -44,7 +44,7 @@ export default function TaskDistribution() {
   const [selectedVehicle, setSelectedVehicle] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-  const [licensePlateSearch, setLicensePlateSearch] = useState("");
+  const [vehicleSearchTerm, setVehicleSearchTerm] = useState("");
   const [selectedTaskType, setSelectedTaskType] = useState("");
 
   // Fetch archived tasks
@@ -53,18 +53,18 @@ export default function TaskDistribution() {
     refetchInterval: 30000, // تحديث كل 30 ثانية
   });
 
-  // Fetch active tasks for selected license plate
-  const { data: activeTasks = [] } = useQuery<any[]>({
-    queryKey: ["/api/tasks/by-car", licensePlateSearch],
-    enabled: !!licensePlateSearch,
-    refetchInterval: 5000, // تحديث كل 5 ثواني
-  });
+  // Filter archived tasks based on vehicle search term
+  const getVehicleFilteredTasks = () => {
+    if (!vehicleSearchTerm) return archivedTasks;
+    
+    return archivedTasks.filter(task => 
+      task.licensePlate.toLowerCase().includes(vehicleSearchTerm.toLowerCase()) ||
+      task.chassisNumber?.toLowerCase().includes(vehicleSearchTerm.toLowerCase()) ||
+      task.customerName?.toLowerCase().includes(vehicleSearchTerm.toLowerCase())
+    );
+  };
 
-  // Fetch customer info for selected license plate
-  const { data: customerInfo } = useQuery<any>({
-    queryKey: ["/api/search-car-info", licensePlateSearch],
-    enabled: !!licensePlateSearch,
-  });
+  const vehicleFilteredTasks = getVehicleFilteredTasks();
 
   // Get all unique staff members from archived tasks
   const allStaff = Array.from(new Set([
@@ -143,10 +143,15 @@ export default function TaskDistribution() {
     archivedTasks.map(task => `${task.carBrand} ${task.carModel} - ${task.licensePlate}`)
   )).sort();
 
-  // Get unique task types
-  const allTaskTypes = Array.from(new Set(
-    archivedTasks.map(task => task.taskType).filter(Boolean)
-  )).sort();
+  // Get unique task types from vehicle filtered tasks
+  const getAvailableTaskTypes = () => {
+    const tasks = vehicleSearchTerm ? vehicleFilteredTasks : archivedTasks;
+    return Array.from(new Set(
+      tasks.map(task => task.taskType).filter(Boolean)
+    )).sort();
+  };
+
+  const availableTaskTypes = getAvailableTaskTypes();
 
   // Calculate worker hours for selected date range
   const calculateWorkerHours = (workerName: string) => {
@@ -523,209 +528,145 @@ export default function TaskDistribution() {
                 <div className="flex gap-4">
                   <div className="flex-1">
                     <Input
-                      placeholder="أدخل رقم اللوحة للبحث..."
-                      value={licensePlateSearch}
-                      onChange={(e) => setLicensePlateSearch(e.target.value)}
+                      placeholder="أدخل رقم اللوحة أو الشاسيه أو اسم الزبون..."
+                      value={vehicleSearchTerm}
+                      onChange={(e) => {
+                        setVehicleSearchTerm(e.target.value);
+                        setSelectedTaskType(""); // إعادة تعيين فلتر نوع المهمة عند تغيير البحث
+                      }}
                       className="text-center font-mono text-lg"
                     />
                   </div>
                 </div>
 
                 {/* Task Types Filter */}
-                {!licensePlateSearch && (
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold">تصفية حسب نوع المهمة</h3>
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                      <Card 
-                        className={`cursor-pointer border-2 transition-colors ${selectedTaskType === "" ? "border-blue-500 bg-blue-50" : "hover:border-gray-300"}`}
-                        onClick={() => setSelectedTaskType("")}
-                      >
-                        <CardContent className="p-4 text-center">
-                          <div className="text-2xl font-bold text-blue-600">
-                            {archivedTasks.length}
-                          </div>
-                          <div className="text-sm text-gray-600">جميع المهام</div>
-                        </CardContent>
-                      </Card>
-                      
-                      {allTaskTypes.map(taskType => {
-                        const typeCount = archivedTasks.filter(task => task.taskType === taskType).length;
-                        return (
-                          <Card 
-                            key={taskType}
-                            className={`cursor-pointer border-2 transition-colors ${selectedTaskType === taskType ? "border-green-500 bg-green-50" : "hover:border-gray-300"}`}
-                            onClick={() => setSelectedTaskType(taskType)}
-                          >
-                            <CardContent className="p-4 text-center">
-                              <div className="text-2xl font-bold text-green-600">
-                                {typeCount}
-                              </div>
-                              <div className="text-sm text-gray-600">{taskType}</div>
-                            </CardContent>
-                          </Card>
-                        );
-                      })}
-                    </div>
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">تصفية حسب نوع المهمة</h3>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    <Card 
+                      className={`cursor-pointer border-2 transition-colors ${selectedTaskType === "" ? "border-blue-500 bg-blue-50" : "hover:border-gray-300"}`}
+                      onClick={() => setSelectedTaskType("")}
+                    >
+                      <CardContent className="p-4 text-center">
+                        <div className="text-2xl font-bold text-blue-600">
+                          {vehicleFilteredTasks.length}
+                        </div>
+                        <div className="text-sm text-gray-600">جميع المهام</div>
+                      </CardContent>
+                    </Card>
+                    
+                    {availableTaskTypes.map(taskType => {
+                      const typeCount = vehicleFilteredTasks.filter(task => task.taskType === taskType).length;
+                      return (
+                        <Card 
+                          key={taskType}
+                          className={`cursor-pointer border-2 transition-colors ${selectedTaskType === taskType ? "border-green-500 bg-green-50" : "hover:border-gray-300"}`}
+                          onClick={() => setSelectedTaskType(taskType)}
+                        >
+                          <CardContent className="p-4 text-center">
+                            <div className="text-2xl font-bold text-green-600">
+                              {typeCount}
+                            </div>
+                            <div className="text-sm text-gray-600">{taskType}</div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
                   </div>
-                )}
+                </div>
               </div>
 
-              {licensePlateSearch ? (
-                (() => {
-                  const vehicleHistory = archivedTasks.filter(task => 
-                    task.licensePlate.toLowerCase().includes(licensePlateSearch.toLowerCase())
-                  );
-                  const totalHours = vehicleHistory.reduce((total, task) => total + (task.totalDuration || 0), 0);
-                  
-                  return vehicleHistory.length > 0 ? (
-                    <div className="space-y-6">
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="flex items-center gap-2">
-                            <Car className="h-5 w-5" />
-                            تاريخ الزيارات
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="grid grid-cols-3 gap-4 mb-6">
-                            <div className="text-center">
-                              <p className="text-2xl font-bold text-blue-600">{vehicleHistory.length}</p>
-                              <p className="text-sm text-gray-600">عدد الزيارات</p>
-                            </div>
-                            <div className="text-center">
-                              <p className="text-2xl font-bold text-green-600">{formatDuration(totalHours)}</p>
-                              <p className="text-sm text-gray-600">إجمالي ساعات العمل</p>
-                            </div>
-                            <div className="text-center">
-                              <p className="text-2xl font-bold text-orange-600">
-                                {vehicleHistory.length > 0 
-                                  ? formatDistanceToNow(new Date(vehicleHistory[vehicleHistory.length - 1].archivedAt), { locale: ar, addSuffix: true })
-                                  : '--'
-                                }
-                              </p>
-                              <p className="text-sm text-gray-600">آخر زيارة</p>
-                            </div>
+              {(() => {
+                // Apply both search and type filters
+                let displayTasks = vehicleFilteredTasks;
+                if (selectedTaskType) {
+                  displayTasks = vehicleFilteredTasks.filter(task => task.taskType === selectedTaskType);
+                }
+                
+                const totalHours = displayTasks.reduce((total, task) => total + (task.totalDuration || 0), 0);
+                
+                return displayTasks.length > 0 ? (
+                  <div className="space-y-6">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <Car className="h-5 w-5" />
+                          {vehicleSearchTerm ? 'نتائج البحث' : selectedTaskType ? `مهام نوع: ${selectedTaskType}` : 'جميع المهام'}
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="grid grid-cols-3 gap-4 mb-6">
+                          <div className="text-center">
+                            <p className="text-2xl font-bold text-blue-600">{displayTasks.length}</p>
+                            <p className="text-sm text-gray-600">عدد المهام</p>
                           </div>
+                          <div className="text-center">
+                            <p className="text-2xl font-bold text-green-600">{formatDuration(totalHours)}</p>
+                            <p className="text-sm text-gray-600">إجمالي ساعات العمل</p>
+                          </div>
+                          <div className="text-center">
+                            <p className="text-2xl font-bold text-orange-600">
+                              {displayTasks.length > 0 
+                                ? formatDistanceToNow(new Date(displayTasks[displayTasks.length - 1].archivedAt), { locale: ar, addSuffix: true })
+                                : '--'
+                              }
+                            </p>
+                            <p className="text-sm text-gray-600">آخر مهمة</p>
+                          </div>
+                        </div>
 
-                          <div className="space-y-3">
-                            {vehicleHistory.map((task) => (
-                              <Card key={task.id} className="border-r-4 border-r-purple-500">
-                                <CardContent className="p-4">
-                                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                                    <div>
-                                      <h4 className="font-medium">{task.description}</h4>
-                                      <p className="text-sm text-gray-600">نوع: {task.taskType}</p>
-                                    </div>
-                                    <div>
-                                      <p className="text-sm text-gray-600">التاريخ:</p>
-                                      <p className="font-medium">{new Date(task.archivedAt).toLocaleDateString('ar-SY')}</p>
-                                    </div>
-                                    <div>
-                                      <p className="text-sm text-gray-600">المدة:</p>
-                                      <p className="font-medium text-green-600">{formatDuration(task.totalDuration || 0)}</p>
-                                    </div>
-                                    <div>
-                                      <p className="text-sm text-gray-600">العمال:</p>
-                                      <div className="flex flex-wrap gap-1">
-                                        {getTaskStaff(task).map((member, index) => (
-                                          <Badge key={index} variant="secondary" className="text-xs">
-                                            {member.name}
-                                          </Badge>
-                                        ))}
-                                      </div>
+                        <div className="space-y-3">
+                          {displayTasks.map((task) => (
+                            <Card key={task.id} className="border-r-4 border-r-purple-500">
+                              <CardContent className="p-4">
+                                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                  <div>
+                                    <h4 className="font-medium">{task.description}</h4>
+                                    <p className="text-sm text-gray-600">نوع: {task.taskType}</p>
+                                    <p className="text-sm text-gray-500">{task.carBrand} {task.carModel}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-sm text-gray-600">الزبون:</p>
+                                    <p className="font-medium">{task.customerName || 'غير محدد'}</p>
+                                    <p className="text-sm text-gray-500">{task.licensePlate}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-sm text-gray-600">التاريخ:</p>
+                                    <p className="font-medium">{new Date(task.archivedAt).toLocaleDateString('ar-SY')}</p>
+                                    <p className="text-sm text-gray-500">المدة: {formatDuration(task.totalDuration || 0)}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-sm text-gray-600">العمال:</p>
+                                    <div className="flex flex-wrap gap-1">
+                                      {getTaskStaff(task).map((member, index) => (
+                                        <Badge key={index} variant="secondary" className="text-xs">
+                                          {member.name}
+                                        </Badge>
+                                      ))}
                                     </div>
                                   </div>
-                                </CardContent>
-                              </Card>
-                            ))}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </div>
-                  ) : (
-                    <div className="text-center py-12 text-gray-500">
-                      <Car className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                      <p>لا توجد زيارات سابقة لرقم اللوحة: {licensePlateSearch}</p>
-                    </div>
-                  );
-                })()
-              ) : selectedTaskType ? (
-                (() => {
-                  const filteredByType = archivedTasks.filter(task => task.taskType === selectedTaskType);
-                  const totalHours = filteredByType.reduce((total, task) => total + (task.totalDuration || 0), 0);
-                  
-                  return (
-                    <div className="space-y-6">
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="flex items-center gap-2">
-                            <Wrench className="h-5 w-5" />
-                            مهام نوع: {selectedTaskType}
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="grid grid-cols-3 gap-4 mb-4">
-                            <div className="text-center">
-                              <p className="text-2xl font-bold text-blue-600">{filteredByType.length}</p>
-                              <p className="text-sm text-gray-600">عدد المهام</p>
-                            </div>
-                            <div className="text-center">
-                              <p className="text-2xl font-bold text-green-600">{formatDuration(totalHours)}</p>
-                              <p className="text-sm text-gray-600">إجمالي ساعات العمل</p>
-                            </div>
-                            <div className="text-center">
-                              <p className="text-2xl font-bold text-orange-600">
-                                {filteredByType.length > 0 ? Math.round(totalHours / filteredByType.length) : 0} ثانية
-                              </p>
-                              <p className="text-sm text-gray-600">متوسط الوقت لكل مهمة</p>
-                            </div>
-                          </div>
-
-                          <div className="space-y-3">
-                            {filteredByType.map((task) => (
-                              <Card key={task.id} className="border-r-4 border-r-green-500">
-                                <CardContent className="p-4">
-                                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                                    <div>
-                                      <h4 className="font-medium">{task.description}</h4>
-                                      <p className="text-sm text-gray-600">
-                                        {task.carBrand} {task.carModel} - {task.licensePlate}
-                                      </p>
-                                    </div>
-                                    <div>
-                                      <p className="text-sm text-gray-600">الزبون:</p>
-                                      <p className="font-medium">{task.customerName || 'غير محدد'}</p>
-                                    </div>
-                                    <div>
-                                      <p className="text-sm text-gray-600">التاريخ:</p>
-                                      <p className="font-medium">{new Date(task.archivedAt).toLocaleDateString('ar-SY')}</p>
-                                    </div>
-                                    <div>
-                                      <p className="text-sm text-gray-600">العمال:</p>
-                                      <div className="flex flex-wrap gap-1">
-                                        {getTaskStaff(task).map((member, index) => (
-                                          <Badge key={index} variant="secondary" className="text-xs">
-                                            {member.name}
-                                          </Badge>
-                                        ))}
-                                      </div>
-                                    </div>
-                                  </div>
-                                </CardContent>
-                              </Card>
-                            ))}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </div>
-                  );
-                })()
-              ) : (
-                <div className="text-center py-12 text-gray-500">
-                  <Car className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>اختر نوع المهمة أو أدخل رقم اللوحة للبحث</p>
-                </div>
-              )}
+                                </div>
+                              </CardContent>
+                            </Card>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                ) : (
+                  <div className="text-center py-12 text-gray-500">
+                    <Car className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>
+                      {vehicleSearchTerm 
+                        ? `لا توجد مهام للبحث: ${vehicleSearchTerm}` 
+                        : selectedTaskType 
+                        ? `لا توجد مهام من نوع: ${selectedTaskType}`
+                        : 'لا توجد مهام للعرض'
+                      }
+                    </p>
+                  </div>
+                );
+              })()}
             </div>
           )}
         </CardContent>
