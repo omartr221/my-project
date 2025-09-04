@@ -301,9 +301,9 @@ export default function TaskDistribution() {
                         )}
 
                         <div className="flex items-center gap-2">
-                          <Clock className="h-4 w-4 text-green-500" />
-                          <span className="text-sm font-medium text-green-600">
-                            المدة الفعلية: {formatDuration(task.totalDuration || 0)}
+                          <Clock className="h-4 w-4 text-blue-500" />
+                          <span className="text-sm font-medium text-blue-600">
+                            الوقت المقدر: {task.estimatedDuration ? `${task.estimatedDuration} دقيقة` : 'غير محدد'}
                           </span>
                         </div>
                       </div>
