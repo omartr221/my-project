@@ -41,7 +41,8 @@ export default function TaskDistribution() {
   const [activeTab, setActiveTab] = useState("distribution"); // distribution, cost-center, vehicle-history
   const [selectedWorker, setSelectedWorker] = useState("");
   const [selectedVehicle, setSelectedVehicle] = useState("");
-  const [timePeriod, setTimePeriod] = useState("week"); // week, month
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
 
   // Fetch archived tasks
   const { data: archivedTasks = [] } = useQuery<TaskDistributionEntry[]>({
@@ -126,16 +127,20 @@ export default function TaskDistribution() {
     archivedTasks.map(task => `${task.carBrand} ${task.carModel} - ${task.licensePlate}`)
   )).sort();
 
-  // Calculate worker hours for selected period
+  // Calculate worker hours for selected date range
   const calculateWorkerHours = (workerName: string) => {
-    const now = new Date();
-    const periodStart = timePeriod === 'week' 
-      ? new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
-      : new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    if (!startDate || !endDate) {
+      return []; // Return empty if no date range selected
+    }
+
+    const periodStart = new Date(startDate);
+    const periodEnd = new Date(endDate);
+    // Set end date to end of day
+    periodEnd.setHours(23, 59, 59, 999);
 
     return archivedTasks.filter(task => {
       const taskDate = new Date(task.archivedAt);
-      const isInPeriod = taskDate >= periodStart;
+      const isInPeriod = taskDate >= periodStart && taskDate <= periodEnd;
       const workedOnTask = getTaskStaff(task).some(staff => staff.name === workerName);
       return isInPeriod && workedOnTask;
     });
@@ -399,14 +404,22 @@ export default function TaskDistribution() {
                   ))}
                 </select>
                 
-                <select
-                  value={timePeriod}
-                  onChange={(e) => setTimePeriod(e.target.value)}
-                  className="px-3 py-2 border rounded-md"
-                >
-                  <option value="week">أسبوع</option>
-                  <option value="month">شهر</option>
-                </select>
+                <div className="flex gap-2 items-center">
+                  <label className="text-sm font-medium">من:</label>
+                  <input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="px-3 py-2 border rounded-md"
+                  />
+                  <label className="text-sm font-medium">إلى:</label>
+                  <input
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className="px-3 py-2 border rounded-md"
+                  />
+                </div>
               </div>
 
               {selectedWorker ? (
@@ -418,7 +431,12 @@ export default function TaskDistribution() {
                     <div className="space-y-4">
                       <Card>
                         <CardHeader>
-                          <CardTitle>إحصائيات العامل: {selectedWorker}</CardTitle>
+                          <CardTitle>
+                            إحصائيات العامل: {selectedWorker}
+                            {startDate && endDate && (
+                              <span className="text-sm text-gray-500 font-normal"> ({startDate} إلى {endDate})</span>
+                            )}
+                          </CardTitle>
                         </CardHeader>
                         <CardContent>
                           <div className="grid grid-cols-3 gap-4 mb-4">
@@ -467,7 +485,8 @@ export default function TaskDistribution() {
                 })()
               ) : (
                 <div className="text-center py-12 text-gray-500">
-                  اختر عاملاً لعرض إحصائياته
+                  {!selectedWorker && "اختر عاملاً لعرض إحصائياته"}
+                  {selectedWorker && (!startDate || !endDate) && "حدد الفترة الزمنية لعرض الإحصائيات"}
                 </div>
               )}
             </div>
