@@ -44,11 +44,25 @@ export default function TaskDistribution() {
   const [selectedVehicle, setSelectedVehicle] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [licensePlateSearch, setLicensePlateSearch] = useState("");
 
   // Fetch archived tasks
   const { data: archivedTasks = [] } = useQuery<TaskDistributionEntry[]>({
     queryKey: ["/api/archive"],
     refetchInterval: 30000, // تحديث كل 30 ثانية
+  });
+
+  // Fetch active tasks for selected license plate
+  const { data: activeTasks = [] } = useQuery<any[]>({
+    queryKey: ["/api/tasks/by-car", licensePlateSearch],
+    enabled: !!licensePlateSearch,
+    refetchInterval: 5000, // تحديث كل 5 ثواني
+  });
+
+  // Fetch customer info for selected license plate
+  const { data: customerInfo } = useQuery<any>({
+    queryKey: ["/api/search-car-info", licensePlateSearch],
+    enabled: !!licensePlateSearch,
   });
 
   // Get all unique staff members from archived tasks
@@ -499,28 +513,109 @@ export default function TaskDistribution() {
           {activeTab === "vehicle-history" && (
             <div className="space-y-6">
               <div className="flex gap-4 mb-6">
-                <select
-                  value={selectedVehicle}
-                  onChange={(e) => setSelectedVehicle(e.target.value)}
-                  className="flex-1 px-3 py-2 border rounded-md"
-                >
-                  <option value="">اختر السيارة</option>
-                  {allVehicles.map(vehicle => (
-                    <option key={vehicle} value={vehicle}>{vehicle}</option>
-                  ))}
-                </select>
+                <div className="flex-1">
+                  <Input
+                    placeholder="أدخل رقم اللوحة للبحث..."
+                    value={licensePlateSearch}
+                    onChange={(e) => setLicensePlateSearch(e.target.value)}
+                    className="text-center font-mono text-lg"
+                  />
+                </div>
               </div>
 
-              {selectedVehicle ? (
-                (() => {
-                  const vehicleHistory = getVehicleHistory(selectedVehicle);
-                  const totalHours = vehicleHistory.reduce((total, task) => total + (task.totalDuration || 0), 0);
-                  
-                  return (
-                    <div className="space-y-4">
+              {licensePlateSearch ? (
+                <div className="space-y-6">
+                  {/* Customer Information */}
+                  {customerInfo && (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <Users className="h-5 w-5" />
+                          معلومات الزبون والسيارة
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                          <div>
+                            <p className="text-sm text-gray-600">اسم الزبون</p>
+                            <p className="font-semibold">{customerInfo.customerName}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-gray-600">رقم الهاتف</p>
+                            <p className="font-semibold">{customerInfo.phoneNumber}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-gray-600">السيارة</p>
+                            <p className="font-semibold">{customerInfo.carBrand} {customerInfo.carModel}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-gray-600">رقم اللوحة</p>
+                            <p className="font-semibold font-mono">{customerInfo.licensePlate}</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {/* Active Tasks */}
+                  {activeTasks && activeTasks.length > 0 && (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <Clock className="h-5 w-5 text-orange-500" />
+                          المهام النشطة الحالية
+                          <Badge variant="secondary">{activeTasks.length}</Badge>
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-3">
+                          {activeTasks.map((task: any) => (
+                            <Card key={task.id} className="border-r-4 border-r-orange-500">
+                              <CardContent className="p-4">
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                  <div>
+                                    <h4 className="font-medium">{task.description}</h4>
+                                    <p className="text-sm text-gray-600">نوع: {task.taskType}</p>
+                                    <Badge className={task.status === 'active' ? 'bg-green-500' : 'bg-yellow-500'}>
+                                      {task.status === 'active' ? 'نشط' : 'متوقف'}
+                                    </Badge>
+                                  </div>
+                                  <div>
+                                    <p className="text-sm text-gray-600">العامل</p>
+                                    <p className="font-medium">{task.workerName}</p>
+                                    <p className="text-sm text-gray-500">
+                                      بدأت: {new Date(task.startTime).toLocaleString('ar-SY')}
+                                    </p>
+                                  </div>
+                                  <div>
+                                    <p className="text-sm text-gray-600">الوقت المقدر</p>
+                                    <p className="font-medium text-blue-600">
+                                      {task.estimatedDuration ? `${task.estimatedDuration} دقيقة` : 'غير محدد'}
+                                    </p>
+                                  </div>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {/* Vehicle History */}
+                  {(() => {
+                    const vehicleHistory = archivedTasks.filter(task => 
+                      task.licensePlate.toLowerCase().includes(licensePlateSearch.toLowerCase())
+                    );
+                    const totalHours = vehicleHistory.reduce((total, task) => total + (task.totalDuration || 0), 0);
+                    
+                    return vehicleHistory.length > 0 ? (
                       <Card>
                         <CardHeader>
-                          <CardTitle>تاريخ السيارة: {selectedVehicle}</CardTitle>
+                          <CardTitle className="flex items-center gap-2">
+                            <Car className="h-5 w-5" />
+                            تاريخ الزيارات
+                          </CardTitle>
                         </CardHeader>
                         <CardContent>
                           <div className="grid grid-cols-3 gap-4 mb-4">
@@ -542,47 +637,55 @@ export default function TaskDistribution() {
                               <p className="text-sm text-gray-600">آخر زيارة</p>
                             </div>
                           </div>
+
+                          <div className="space-y-3">
+                            {vehicleHistory.map((task) => (
+                              <Card key={task.id} className="border-r-4 border-r-purple-500">
+                                <CardContent className="p-4">
+                                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                    <div>
+                                      <h4 className="font-medium">{task.description}</h4>
+                                      <p className="text-sm text-gray-600">نوع: {task.taskType}</p>
+                                    </div>
+                                    <div>
+                                      <p className="text-sm text-gray-600">التاريخ:</p>
+                                      <p className="font-medium">{new Date(task.archivedAt).toLocaleDateString('ar-SY')}</p>
+                                    </div>
+                                    <div>
+                                      <p className="text-sm text-gray-600">المدة:</p>
+                                      <p className="font-medium text-green-600">{formatDuration(task.totalDuration || 0)}</p>
+                                    </div>
+                                    <div>
+                                      <p className="text-sm text-gray-600">العمال:</p>
+                                      <div className="flex flex-wrap gap-1">
+                                        {getTaskStaff(task).map((member, index) => (
+                                          <Badge key={index} variant="secondary" className="text-xs">
+                                            {member.name}
+                                          </Badge>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </CardContent>
+                              </Card>
+                            ))}
+                          </div>
                         </CardContent>
                       </Card>
+                    ) : null;
+                  })()}
 
-                      <div className="space-y-3">
-                        {vehicleHistory.map((task) => (
-                          <Card key={task.id} className="border-r-4 border-r-purple-500">
-                            <CardContent className="p-4">
-                              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                                <div>
-                                  <h4 className="font-medium">{task.description}</h4>
-                                  <p className="text-sm text-gray-600">نوع: {task.taskType}</p>
-                                </div>
-                                <div>
-                                  <p className="text-sm text-gray-600">التاريخ:</p>
-                                  <p className="font-medium">{new Date(task.archivedAt).toLocaleDateString('ar-SY')}</p>
-                                </div>
-                                <div>
-                                  <p className="text-sm text-gray-600">المدة:</p>
-                                  <p className="font-medium text-green-600">{formatDuration(task.totalDuration || 0)}</p>
-                                </div>
-                                <div>
-                                  <p className="text-sm text-gray-600">العمال:</p>
-                                  <div className="flex flex-wrap gap-1">
-                                    {getTaskStaff(task).map((member, index) => (
-                                      <Badge key={index} variant="secondary" className="text-xs">
-                                        {member.name}
-                                      </Badge>
-                                    ))}
-                                  </div>
-                                </div>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        ))}
-                      </div>
+                  {!customerInfo && !activeTasks?.length && (
+                    <div className="text-center py-12 text-gray-500">
+                      <Car className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                      <p>لا توجد معلومات لرقم اللوحة المدخل</p>
                     </div>
-                  );
-                })()
+                  )}
+                </div>
               ) : (
                 <div className="text-center py-12 text-gray-500">
-                  اختر سيارة لعرض تاريخها
+                  <Car className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p>أدخل رقم اللوحة للبحث عن معلومات السيارة</p>
                 </div>
               )}
             </div>
