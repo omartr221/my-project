@@ -481,6 +481,43 @@ export default function TaskDistribution() {
                               <p className="text-sm text-gray-600">متوسط الوقت المقدر لكل مهمة</p>
                             </div>
                           </div>
+
+                          {/* Task Types Breakdown */}
+                          {workerTasks.length > 0 && (
+                            <div className="space-y-4">
+                              <h3 className="text-lg font-semibold">أنواع المهام المنجزة</h3>
+                              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                {(() => {
+                                  const taskTypeStats: Record<string, { count: number; totalTime: number }> = {};
+                                  workerTasks.forEach(task => {
+                                    const type = task.taskType || 'غير محدد';
+                                    if (!taskTypeStats[type]) {
+                                      taskTypeStats[type] = {
+                                        count: 0,
+                                        totalTime: 0
+                                      };
+                                    }
+                                    taskTypeStats[type].count++;
+                                    taskTypeStats[type].totalTime += (task.estimatedDuration || 0);
+                                  });
+
+                                  return Object.entries(taskTypeStats).map(([type, stats]) => (
+                                    <Card key={type} className="border-2 border-gray-200">
+                                      <CardContent className="p-4 text-center">
+                                        <div className="text-xl font-bold text-purple-600">
+                                          {stats.count}
+                                        </div>
+                                        <div className="text-sm text-gray-600 mb-2">{type}</div>
+                                        <div className="text-xs text-gray-500">
+                                          {stats.totalTime} دقيقة إجمالية
+                                        </div>
+                                      </CardContent>
+                                    </Card>
+                                  ));
+                                })()}
+                              </div>
+                            </div>
+                          )}
                         </CardContent>
                       </Card>
 
