@@ -18,6 +18,7 @@ type TaskDistributionEntry = {
   startTime: string;
   endTime: string;
   totalDuration: number;
+  estimatedDuration?: number; // in minutes
   consumedTime?: number;
   workerName: string;
   engineerName?: string;
@@ -425,7 +426,7 @@ export default function TaskDistribution() {
               {selectedWorker ? (
                 (() => {
                   const workerTasks = calculateWorkerHours(selectedWorker);
-                  const totalHours = workerTasks.reduce((total, task) => total + (task.totalDuration || 0), 0);
+                  const totalHours = workerTasks.reduce((total, task) => total + ((task.estimatedDuration || 0) * 60), 0); // Convert minutes to seconds
                   
                   return (
                     <div className="space-y-4">
@@ -446,13 +447,13 @@ export default function TaskDistribution() {
                             </div>
                             <div className="text-center">
                               <p className="text-2xl font-bold text-green-600">{formatDuration(totalHours)}</p>
-                              <p className="text-sm text-gray-600">إجمالي الساعات</p>
+                              <p className="text-sm text-gray-600">إجمالي الساعات المقدرة</p>
                             </div>
                             <div className="text-center">
                               <p className="text-2xl font-bold text-orange-600">
-                                {workerTasks.length > 0 ? Math.round(totalHours / workerTasks.length / 60) : 0} دقيقة
+                                {workerTasks.length > 0 ? Math.round((workerTasks.reduce((total, task) => total + (task.estimatedDuration || 0), 0)) / workerTasks.length) : 0} دقيقة
                               </p>
-                              <p className="text-sm text-gray-600">متوسط الوقت لكل مهمة</p>
+                              <p className="text-sm text-gray-600">متوسط الوقت المقدر لكل مهمة</p>
                             </div>
                           </div>
                         </CardContent>
@@ -472,8 +473,10 @@ export default function TaskDistribution() {
                                   <p className="font-medium">{new Date(task.archivedAt).toLocaleDateString('ar-SY')}</p>
                                 </div>
                                 <div>
-                                  <p className="text-sm text-gray-600">المدة:</p>
-                                  <p className="font-medium text-green-600">{formatDuration(task.totalDuration || 0)}</p>
+                                  <p className="text-sm text-gray-600">الوقت المقدر:</p>
+                                  <p className="font-medium text-blue-600">
+                                    {task.estimatedDuration ? `${task.estimatedDuration} دقيقة` : 'غير محدد'}
+                                  </p>
                                 </div>
                               </div>
                             </CardContent>
