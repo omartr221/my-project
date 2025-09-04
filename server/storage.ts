@@ -219,27 +219,38 @@ export class DatabaseStorage implements IStorage {
 
     console.log(`getActiveTasks: Found ${tasksData.length} tasks`);
     
-    return tasksData.map(task => {
-      // Calculate duration directly here
+    // Get time entries for active tasks
+    const tasksWithEntries = await Promise.all(
+      tasksData.map(async (task) => {
+        const timeEntriesData = await db.query.timeEntries.findMany({
+          where: eq(timeEntries.taskId, task.id),
+        });
+        return { ...task, timeEntries: timeEntriesData };
+      })
+    );
+
+    return tasksWithEntries.map(task => {
       let duration = 0;
       
       if (task.timerType === 'manual' && task.consumedTime) {
         duration = task.consumedTime * 60;
-      } else if (task.startTime) {
-        const startTime = new Date(task.startTime).getTime();
-        let endTime: number;
-        
-        if (task.status === 'completed' && task.endTime) {
-          endTime = new Date(task.endTime).getTime();
-        } else if (task.status === 'paused' && task.pausedAt) {
-          endTime = new Date(task.pausedAt).getTime();
-        } else {
-          endTime = Date.now();
-        }
-        
-        const totalSeconds = (endTime - startTime) / 1000;
-        const pausedSeconds = task.totalPausedDuration || 0;
-        duration = Math.max(0, totalSeconds - pausedSeconds);
+      } else if (task.timeEntries && task.timeEntries.length > 0) {
+        // Calculate duration from time entries (correct approach)
+        duration = task.timeEntries.reduce((total, entry) => {
+          if (entry.entryType === 'work') {
+            if (entry.duration) {
+              // Completed work session
+              return total + entry.duration;
+            } else if (entry.startTime && !entry.endTime) {
+              // Active work session
+              const entryStartTime = new Date(entry.startTime).getTime();
+              const currentTime = Date.now();
+              const sessionDuration = Math.max(0, (currentTime - entryStartTime) / 1000);
+              return total + sessionDuration;
+            }
+          }
+          return total;
+        }, 0);
       }
       
       console.log(`Task ${task.id} - startTime: ${task.startTime} - calculated duration: ${duration}s`);
