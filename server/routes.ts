@@ -744,28 +744,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const request = await storage.updatePartsRequestStatus(id, status, notes, estimatedArrival);
       
-      // إرسال إشعار خاص عند التسليم النهائي وإضافة سجل في المهام
+      // إرسال إشعار خاص عند التسليم النهائي
       if (status === 'delivered') {
-        // إضافة سجل في المهام للمهندس المطلوب
-        try {
-          // البحث عن العامل بناءً على اسم المهندس أو إنشاء سجل افتراضي
-          const workers = await storage.getWorkers();
-          let workerId = workers.find(w => w.name === request.engineerName)?.id || 1;
-          
-          await storage.createTask({
-            workerId: workerId,
-            description: `تم استلام القطعة: ${request.partName} - ${request.requestNumber}`,
-            taskType: "parts_received",
-            estimatedDuration: 0,
-            carBrand: "N/A",
-            carModel: "N/A", 
-            licensePlate: request.licensePlate || "N/A",
-            engineerName: request.engineerName || "",
-          });
-        } catch (taskError) {
-          console.error("Error creating task entry for parts delivery:", taskError);
-        }
-        
         broadcastUpdate("parts_request_delivered", request);
       }
       
