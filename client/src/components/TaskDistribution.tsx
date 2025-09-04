@@ -45,6 +45,7 @@ export default function TaskDistribution() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [licensePlateSearch, setLicensePlateSearch] = useState("");
+  const [selectedTaskType, setSelectedTaskType] = useState("");
 
   // Fetch archived tasks
   const { data: archivedTasks = [] } = useQuery<TaskDistributionEntry[]>({
@@ -140,6 +141,11 @@ export default function TaskDistribution() {
   // Get unique vehicles
   const allVehicles = Array.from(new Set(
     archivedTasks.map(task => `${task.carBrand} ${task.carModel} - ${task.licensePlate}`)
+  )).sort();
+
+  // Get unique task types
+  const allTaskTypes = Array.from(new Set(
+    archivedTasks.map(task => task.taskType).filter(Boolean)
   )).sort();
 
   // Calculate worker hours for selected date range
@@ -512,15 +518,56 @@ export default function TaskDistribution() {
           {/* Vehicle History Tab */}
           {activeTab === "vehicle-history" && (
             <div className="space-y-6">
-              <div className="flex gap-4 mb-6">
-                <div className="flex-1">
-                  <Input
-                    placeholder="أدخل رقم اللوحة للبحث..."
-                    value={licensePlateSearch}
-                    onChange={(e) => setLicensePlateSearch(e.target.value)}
-                    className="text-center font-mono text-lg"
-                  />
+              {/* Search and Type Filter */}
+              <div className="space-y-4">
+                <div className="flex gap-4">
+                  <div className="flex-1">
+                    <Input
+                      placeholder="أدخل رقم اللوحة للبحث..."
+                      value={licensePlateSearch}
+                      onChange={(e) => setLicensePlateSearch(e.target.value)}
+                      className="text-center font-mono text-lg"
+                    />
+                  </div>
                 </div>
+
+                {/* Task Types Filter */}
+                {!licensePlateSearch && (
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold">تصفية حسب نوع المهمة</h3>
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                      <Card 
+                        className={`cursor-pointer border-2 transition-colors ${selectedTaskType === "" ? "border-blue-500 bg-blue-50" : "hover:border-gray-300"}`}
+                        onClick={() => setSelectedTaskType("")}
+                      >
+                        <CardContent className="p-4 text-center">
+                          <div className="text-2xl font-bold text-blue-600">
+                            {archivedTasks.length}
+                          </div>
+                          <div className="text-sm text-gray-600">جميع المهام</div>
+                        </CardContent>
+                      </Card>
+                      
+                      {allTaskTypes.map(taskType => {
+                        const typeCount = archivedTasks.filter(task => task.taskType === taskType).length;
+                        return (
+                          <Card 
+                            key={taskType}
+                            className={`cursor-pointer border-2 transition-colors ${selectedTaskType === taskType ? "border-green-500 bg-green-50" : "hover:border-gray-300"}`}
+                            onClick={() => setSelectedTaskType(taskType)}
+                          >
+                            <CardContent className="p-4 text-center">
+                              <div className="text-2xl font-bold text-green-600">
+                                {typeCount}
+                              </div>
+                              <div className="text-sm text-gray-600">{taskType}</div>
+                            </CardContent>
+                          </Card>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {licensePlateSearch ? (
@@ -682,10 +729,81 @@ export default function TaskDistribution() {
                     </div>
                   )}
                 </div>
+              ) : selectedTaskType ? (
+                (() => {
+                  const filteredByType = archivedTasks.filter(task => task.taskType === selectedTaskType);
+                  const totalHours = filteredByType.reduce((total, task) => total + (task.totalDuration || 0), 0);
+                  
+                  return (
+                    <div className="space-y-6">
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="flex items-center gap-2">
+                            <Wrench className="h-5 w-5" />
+                            مهام نوع: {selectedTaskType}
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="grid grid-cols-3 gap-4 mb-4">
+                            <div className="text-center">
+                              <p className="text-2xl font-bold text-blue-600">{filteredByType.length}</p>
+                              <p className="text-sm text-gray-600">عدد المهام</p>
+                            </div>
+                            <div className="text-center">
+                              <p className="text-2xl font-bold text-green-600">{formatDuration(totalHours)}</p>
+                              <p className="text-sm text-gray-600">إجمالي ساعات العمل</p>
+                            </div>
+                            <div className="text-center">
+                              <p className="text-2xl font-bold text-orange-600">
+                                {filteredByType.length > 0 ? Math.round(totalHours / filteredByType.length) : 0} ثانية
+                              </p>
+                              <p className="text-sm text-gray-600">متوسط الوقت لكل مهمة</p>
+                            </div>
+                          </div>
+
+                          <div className="space-y-3">
+                            {filteredByType.map((task) => (
+                              <Card key={task.id} className="border-r-4 border-r-green-500">
+                                <CardContent className="p-4">
+                                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                    <div>
+                                      <h4 className="font-medium">{task.description}</h4>
+                                      <p className="text-sm text-gray-600">
+                                        {task.carBrand} {task.carModel} - {task.licensePlate}
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <p className="text-sm text-gray-600">الزبون:</p>
+                                      <p className="font-medium">{task.customerName || 'غير محدد'}</p>
+                                    </div>
+                                    <div>
+                                      <p className="text-sm text-gray-600">التاريخ:</p>
+                                      <p className="font-medium">{new Date(task.archivedAt).toLocaleDateString('ar-SY')}</p>
+                                    </div>
+                                    <div>
+                                      <p className="text-sm text-gray-600">العمال:</p>
+                                      <div className="flex flex-wrap gap-1">
+                                        {getTaskStaff(task).map((member, index) => (
+                                          <Badge key={index} variant="secondary" className="text-xs">
+                                            {member.name}
+                                          </Badge>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </CardContent>
+                              </Card>
+                            ))}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  );
+                })()
               ) : (
                 <div className="text-center py-12 text-gray-500">
                   <Car className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>أدخل رقم اللوحة للبحث عن معلومات السيارة</p>
+                  <p>اختر نوع المهمة أو أدخل رقم اللوحة للبحث</p>
                 </div>
               )}
             </div>
