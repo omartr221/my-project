@@ -774,44 +774,138 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getArchivedTasks(limit: number = 100): Promise<TaskHistory[]> {
-    const tasksData = await db.query.tasks.findMany({
-      where: eq(tasks.isArchived, true),
-      with: {
-        worker: true,
-        timeEntries: true,
-      },
-      orderBy: [desc(tasks.archivedAt)],
-      limit,
-    });
+    // استخدام SQL مباشر للحصول على معلومات الزبون
+    const tasksWithCustomers = await db
+      .select({
+        // بيانات المهمة
+        id: tasks.id,
+        taskNumber: tasks.taskNumber,
+        workerId: tasks.workerId,
+        workerRole: tasks.workerRole,
+        description: tasks.description,
+        carBrand: tasks.carBrand,
+        carModel: tasks.carModel,
+        licensePlate: tasks.licensePlate,
+        estimatedDuration: tasks.estimatedDuration,
+        engineerName: tasks.engineerName,
+        supervisorName: tasks.supervisorName,
+        assistantName: tasks.assistantName,
+        technicianName: tasks.technicianName,
+        technicians: tasks.technicians,
+        assistants: tasks.assistants,
+        repairOperation: tasks.repairOperation,
+        taskType: tasks.taskType,
+        invoiceType: tasks.invoiceType,
+        color: tasks.color,
+        timerType: tasks.timerType,
+        consumedTime: tasks.consumedTime,
+        status: tasks.status,
+        startTime: tasks.startTime,
+        endTime: tasks.endTime,
+        totalPausedDuration: tasks.totalPausedDuration,
+        isArchived: tasks.isArchived,
+        archivedAt: tasks.archivedAt,
+        archivedBy: tasks.archivedBy,
+        archiveNotes: tasks.archiveNotes,
+        rating: tasks.rating,
+        deliveryNumber: tasks.deliveryNumber,
+        createdAt: tasks.createdAt,
+        // بيانات العامل
+        workerName: workers.name,
+        workerCategory: workers.category,
+        // بيانات الزبون
+        customerName: customers.name,
+        customerPhone: customers.phoneNumber,
+      })
+      .from(tasks)
+      .leftJoin(workers, eq(tasks.workerId, workers.id))
+      .leftJoin(customerCars, eq(tasks.licensePlate, customerCars.licensePlate))
+      .leftJoin(customers, eq(customerCars.customerId, customers.id))
+      .where(eq(tasks.isArchived, true))
+      .orderBy(desc(tasks.archivedAt))
+      .limit(limit);
 
-    return tasksData.map(task => ({
+    return tasksWithCustomers.map(task => ({
       ...task,
-      totalDuration: task.totalPausedDuration || this.calculateCurrentDuration(task),
-    }));
+      worker: {
+        id: task.workerId,
+        name: task.workerName,
+        category: task.workerCategory,
+      },
+      totalDuration: task.totalPausedDuration || 0,
+    })) as TaskHistory[];
   }
 
   async searchArchive(searchTerm: string): Promise<TaskHistory[]> {
-    const tasksData = await db.query.tasks.findMany({
-      where: and(
+    // البحث مع ربط جداول الزبائن
+    const tasksWithCustomers = await db
+      .select({
+        // بيانات المهمة
+        id: tasks.id,
+        taskNumber: tasks.taskNumber,
+        workerId: tasks.workerId,
+        workerRole: tasks.workerRole,
+        description: tasks.description,
+        carBrand: tasks.carBrand,
+        carModel: tasks.carModel,
+        licensePlate: tasks.licensePlate,
+        estimatedDuration: tasks.estimatedDuration,
+        engineerName: tasks.engineerName,
+        supervisorName: tasks.supervisorName,
+        assistantName: tasks.assistantName,
+        technicianName: tasks.technicianName,
+        technicians: tasks.technicians,
+        assistants: tasks.assistants,
+        repairOperation: tasks.repairOperation,
+        taskType: tasks.taskType,
+        invoiceType: tasks.invoiceType,
+        color: tasks.color,
+        timerType: tasks.timerType,
+        consumedTime: tasks.consumedTime,
+        status: tasks.status,
+        startTime: tasks.startTime,
+        endTime: tasks.endTime,
+        totalPausedDuration: tasks.totalPausedDuration,
+        isArchived: tasks.isArchived,
+        archivedAt: tasks.archivedAt,
+        archivedBy: tasks.archivedBy,
+        archiveNotes: tasks.archiveNotes,
+        rating: tasks.rating,
+        deliveryNumber: tasks.deliveryNumber,
+        createdAt: tasks.createdAt,
+        // بيانات العامل
+        workerName: workers.name,
+        workerCategory: workers.category,
+        // بيانات الزبون
+        customerName: customers.name,
+        customerPhone: customers.phoneNumber,
+      })
+      .from(tasks)
+      .leftJoin(workers, eq(tasks.workerId, workers.id))
+      .leftJoin(customerCars, eq(tasks.licensePlate, customerCars.licensePlate))
+      .leftJoin(customers, eq(customerCars.customerId, customers.id))
+      .where(and(
         eq(tasks.isArchived, true),
         or(
           like(tasks.description, `%${searchTerm}%`),
           like(tasks.carModel, `%${searchTerm}%`),
           like(tasks.licensePlate, `%${searchTerm}%`),
-          like(tasks.archiveNotes, `%${searchTerm}%`)
+          like(tasks.archiveNotes, `%${searchTerm}%`),
+          like(customers.name, `%${searchTerm}%`), // البحث في اسم الزبون
+          like(customerCars.chassisNumber, `%${searchTerm}%`) // البحث في رقم الشاسيه
         )
-      ),
-      with: {
-        worker: true,
-        timeEntries: true,
-      },
-      orderBy: [desc(tasks.archivedAt)],
-      limit: 50,
-    });
+      ))
+      .orderBy(desc(tasks.archivedAt))
+      .limit(50);
 
-    return tasksData.map(task => ({
+    return tasksWithCustomers.map(task => ({
       ...task,
-      totalDuration: task.timeEntries.reduce((total, entry) => {
+      worker: {
+        id: task.workerId,
+        name: task.workerName,
+        category: task.workerCategory,
+      },
+      totalDuration: task.totalPausedDuration || 0,
         return total + (entry.duration || 0);
       }, 0),
     }));
