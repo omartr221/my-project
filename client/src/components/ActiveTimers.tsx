@@ -264,14 +264,14 @@ export default function ActiveTimers({
                             مشرف: {(task as any).supervisorName}
                           </span>
                         )}
-                        {(task as any).technicians && (task as any).technicians.trim() !== '' && (
+                        {(task as any).technicians && Array.isArray((task as any).technicians) && (task as any).technicians.length > 0 && (
                           <span className="bg-orange-100 text-orange-700 px-2 py-1 rounded">
-                            فنيون: {(task as any).technicians}
+                            فنيون: {(task as any).technicians.join(', ')}
                           </span>
                         )}
-                        {(task as any).assistants && (task as any).assistants.trim() !== '' && (
+                        {(task as any).assistants && Array.isArray((task as any).assistants) && (task as any).assistants.length > 0 && (
                           <span className="bg-purple-100 text-purple-700 px-2 py-1 rounded">
-                            مساعدون: {(task as any).assistants}
+                            مساعدون: {(task as any).assistants.join(', ')}
                           </span>
                         )}
                         {(task as any).technicianName && (task as any).technicianName !== '' && (
