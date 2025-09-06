@@ -47,6 +47,7 @@ export default function TaskDistribution() {
   const [vehicleSearchTerm, setVehicleSearchTerm] = useState("");
   const [selectedTaskType, setSelectedTaskType] = useState("");
   const [showSearchSuggestions, setShowSearchSuggestions] = useState(false);
+  const [costCenterTaskType, setCostCenterTaskType] = useState(""); // For cost center task type filter
 
   // Fetch archived tasks
   const { data: archivedTasks = [] } = useQuery<TaskDistributionEntry[]>({
@@ -173,7 +174,7 @@ export default function TaskDistribution() {
   const availableTaskTypes = getAvailableTaskTypes();
 
   // Calculate worker hours for selected date range (count each task only once per worker)
-  const calculateWorkerHours = (workerName: string) => {
+  const calculateWorkerHours = (workerName: string, taskType?: string) => {
     if (!startDate || !endDate) {
       return []; // Return empty if no date range selected
     }
@@ -187,7 +188,8 @@ export default function TaskDistribution() {
       const taskDate = new Date(task.archivedAt);
       const isInPeriod = taskDate >= periodStart && taskDate <= periodEnd;
       const workedOnTask = didWorkerParticipateInTask(task, workerName);
-      return isInPeriod && workedOnTask;
+      const matchesTaskType = !taskType || task.taskType === taskType;
+      return isInPeriod && workedOnTask && matchesTaskType;
     });
   };
 
@@ -437,39 +439,85 @@ export default function TaskDistribution() {
           {/* Cost Center Tab */}
           {activeTab === "cost-center" && (
             <div className="space-y-6">
-              <div className="flex gap-4 mb-6">
-                <select
-                  value={selectedWorker}
-                  onChange={(e) => setSelectedWorker(e.target.value)}
-                  className="px-3 py-2 border rounded-md"
-                >
-                  <option value="">اختر العامل</option>
-                  {allStaff.map(staff => (
-                    <option key={staff} value={staff}>{staff}</option>
-                  ))}
-                </select>
-                
-                <div className="flex gap-2 items-center">
-                  <label className="text-sm font-medium">من:</label>
-                  <input
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
+              <div className="space-y-4 mb-6">
+                <div className="flex gap-4">
+                  <select
+                    value={selectedWorker}
+                    onChange={(e) => setSelectedWorker(e.target.value)}
                     className="px-3 py-2 border rounded-md"
-                  />
-                  <label className="text-sm font-medium">إلى:</label>
-                  <input
-                    type="date"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    className="px-3 py-2 border rounded-md"
-                  />
+                  >
+                    <option value="">اختر العامل</option>
+                    {allStaff.map(staff => (
+                      <option key={staff} value={staff}>{staff}</option>
+                    ))}
+                  </select>
+                  
+                  <div className="flex gap-2 items-center">
+                    <label className="text-sm font-medium">من:</label>
+                    <input
+                      type="date"
+                      value={startDate}
+                      onChange={(e) => setStartDate(e.target.value)}
+                      className="px-3 py-2 border rounded-md"
+                    />
+                    <label className="text-sm font-medium">إلى:</label>
+                    <input
+                      type="date"
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                      className="px-3 py-2 border rounded-md"
+                    />
+                  </div>
                 </div>
+                
+                {selectedWorker && ((() => {
+                  const workerTasks = calculateWorkerHours(selectedWorker);
+                  const taskTypes = Array.from(new Set(
+                    workerTasks.map(task => task.taskType).filter(Boolean)
+                  )).sort();
+                  
+                  return taskTypes.length > 0 && (
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">تصفية حسب نوع المهمة:</label>
+                      <div className="flex gap-2 flex-wrap">
+                        <button
+                          onClick={() => setCostCenterTaskType("")}
+                          className={`px-3 py-2 rounded-md text-sm ${
+                            costCenterTaskType === ""
+                              ? "bg-blue-500 text-white"
+                              : "bg-gray-200 hover:bg-gray-300"
+                          }`}
+                        >
+                          جميع الأنواع
+                        </button>
+                        {taskTypes.map(taskType => {
+                          const typeCount = calculateWorkerHours(selectedWorker, taskType).length;
+                          const typeTotalTime = calculateWorkerHours(selectedWorker, taskType)
+                            .reduce((total, task) => total + (task.estimatedDuration || 0), 0);
+                          
+                          return (
+                            <button
+                              key={taskType}
+                              onClick={() => setCostCenterTaskType(taskType)}
+                              className={`px-3 py-2 rounded-md text-sm ${
+                                costCenterTaskType === taskType
+                                  ? "bg-green-500 text-white"
+                                  : "bg-gray-200 hover:bg-gray-300"
+                              }`}
+                            >
+                              {taskType} ({typeCount} - {typeTotalTime}د)
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })())}
               </div>
 
               {selectedWorker ? (
                 (() => {
-                  const workerTasks = calculateWorkerHours(selectedWorker);
+                  const workerTasks = calculateWorkerHours(selectedWorker, costCenterTaskType || undefined);
                   const totalHours = workerTasks.reduce((total, task) => total + ((task.estimatedDuration || 0) * 60), 0); // Convert minutes to seconds
                   
                   return (
