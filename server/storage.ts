@@ -7,16 +7,36 @@ import { pool } from "./db";
 
 // Helper functions for data conversion
 function parseTaskFromDB(taskFromDB: any): Task {
+  const parseArrayField = (field: any): string[] => {
+    if (!field) return [];
+    if (Array.isArray(field)) return field;
+    if (typeof field === 'string') {
+      try {
+        // Try to parse as JSON first
+        if (field.trim().startsWith('[')) {
+          return JSON.parse(field);
+        }
+        // If it's a comma-separated string, split it
+        if (field.includes(',')) {
+          return field.split(',').map((item: string) => item.trim()).filter(Boolean);
+        }
+        // Single value, return as single-item array
+        return field.trim() ? [field.trim()] : [];
+      } catch (e) {
+        // If parsing fails, treat as single item or comma-separated
+        if (field.includes(',')) {
+          return field.split(',').map((item: string) => item.trim()).filter(Boolean);
+        }
+        return field.trim() ? [field.trim()] : [];
+      }
+    }
+    return [];
+  };
+
   return {
     ...taskFromDB,
-    technicians: taskFromDB.technicians ? 
-      (typeof taskFromDB.technicians === 'string' ? 
-        JSON.parse(taskFromDB.technicians) : 
-        taskFromDB.technicians) : [],
-    assistants: taskFromDB.assistants ? 
-      (typeof taskFromDB.assistants === 'string' ? 
-        JSON.parse(taskFromDB.assistants) : 
-        taskFromDB.assistants) : [],
+    technicians: parseArrayField(taskFromDB.technicians),
+    assistants: parseArrayField(taskFromDB.assistants),
   };
 }
 
