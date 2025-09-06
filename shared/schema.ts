@@ -165,6 +165,7 @@ export const insertTaskSchema = createInsertSchema(tasks).omit({
 }).extend({
   carModel: z.string().min(1, "يجب إدخال موديل السيارة"),
   licensePlate: z.string().min(1, "يجب إدخال رقم اللوحة"),
+  invoiceType: z.string().optional(),
   // تحويل المصفوفات إلى نصوص مفصولة بفواصل
   technicians: z.union([z.string(), z.array(z.string())]).optional().transform((val) => {
     if (Array.isArray(val)) return val.join(', ');
@@ -181,6 +182,7 @@ export const insertTaskSchema = createInsertSchema(tasks).omit({
   technicianName: true,
   repairOperation: true,
   taskType: true,
+  invoiceType: true,
   color: true,
   timerType: true,
 });
