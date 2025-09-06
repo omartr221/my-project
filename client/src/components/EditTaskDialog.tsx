@@ -258,14 +258,13 @@ export default function EditTaskDialog({ task, disabled }: EditTaskDialogProps) 
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>نوع الفاتورة (اختياري)</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value || ""}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="اختر نوع الفاتورة" />
+                        <SelectValue placeholder="اختر نوع الفاتورة (اختياري)" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">بدون نوع فاتورة</SelectItem>
                       <SelectItem value="NB">NB</SelectItem>
                       <SelectItem value="NBP">NBP</SelectItem>
                       <SelectItem value="NBC">NBC</SelectItem>
