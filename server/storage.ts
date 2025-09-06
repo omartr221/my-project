@@ -871,13 +871,17 @@ export class DatabaseStorage implements IStorage {
 
     return tasksWithCustomers.map(task => ({
       ...task,
+      // استخدام اسم العميل من car_status إذا لم يكن موجود في customer_cars
+      customerName: task.customerNameFromCars || task.customerNameFromStatus || 'غير محدد',
       worker: {
         id: task.workerId,
         name: task.workerName,
         category: task.workerCategory,
       },
       totalDuration: task.totalPausedDuration || 0,
-    })) as any[];
+      technicians: this.parseJsonArray(task.technicians),
+      assistants: this.parseJsonArray(task.assistants),
+    }));
   }
 
   async searchArchive(searchTerm: string): Promise<TaskHistory[]> {
