@@ -5,6 +5,26 @@ import session from "express-session";
 import connectPg from "connect-pg-simple";
 import { pool } from "./db";
 
+// Helper functions for data conversion
+function parseTaskFromDB(taskFromDB: any): Task {
+  return {
+    ...taskFromDB,
+    technicians: taskFromDB.technicians ? 
+      (typeof taskFromDB.technicians === 'string' ? 
+        JSON.parse(taskFromDB.technicians) : 
+        taskFromDB.technicians) : [],
+    assistants: taskFromDB.assistants ? 
+      (typeof taskFromDB.assistants === 'string' ? 
+        JSON.parse(taskFromDB.assistants) : 
+        taskFromDB.assistants) : [],
+  };
+}
+
+function serializeDateToString(date: Date | null | undefined): string | null {
+  if (!date) return null;
+  return date.toISOString();
+}
+
 export interface IStorage {
   // Worker management
   getWorkers(): Promise<WorkerWithTasks[]>;
@@ -906,8 +926,6 @@ export class DatabaseStorage implements IStorage {
         category: task.workerCategory,
       },
       totalDuration: task.totalPausedDuration || 0,
-        return total + (entry.duration || 0);
-      }, 0),
     }));
   }
 
