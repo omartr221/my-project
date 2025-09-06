@@ -36,6 +36,7 @@ export const tasks = pgTable("tasks", {
   assistants: text("assistants"), // JSON string of assistant names
   repairOperation: text("repair_operation"),
   taskType: text("task_type"), // ميكانيك, كهربا
+  invoiceType: text("invoice_type"), // NB, NBP, NBC - اختياري
   color: text("color"), // اللون
   timerType: text("timer_type").notNull().default("automatic"), // automatic, manual
   consumedTime: integer("consumed_time"), // in minutes - for manual timer

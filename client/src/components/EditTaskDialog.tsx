@@ -235,6 +235,11 @@ export default function EditTaskDialog({ task, disabled }: EditTaskDialogProps) 
                       <SelectItem value="طلب مخططات">طلب مخططات</SelectItem>
                       <SelectItem value="تجريب في الخارج">تجريب في الخارج</SelectItem>
                       <SelectItem value="اختبارات داخل الورشة">اختبارات داخل الورشة</SelectItem>
+                      <SelectItem value="اختبار خارج الورشة">اختبار خارج الورشة</SelectItem>
+                      <SelectItem value="تبديل زيت">تبديل زيت</SelectItem>
+                      <SelectItem value="نعبئة غاز مكيف">نعبئة غاز مكيف</SelectItem>
+                      <SelectItem value="غسيل محرك السيارة">غسيل محرك السيارة</SelectItem>
+                      <SelectItem value="غسيل محرك">غسيل محرك</SelectItem>
                       <SelectItem value="خدمات خارجية">خدمات خارجية</SelectItem>
                       <SelectItem value="حدادة">حدادة</SelectItem>
                       <SelectItem value="برمجة">برمجة</SelectItem>
