@@ -215,8 +215,8 @@ export default function TaskHistoryTable() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       <div className="space-y-1">
-                        {(task as any).technicians && (task as any).technicians.trim() !== '' && (
-                          <div>{(task as any).technicians}</div>
+                        {(task as any).technicians && Array.isArray((task as any).technicians) && (task as any).technicians.length > 0 && (
+                          <div>{(task as any).technicians.join(', ')}</div>
                         )}
                         {(task as any).technicianName && (task as any).technicianName !== '' && (
                           <div>{(task as any).technicianName}</div>
@@ -226,8 +226,8 @@ export default function TaskHistoryTable() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       <div className="space-y-1">
-                        {(task as any).assistants && (task as any).assistants.trim() !== '' && (
-                          <div>{(task as any).assistants}</div>
+                        {(task as any).assistants && Array.isArray((task as any).assistants) && (task as any).assistants.length > 0 && (
+                          <div>{(task as any).assistants.join(', ')}</div>
                         )}
                         {(task as any).assistantName && (task as any).assistantName !== '' && (
                           <div>{(task as any).assistantName}</div>

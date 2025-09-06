@@ -76,8 +76,8 @@ export default function TaskDistribution() {
     ...archivedTasks.map(task => task.assistantName).filter(Boolean),
     ...archivedTasks.map(task => task.supervisorName).filter(Boolean),
     // Add technicians and assistants from the comma-separated fields
-    ...archivedTasks.flatMap(task => (task as any).technicians ? (task as any).technicians.split(',').map((name: string) => name.trim()) : []).filter(Boolean),
-    ...archivedTasks.flatMap(task => (task as any).assistants ? (task as any).assistants.split(',').map((name: string) => name.trim()) : []).filter(Boolean),
+    ...archivedTasks.flatMap(task => Array.isArray((task as any).technicians) ? (task as any).technicians : []).filter(Boolean),
+    ...archivedTasks.flatMap(task => Array.isArray((task as any).assistants) ? (task as any).assistants : []).filter(Boolean),
   ].filter(Boolean))).sort();
 
   // Filter tasks based on search and staff selection
@@ -94,8 +94,8 @@ export default function TaskDistribution() {
       task.technicianName === selectedStaff ||
       task.assistantName === selectedStaff ||
       task.supervisorName === selectedStaff ||
-      ((task as any).technicians && (task as any).technicians.includes(selectedStaff)) ||
-      ((task as any).assistants && (task as any).assistants.includes(selectedStaff));
+      (Array.isArray((task as any).technicians) && (task as any).technicians.includes(selectedStaff)) ||
+      (Array.isArray((task as any).assistants) && (task as any).assistants.includes(selectedStaff));
 
     return matchesSearch && matchesStaff;
   });
@@ -120,7 +120,7 @@ export default function TaskDistribution() {
     // Add technicians from both fields
     if (task.technicianName) staff.push({ name: task.technicianName, role: "فني" });
     if ((task as any).technicians) {
-      const techs = (task as any).technicians.split(',').map((name: string) => name.trim()).filter(Boolean);
+      const techs = Array.isArray((task as any).technicians) ? (task as any).technicians : [];
       techs.forEach((name: string) => {
         if (!staff.some(s => s.name === name)) {
           staff.push({ name, role: "فني" });
@@ -131,7 +131,7 @@ export default function TaskDistribution() {
     // Add assistants from both fields
     if (task.assistantName) staff.push({ name: task.assistantName, role: "مساعد" });
     if ((task as any).assistants) {
-      const assists = (task as any).assistants.split(',').map((name: string) => name.trim()).filter(Boolean);
+      const assists = Array.isArray((task as any).assistants) ? (task as any).assistants : [];
       assists.forEach((name: string) => {
         if (!staff.some(s => s.name === name)) {
           staff.push({ name, role: "مساعد" });
@@ -151,9 +151,9 @@ export default function TaskDistribution() {
     if (task.technicianName === workerName) return true;
     if (task.assistantName === workerName) return true;
     
-    // Check comma-separated fields
-    if ((task as any).technicians && (task as any).technicians.includes(workerName)) return true;
-    if ((task as any).assistants && (task as any).assistants.includes(workerName)) return true;
+    // Check array fields
+    if (Array.isArray((task as any).technicians) && (task as any).technicians.includes(workerName)) return true;
+    if (Array.isArray((task as any).assistants) && (task as any).assistants.includes(workerName)) return true;
     
     return false;
   };

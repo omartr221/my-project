@@ -483,9 +483,9 @@ export default function ArchiveView() {
                       <div>
                         <span className="font-medium">الفنيون:</span>
                         <div className="mt-1">
-                          {(task as any).technicians && (task as any).technicians.trim() !== '' ? (
+                          {(task as any).technicians && Array.isArray((task as any).technicians) && (task as any).technicians.length > 0 ? (
                             <span className="bg-orange-100 text-orange-700 px-2 py-1 rounded text-xs">
-                              {(task as any).technicians}
+                              {(task as any).technicians.join(', ')}
                             </span>
                           ) : (task as any).technicianName && (task as any).technicianName !== '' ? (
                             <span className="bg-orange-100 text-orange-700 px-2 py-1 rounded text-xs">
@@ -499,9 +499,9 @@ export default function ArchiveView() {
                       <div>
                         <span className="font-medium">المساعدون:</span>
                         <div className="mt-1">
-                          {(task as any).assistants && (task as any).assistants.trim() !== '' ? (
+                          {(task as any).assistants && Array.isArray((task as any).assistants) && (task as any).assistants.length > 0 ? (
                             <span className="bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs">
-                              {(task as any).assistants}
+                              {(task as any).assistants.join(', ')}
                             </span>
                           ) : (task as any).assistantName && (task as any).assistantName !== '' ? (
                             <span className="bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs">
