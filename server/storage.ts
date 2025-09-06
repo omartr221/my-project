@@ -153,6 +153,16 @@ export class DatabaseStorage implements IStorage {
       createTableIfMissing: true 
     });
   }
+
+  private parseJsonArray(jsonString: string | null | undefined): string[] {
+    if (!jsonString) return [];
+    try {
+      const parsed = JSON.parse(jsonString);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
   async getWorkers(): Promise<WorkerWithTasks[]> {
     const workersData = await db.query.workers.findMany({
       with: {
