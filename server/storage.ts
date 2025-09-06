@@ -816,7 +816,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getArchivedTasks(limit: number = 100): Promise<TaskHistory[]> {
-    // استخدام SQL مباشر للحصول على معلومات الزبون
+    // استخدام SQL مباشر للحصول على معلومات الزبون من مصادر متعددة
     const tasksWithCustomers = await db
       .select({
         // بيانات المهمة
@@ -855,14 +855,16 @@ export class DatabaseStorage implements IStorage {
         // بيانات العامل
         workerName: workers.name,
         workerCategory: workers.category,
-        // بيانات الزبون
-        customerName: customers.name,
+        // بيانات الزبون من customer_cars أو car_status
+        customerNameFromCars: customers.name,
         customerPhone: customers.phoneNumber,
+        customerNameFromStatus: carStatus.customerName,
       })
       .from(tasks)
       .leftJoin(workers, eq(tasks.workerId, workers.id))
       .leftJoin(customerCars, eq(tasks.licensePlate, customerCars.licensePlate))
       .leftJoin(customers, eq(customerCars.customerId, customers.id))
+      .leftJoin(carStatus, eq(tasks.licensePlate, carStatus.licensePlate))
       .where(eq(tasks.isArchived, true))
       .orderBy(desc(tasks.archivedAt))
       .limit(limit);
@@ -875,7 +877,7 @@ export class DatabaseStorage implements IStorage {
         category: task.workerCategory,
       },
       totalDuration: task.totalPausedDuration || 0,
-    })) as TaskHistory[];
+    })) as any[];
   }
 
   async searchArchive(searchTerm: string): Promise<TaskHistory[]> {
@@ -918,14 +920,16 @@ export class DatabaseStorage implements IStorage {
         // بيانات العامل
         workerName: workers.name,
         workerCategory: workers.category,
-        // بيانات الزبون
-        customerName: customers.name,
+        // بيانات الزبون من customer_cars أو car_status
+        customerNameFromCars: customers.name,
         customerPhone: customers.phoneNumber,
+        customerNameFromStatus: carStatus.customerName,
       })
       .from(tasks)
       .leftJoin(workers, eq(tasks.workerId, workers.id))
       .leftJoin(customerCars, eq(tasks.licensePlate, customerCars.licensePlate))
       .leftJoin(customers, eq(customerCars.customerId, customers.id))
+      .leftJoin(carStatus, eq(tasks.licensePlate, carStatus.licensePlate))
       .where(and(
         eq(tasks.isArchived, true),
         or(
@@ -933,7 +937,8 @@ export class DatabaseStorage implements IStorage {
           like(tasks.carModel, `%${searchTerm}%`),
           like(tasks.licensePlate, `%${searchTerm}%`),
           like(tasks.archiveNotes, `%${searchTerm}%`),
-          like(customers.name, `%${searchTerm}%`), // البحث في اسم الزبون
+          like(customers.name, `%${searchTerm}%`), // البحث في اسم الزبون من customer_cars
+          like(carStatus.customerName, `%${searchTerm}%`), // البحث في اسم الزبون من car_status
           like(customerCars.chassisNumber, `%${searchTerm}%`) // البحث في رقم الشاسيه
         )
       ))
@@ -942,12 +947,16 @@ export class DatabaseStorage implements IStorage {
 
     return tasksWithCustomers.map(task => ({
       ...task,
+      // استخدام اسم العميل من car_status إذا لم يكن موجود في customer_cars
+      customerName: task.customerNameFromCars || task.customerNameFromStatus || 'غير محدد',
       worker: {
         id: task.workerId,
         name: task.workerName,
         category: task.workerCategory,
       },
       totalDuration: task.totalPausedDuration || 0,
+      technicians: this.parseJsonArray(task.technicians),
+      assistants: this.parseJsonArray(task.assistants),
     }));
   }
 
