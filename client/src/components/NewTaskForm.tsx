@@ -31,6 +31,7 @@ const taskFormSchema = z.object({
   assistants: z.array(z.string()).default([]),
   repairOperation: z.string().optional(),
   taskType: z.string().optional(),
+  invoiceType: z.string().optional(),
   color: z.string().optional(),
   timerType: z.string().default("automatic"),
   consumedTime: z.number().optional(),

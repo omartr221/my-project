@@ -22,6 +22,7 @@ const editTaskSchema = z.object({
   description: z.string().min(1, "يجب إدخال وصف المهمة"),
   repairOperation: z.string().optional(),
   taskType: z.string().optional(),
+  invoiceType: z.string().optional(),
   color: z.string().optional(),
   carBrand: z.string().min(1, "يجب اختيار نوع السيارة"),
   customCarBrand: z.string().optional(),
