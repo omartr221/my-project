@@ -150,7 +150,7 @@ export default function EditTaskForm({ task }: EditTaskFormProps) {
   
   // Use worker names from API, fallback to predefined if needed
   const availableWorkerNames = workerNames?.filter(name => name !== "عامل جديد") || 
-    ["غدير", "يحيى", "حسام", "مصطفى", "زياد", "سليمان", "علي", "حسن"];
+    ["غدير", "يحيى", "زياد", "سليمان", "علي", "حسن"];
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>

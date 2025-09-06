@@ -37,15 +37,12 @@ type PartsRequestFormData = z.infer<typeof partsRequestFormSchema>;
 const engineerNames = [
   "بدوي",
   "خالد",
-  "حسام", 
   "حكيم",
   "محمد العلي",
   "يزن",
   "عامر",
   "زياد",
-  "علي",
-  "عبد الحفيظ",
-  "مصطفى"
+  "علي"
 ];
 
 export default function PartsRequestForm() {
