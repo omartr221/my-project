@@ -1534,44 +1534,60 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getCarStatuses(): Promise<CarStatus[]> {
-    // Get existing car statuses
+    // Get existing car statuses with complete customer data
     const statuses = await db
-      .select()
+      .select({
+        id: carStatus.id,
+        customerName: carStatus.customerName,
+        carBrand: carStatus.carBrand,
+        carModel: carStatus.carModel,
+        licensePlate: carStatus.licensePlate,
+        currentStatus: carStatus.currentStatus,
+        maintenanceType: carStatus.maintenanceType,
+        complaints: carStatus.complaints,
+        kmReading: carStatus.kmReading,
+        fuelLevel: carStatus.fuelLevel,
+        partsRequestsCount: carStatus.partsRequestsCount,
+        completedPartsCount: carStatus.completedPartsCount,
+        receivedAt: carStatus.receivedAt,
+        enteredWorkshopAt: carStatus.enteredWorkshopAt,
+        completedAt: carStatus.completedAt,
+        returnedToReceptionAt: carStatus.returnedToReceptionAt,
+        returnedBy: carStatus.returnedBy,
+        deliveredAt: carStatus.deliveredAt,
+        updatedAt: carStatus.updatedAt,
+        createdAt: carStatus.createdAt,
+      })
       .from(carStatus)
       .orderBy(desc(carStatus.updatedAt));
     
-    // Also get cars from customer_cars that don't have a status yet
-    const customerCarsWithoutStatus = await db
-      .select({
-        id: sql`${customerCars.id} + 10000`.as("id"), // Offset to avoid ID conflicts
-        customerName: customers.name,
-        carBrand: customerCars.carBrand,
-        carModel: customerCars.carModel,
-        licensePlate: customerCars.licensePlate,
-        currentStatus: sql`'في الاستقبال'`.as("currentStatus"),
-        maintenanceType: sql`null`.as("maintenanceType"),
-        complaints: sql`null`.as("complaints"),
-        kmReading: sql`null`.as("kmReading"),
-        fuelLevel: sql`null`.as("fuelLevel"),
-        partsRequestsCount: sql`0`.as("partsRequestsCount"),
-        completedPartsCount: sql`0`.as("completedPartsCount"),
-        receivedAt: customerCars.createdAt,
-        enteredWorkshopAt: sql`null`.as("enteredWorkshopAt"),
-        completedAt: sql`null`.as("completedAt"),
-        returnedToReceptionAt: sql`null`.as("returnedToReceptionAt"),
-        returnedBy: sql`null`.as("returnedBy"),
-        deliveredAt: sql`null`.as("deliveredAt"),
-        updatedAt: customerCars.createdAt,
-        createdAt: customerCars.createdAt,
-      })
-      .from(customerCars)
-      .leftJoin(customers, eq(customerCars.customerId, customers.id))
-      .leftJoin(carStatus, eq(customerCars.licensePlate, carStatus.licensePlate))
-      .where(isNull(carStatus.licensePlate)) // Only get cars without existing status
-      .orderBy(desc(customerCars.createdAt));
+    // For missing customer names in car_status, let's update them from customer_cars
+    for (const status of statuses) {
+      if (!status.customerName || status.customerName === 'غير محدد') {
+        const customerData = await db
+          .select({
+            customerName: customers.name,
+            carBrand: customerCars.carBrand,
+            carModel: customerCars.carModel,
+          })
+          .from(customerCars)
+          .leftJoin(customers, eq(customerCars.customerId, customers.id))
+          .where(eq(customerCars.licensePlate, status.licensePlate))
+          .limit(1);
+        
+        if (customerData[0] && customerData[0].customerName) {
+          status.customerName = customerData[0].customerName;
+          if (status.carBrand === 'غير محدد' && customerData[0].carBrand) {
+            status.carBrand = customerData[0].carBrand;
+          }
+          if (status.carModel === 'غير محدد' && customerData[0].carModel) {
+            status.carModel = customerData[0].carModel;
+          }
+        }
+      }
+    }
     
-    // Combine the results
-    return [...statuses, ...customerCarsWithoutStatus] as CarStatus[];
+    return statuses;
   }
 
   async getCarStatus(id: number): Promise<CarStatus | undefined> {
