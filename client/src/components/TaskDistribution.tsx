@@ -99,12 +99,14 @@ export default function TaskDistribution() {
     return matchesSearch && matchesStaff;
   });
 
-  // Format duration from seconds to readable format
+  // Format duration from seconds to readable format (hours and minutes only)
   const formatDuration = (seconds: number): string => {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-    return `${hours}س ${minutes}د ${secs}ث`;
+    if (hours > 0) {
+      return `${hours}س ${minutes}د`;
+    }
+    return `${minutes}د`;
   };
 
   // Get staff roles for a task
@@ -139,6 +141,22 @@ export default function TaskDistribution() {
     return staff;
   };
 
+  // Check if a worker participated in a task (regardless of multiple roles)
+  const didWorkerParticipateInTask = (task: TaskDistributionEntry, workerName: string): boolean => {
+    // Check all possible roles/fields where the worker could be assigned
+    if (task.workerName === workerName) return true;
+    if (task.engineerName === workerName) return true;
+    if (task.supervisorName === workerName) return true;
+    if (task.technicianName === workerName) return true;
+    if (task.assistantName === workerName) return true;
+    
+    // Check comma-separated fields
+    if ((task as any).technicians && (task as any).technicians.includes(workerName)) return true;
+    if ((task as any).assistants && (task as any).assistants.includes(workerName)) return true;
+    
+    return false;
+  };
+
   // Get unique vehicles
   const allVehicles = Array.from(new Set(
     archivedTasks.map(task => `${task.carBrand} ${task.carModel} - ${task.licensePlate}`)
@@ -154,7 +172,7 @@ export default function TaskDistribution() {
 
   const availableTaskTypes = getAvailableTaskTypes();
 
-  // Calculate worker hours for selected date range
+  // Calculate worker hours for selected date range (count each task only once per worker)
   const calculateWorkerHours = (workerName: string) => {
     if (!startDate || !endDate) {
       return []; // Return empty if no date range selected
@@ -168,7 +186,7 @@ export default function TaskDistribution() {
     return archivedTasks.filter(task => {
       const taskDate = new Date(task.archivedAt);
       const isInPeriod = taskDate >= periodStart && taskDate <= periodEnd;
-      const workedOnTask = getTaskStaff(task).some(staff => staff.name === workerName);
+      const workedOnTask = didWorkerParticipateInTask(task, workerName);
       return isInPeriod && workedOnTask;
     });
   };
