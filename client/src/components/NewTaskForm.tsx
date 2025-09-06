@@ -324,6 +324,30 @@ export default function NewTaskForm() {
 
                 <FormField
                   control={form.control}
+                  name="invoiceType"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>نوع الفاتورة (اختياري)</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value || ""}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="اختر نوع الفاتورة" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="">بدون نوع فاتورة</SelectItem>
+                          <SelectItem value="NB">NB</SelectItem>
+                          <SelectItem value="NBP">NBP</SelectItem>
+                          <SelectItem value="NBC">NBC</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
                   name="color"
                   render={({ field }) => (
                     <FormItem>
