@@ -46,6 +46,7 @@ export default function TaskDistribution() {
   const [endDate, setEndDate] = useState("");
   const [vehicleSearchTerm, setVehicleSearchTerm] = useState("");
   const [selectedTaskType, setSelectedTaskType] = useState("");
+  const [showSearchSuggestions, setShowSearchSuggestions] = useState(false);
 
   // Fetch archived tasks
   const { data: archivedTasks = [] } = useQuery<TaskDistributionEntry[]>({
@@ -59,7 +60,7 @@ export default function TaskDistribution() {
     
     return archivedTasks.filter(task => 
       task.licensePlate.toLowerCase().includes(vehicleSearchTerm.toLowerCase()) ||
-      task.chassisNumber?.toLowerCase().includes(vehicleSearchTerm.toLowerCase()) ||
+      (task as any).chassisNumber?.toLowerCase().includes(vehicleSearchTerm.toLowerCase()) ||
       task.customerName?.toLowerCase().includes(vehicleSearchTerm.toLowerCase())
     );
   };
@@ -563,16 +564,97 @@ export default function TaskDistribution() {
               {/* Search and Type Filter */}
               <div className="space-y-4">
                 <div className="flex gap-4">
-                  <div className="flex-1">
+                  <div className="flex-1 relative">
                     <Input
                       placeholder="أدخل رقم اللوحة أو الشاسيه أو اسم الزبون..."
                       value={vehicleSearchTerm}
                       onChange={(e) => {
                         setVehicleSearchTerm(e.target.value);
                         setSelectedTaskType(""); // إعادة تعيين فلتر نوع المهمة عند تغيير البحث
+                        setShowSearchSuggestions(e.target.value.length > 0);
                       }}
+                      onFocus={() => setShowSearchSuggestions(vehicleSearchTerm.length > 0)}
+                      onBlur={() => setTimeout(() => setShowSearchSuggestions(false), 200)} // Delay to allow click
                       className="text-center font-mono text-lg"
                     />
+                    
+                    {/* Search Suggestions */}
+                    {showSearchSuggestions && vehicleSearchTerm && (() => {
+                      // Generate suggestions based on search term
+                      const suggestions = [];
+                      
+                      // License plate suggestions
+                      const licenseMatches = archivedTasks.filter(task => 
+                        task.licensePlate.toLowerCase().includes(vehicleSearchTerm.toLowerCase())
+                      ).slice(0, 5);
+                      
+                      // Customer name suggestions
+                      const customerMatches = archivedTasks.filter(task => 
+                        task.customerName?.toLowerCase().includes(vehicleSearchTerm.toLowerCase())
+                      ).slice(0, 5);
+                      
+                      // Chassis number suggestions (if field exists)
+                      const chassisMatches = archivedTasks.filter(task => 
+                        (task as any).chassisNumber?.toLowerCase().includes(vehicleSearchTerm.toLowerCase())
+                      ).slice(0, 5);
+                      
+                      // Combine unique suggestions
+                      licenseMatches.forEach(task => {
+                        if (!suggestions.find(s => s.value === task.licensePlate)) {
+                          suggestions.push({
+                            type: 'رقم اللوحة',
+                            value: task.licensePlate,
+                            description: `${task.carBrand} ${task.carModel} - ${task.customerName || 'غير محدد'}`
+                          });
+                        }
+                      });
+                      
+                      customerMatches.forEach(task => {
+                        if (task.customerName && !suggestions.find(s => s.value === task.customerName)) {
+                          suggestions.push({
+                            type: 'اسم الزبون',
+                            value: task.customerName,
+                            description: `${task.carBrand} ${task.carModel} - ${task.licensePlate}`
+                          });
+                        }
+                      });
+                      
+                      chassisMatches.forEach(task => {
+                        if ((task as any).chassisNumber && !suggestions.find(s => s.value === (task as any).chassisNumber)) {
+                          suggestions.push({
+                            type: 'رقم الشاسيه',
+                            value: (task as any).chassisNumber,
+                            description: `${task.carBrand} ${task.carModel} - ${task.licensePlate}`
+                          });
+                        }
+                      });
+                      
+                      return suggestions.length > 0 ? (
+                        <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-md shadow-lg z-50 max-h-60 overflow-y-auto">
+                          {suggestions.map((suggestion, index) => (
+                            <div
+                              key={index}
+                              className="px-4 py-3 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0"
+                              onClick={() => {
+                                setVehicleSearchTerm(suggestion.value);
+                                setShowSearchSuggestions(false);
+                                setSelectedTaskType("");
+                              }}
+                            >
+                              <div className="flex justify-between items-start">
+                                <div className="flex-1">
+                                  <div className="font-medium text-gray-900">{suggestion.value}</div>
+                                  <div className="text-sm text-gray-500">{suggestion.description}</div>
+                                </div>
+                                <Badge variant="outline" className="text-xs">
+                                  {suggestion.type}
+                                </Badge>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : null;
+                    })()}
                   </div>
                 </div>
 
