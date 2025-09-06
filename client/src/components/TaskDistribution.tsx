@@ -329,6 +329,9 @@ export default function TaskDistribution() {
                           <div>
                             <h3 className="font-semibold">{task.description}</h3>
                             <p className="text-sm text-gray-600">نوع: {task.taskType}</p>
+                            {(task as any).invoiceType && (
+                              <p className="text-sm text-gray-600">نوع الفاتورة: {(task as any).invoiceType}</p>
+                            )}
                           </div>
                         </div>
                         
@@ -596,6 +599,9 @@ export default function TaskDistribution() {
                                 <div>
                                   <h4 className="font-medium">{task.description}</h4>
                                   <p className="text-sm text-gray-600">{task.carBrand} {task.carModel} - {task.licensePlate}</p>
+                                  {(task as any).invoiceType && (
+                                    <p className="text-sm text-blue-600">نوع الفاتورة: {(task as any).invoiceType}</p>
+                                  )}
                                 </div>
                                 <div>
                                   <p className="text-sm text-gray-600">تاريخ الإنجاز:</p>
