@@ -217,8 +217,8 @@ export class DatabaseStorage implements IStorage {
     });
 
     return tasksData.map(task => ({
-      ...task,
-      currentDuration: this.calculateCurrentDuration(task),
+      ...parseTaskFromDB(task),
+      currentDuration: this.calculateCurrentDuration(parseTaskFromDB(task)),
     }));
   }
 
@@ -275,8 +275,9 @@ export class DatabaseStorage implements IStorage {
       
       console.log(`Task ${task.id} - startTime: ${task.startTime} - calculated duration: ${duration}s`);
       
+      const parsedTask = parseTaskFromDB(task);
       return {
-        ...task,
+        ...parsedTask,
         currentDuration: duration,
       };
     });
@@ -292,9 +293,10 @@ export class DatabaseStorage implements IStorage {
 
     if (!taskData) return undefined;
 
+    const parsedTask = parseTaskFromDB(taskData);
     return {
-      ...taskData,
-      currentDuration: this.calculateCurrentDuration(taskData),
+      ...parsedTask,
+      currentDuration: this.calculateCurrentDuration(parsedTask),
     };
   }
 
@@ -361,8 +363,8 @@ export class DatabaseStorage implements IStorage {
       
       await db.insert(timeEntries).values({
         taskId: task.id,
-        startTime: startTime,
-        endTime: endTime,
+        startTime: startTime.toISOString(),
+        endTime: endTime.toISOString(),
         entryType: "work",
       });
       
@@ -370,7 +372,7 @@ export class DatabaseStorage implements IStorage {
       await db.update(tasks)
         .set({ 
           status: "completed",
-          endTime: endTime
+          endTime: endTime.toISOString()
         })
         .where(eq(tasks.id, task.id));
     }
