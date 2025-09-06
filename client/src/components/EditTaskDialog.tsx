@@ -73,6 +73,7 @@ export default function EditTaskDialog({ task, disabled }: EditTaskDialogProps) 
       description: task.description,
       repairOperation: (task as any).repairOperation || "",
       taskType: (task as any).taskType || "",
+      invoiceType: (task as any).invoiceType || "",
       color: (task as any).color || "",
       carBrand: task.carBrand,
       customCarBrand: "",

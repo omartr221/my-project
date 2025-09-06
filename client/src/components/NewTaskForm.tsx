@@ -74,6 +74,7 @@ export default function NewTaskForm() {
       assistants: [],
       repairOperation: "",
       taskType: "",
+      invoiceType: "",
       color: "",
       timerType: "automatic",
       consumedTime: undefined,
