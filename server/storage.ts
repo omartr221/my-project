@@ -1534,12 +1534,44 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getCarStatuses(): Promise<CarStatus[]> {
+    // Get existing car statuses
     const statuses = await db
       .select()
       .from(carStatus)
       .orderBy(desc(carStatus.updatedAt));
     
-    return statuses;
+    // Also get cars from customer_cars that don't have a status yet
+    const customerCarsWithoutStatus = await db
+      .select({
+        id: sql`${customerCars.id} + 10000`.as("id"), // Offset to avoid ID conflicts
+        customerName: customers.name,
+        carBrand: customerCars.carBrand,
+        carModel: customerCars.carModel,
+        licensePlate: customerCars.licensePlate,
+        currentStatus: sql`'في الاستقبال'`.as("currentStatus"),
+        maintenanceType: sql`null`.as("maintenanceType"),
+        complaints: sql`null`.as("complaints"),
+        kmReading: sql`null`.as("kmReading"),
+        fuelLevel: sql`null`.as("fuelLevel"),
+        partsRequestsCount: sql`0`.as("partsRequestsCount"),
+        completedPartsCount: sql`0`.as("completedPartsCount"),
+        receivedAt: customerCars.createdAt,
+        enteredWorkshopAt: sql`null`.as("enteredWorkshopAt"),
+        completedAt: sql`null`.as("completedAt"),
+        returnedToReceptionAt: sql`null`.as("returnedToReceptionAt"),
+        returnedBy: sql`null`.as("returnedBy"),
+        deliveredAt: sql`null`.as("deliveredAt"),
+        updatedAt: customerCars.createdAt,
+        createdAt: customerCars.createdAt,
+      })
+      .from(customerCars)
+      .leftJoin(customers, eq(customerCars.customerId, customers.id))
+      .leftJoin(carStatus, eq(customerCars.licensePlate, carStatus.licensePlate))
+      .where(isNull(carStatus.licensePlate)) // Only get cars without existing status
+      .orderBy(desc(customerCars.createdAt));
+    
+    // Combine the results
+    return [...statuses, ...customerCarsWithoutStatus] as CarStatus[];
   }
 
   async getCarStatus(id: number): Promise<CarStatus | undefined> {
