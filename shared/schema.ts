@@ -57,6 +57,11 @@ export const tasks = pgTable("tasks", {
   cancellationReason: text("cancellation_reason"),
   cancelledAt: text("cancelled_at"),
   cancelledBy: text("cancelled_by"),
+  // حقول الترحيل
+  isTransferred: boolean("is_transferred").default(false),
+  transferredAt: timestamp("transferred_at"),
+  transferredBy: text("transferred_by"),
+  transferNotes: text("transfer_notes"),
   createdAt: text("created_at").default("CURRENT_TIMESTAMP"),
 });
 
