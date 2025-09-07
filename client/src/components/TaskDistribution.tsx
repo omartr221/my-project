@@ -206,6 +206,7 @@ export default function TaskDistribution() {
   const availableTaskTypes = getAvailableTaskTypes();
 
   // Calculate worker hours for selected date range (count each task only once per worker)
+  // Filter out transferred tasks from cost center
   const calculateWorkerHours = (workerName: string, taskType?: string) => {
     if (!startDate || !endDate) {
       return []; // Return empty if no date range selected
@@ -221,7 +222,8 @@ export default function TaskDistribution() {
       const isInPeriod = taskDate >= periodStart && taskDate <= periodEnd;
       const workedOnTask = didWorkerParticipateInTask(task, workerName);
       const matchesTaskType = !taskType || task.taskType === taskType;
-      return isInPeriod && workedOnTask && matchesTaskType;
+      const isNotTransferred = !(task as any).isTransferred; // استبعاد المهام المرحلة
+      return isInPeriod && workedOnTask && matchesTaskType && isNotTransferred;
     });
   };
 
