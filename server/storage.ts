@@ -418,9 +418,16 @@ export class DatabaseStorage implements IStorage {
   async updateTask(id: number, updates: Partial<Task>): Promise<Task> {
     // Convert date strings to Date objects if provided
     const processedUpdates = { ...updates };
-    if (updates.endTime && typeof updates.endTime === 'string') {
-      processedUpdates.endTime = new Date(updates.endTime);
+    
+    // إصلاح مشكلة endTime - إذا كان فارغ يصبح null
+    if (updates.endTime !== undefined) {
+      if (updates.endTime === '' || updates.endTime === null) {
+        processedUpdates.endTime = null;
+      } else if (typeof updates.endTime === 'string') {
+        processedUpdates.endTime = new Date(updates.endTime);
+      }
     }
+    
     if (updates.createdAt && typeof updates.createdAt === 'string') {
       processedUpdates.createdAt = new Date(updates.createdAt);
     }
