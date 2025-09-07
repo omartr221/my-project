@@ -62,15 +62,9 @@ export default function TaskDistribution() {
   // Transfer task mutation
   const transferTaskMutation = useMutation({
     mutationFn: async (taskId: number) => {
-      return await apiRequest(`/api/tasks/${taskId}/transfer`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          transferredBy: "ملك", // Current user (owner)
-          transferNotes: "تم الترحيل بواسطة ملك للمراجعة"
-        }),
+      return await apiRequest("POST", `/api/tasks/${taskId}/transfer`, {
+        transferredBy: "ملك", // Current user (owner)
+        transferNotes: "تم الترحيل بواسطة ملك للمراجعة"
       });
     },
     onSuccess: () => {
