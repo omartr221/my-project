@@ -3,11 +3,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, Clock, Users, Wrench, Package, Car, Calendar } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { Search, Clock, Users, Wrench, Package, Car, Calendar, ArrowRight } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 import { ar } from "date-fns/locale";
 import { formatDuration } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 
 // Types for archived tasks with staff details
 type TaskDistributionEntry = {
@@ -38,6 +40,8 @@ type TaskDistributionEntry = {
 
 export default function TaskDistribution() {
   const [searchTerm, setSearchTerm] = useState("");
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [selectedStaff, setSelectedStaff] = useState("الكل");
   const [activeTab, setActiveTab] = useState("distribution"); // distribution, cost-center, vehicle-history
   const [selectedWorker, setSelectedWorker] = useState("");
@@ -53,6 +57,37 @@ export default function TaskDistribution() {
   const { data: archivedTasks = [] } = useQuery<TaskDistributionEntry[]>({
     queryKey: ["/api/archive"],
     refetchInterval: 30000, // تحديث كل 30 ثانية
+  });
+
+  // Transfer task mutation
+  const transferTaskMutation = useMutation({
+    mutationFn: async (taskId: number) => {
+      return await apiRequest(`/api/tasks/${taskId}/transfer`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          transferredBy: "ملك", // Current user (owner)
+          transferNotes: "تم الترحيل بواسطة ملك للمراجعة"
+        }),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/archive"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/transferred"] });
+      toast({
+        title: "تم الترحيل بنجاح",
+        description: "تم ترحيل المهمة إلى قائمة المهام المرحلة",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "خطأ في الترحيل",
+        description: "فشل في ترحيل المهمة",
+        variant: "destructive",
+      });
+    },
   });
 
   // Filter archived tasks based on vehicle search term
@@ -392,7 +427,7 @@ export default function TaskDistribution() {
                         )}
                       </div>
 
-                      {/* Archive Info */}
+                      {/* Archive Info with Transfer Button */}
                       <div className="space-y-2">
                         <div className="flex items-center gap-2">
                           <Calendar className="h-4 w-4 text-gray-500" />
@@ -403,6 +438,20 @@ export default function TaskDistribution() {
                         
                         <div className="text-sm text-gray-600">
                           بواسطة: {task.archivedBy}
+                        </div>
+
+                        {/* Transfer Button */}
+                        <div className="pt-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="w-full bg-blue-50 hover:bg-blue-100 text-blue-600 hover:text-blue-700 border-blue-200"
+                            onClick={() => transferTaskMutation.mutate(task.id)}
+                            disabled={transferTaskMutation.isPending}
+                          >
+                            <ArrowRight className="h-4 w-4 ml-1" />
+                            {transferTaskMutation.isPending ? "جاري الترحيل..." : "ترحيل"}
+                          </Button>
                         </div>
                         
                         {task.rating && (

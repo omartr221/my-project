@@ -324,6 +324,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Transfer routes
+  app.post("/api/tasks/:id/transfer", async (req, res) => {
+    try {
+      const taskId = parseInt(req.params.id);
+      const { transferredBy, transferNotes } = req.body;
+      
+      if (!transferredBy) {
+        return res.status(400).json({ message: "اسم من قام بالترحيل مطلوب" });
+      }
+
+      const task = await storage.transferTask(taskId, transferredBy, transferNotes);
+      
+      broadcastUpdate("task_transferred", task);
+      res.json(task);
+    } catch (error) {
+      console.error("Error transferring task:", error);
+      res.status(500).json({ message: "Failed to transfer task" });
+    }
+  });
+
+  app.get("/api/transferred", async (req, res) => {
+    try {
+      const transferredTasks = await storage.getTransferredTasks();
+      res.json(transferredTasks);
+    } catch (error) {
+      console.error("Error fetching transferred tasks:", error);
+      res.status(500).json({ message: "Failed to fetch transferred tasks" });
+    }
+  });
+
   app.get("/api/archive/search", async (req, res) => {
     try {
       const searchTerm = req.query.q as string;
