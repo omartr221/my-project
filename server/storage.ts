@@ -1766,20 +1766,33 @@ export class DatabaseStorage implements IStorage {
   }
   // Transfer functionality
   async transferTask(taskId: number, transferredBy: string, transferNotes?: string): Promise<Task> {
-    const now = new Date();
+    // Use raw SQL to update the task due to timestamp handling issues
+    await db.execute(sql`
+      UPDATE tasks 
+      SET is_transferred = true, 
+          transferred_at = NOW(), 
+          transferred_by = ${transferredBy},
+          transfer_notes = ${transferNotes || null}
+      WHERE id = ${taskId}
+    `);
     
+    // Get the updated task
     const [task] = await db
-      .update(tasks)
-      .set({
-        isTransferred: true,
-        transferredAt: now.toISOString(),
-        transferredBy,
-        transferNotes: transferNotes || null,
-      })
+      .select()
+      .from(tasks)
       .where(eq(tasks.id, taskId))
-      .returning();
+      .limit(1);
     
-    return task;
+    if (!task) {
+      throw new Error(`Task with ID ${taskId} not found`);
+    }
+    
+    // Convert the result to match Task interface
+    return {
+      ...task,
+      technicians: this.parseJsonArray(task.technicians),
+      assistants: this.parseJsonArray(task.assistants),
+    } as Task;
   }
 
   async getTransferredTasks(limit = 100): Promise<TaskHistory[]> {
@@ -1819,7 +1832,7 @@ export class DatabaseStorage implements IStorage {
         rating: tasks.rating,
         deliveryNumber: tasks.deliveryNumber,
         createdAt: tasks.createdAt,
-        // بيانات الترحيل
+        // بيانات الترحيل  
         isTransferred: tasks.isTransferred,
         transferredAt: tasks.transferredAt,
         transferredBy: tasks.transferredBy,
