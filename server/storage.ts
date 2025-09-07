@@ -1764,6 +1764,97 @@ export class DatabaseStorage implements IStorage {
 
     return task;
   }
+  // Transfer functionality
+  async transferTask(taskId: number, transferredBy: string, transferNotes?: string): Promise<Task> {
+    const now = new Date();
+    
+    const [task] = await db
+      .update(tasks)
+      .set({
+        isTransferred: true,
+        transferredAt: now.toISOString(),
+        transferredBy,
+        transferNotes: transferNotes || null,
+      })
+      .where(eq(tasks.id, taskId))
+      .returning();
+    
+    return task;
+  }
+
+  async getTransferredTasks(limit = 100): Promise<TaskHistory[]> {
+    // جلب المهام المرحلة مع بيانات العملاء
+    const tasksWithCustomers = await db
+      .select({
+        // بيانات المهمة
+        id: tasks.id,
+        taskNumber: tasks.taskNumber,
+        workerId: tasks.workerId,
+        workerRole: tasks.workerRole,
+        description: tasks.description,
+        carBrand: tasks.carBrand,
+        carModel: tasks.carModel,
+        licensePlate: tasks.licensePlate,
+        estimatedDuration: tasks.estimatedDuration,
+        engineerName: tasks.engineerName,
+        supervisorName: tasks.supervisorName,
+        assistantName: tasks.assistantName,
+        technicianName: tasks.technicianName,
+        technicians: tasks.technicians,
+        assistants: tasks.assistants,
+        repairOperation: tasks.repairOperation,
+        taskType: tasks.taskType,
+        invoiceType: tasks.invoiceType,
+        color: tasks.color,
+        timerType: tasks.timerType,
+        consumedTime: tasks.consumedTime,
+        status: tasks.status,
+        startTime: tasks.startTime,
+        endTime: tasks.endTime,
+        totalPausedDuration: tasks.totalPausedDuration,
+        isArchived: tasks.isArchived,
+        archivedAt: tasks.archivedAt,
+        archivedBy: tasks.archivedBy,
+        archiveNotes: tasks.archiveNotes,
+        rating: tasks.rating,
+        deliveryNumber: tasks.deliveryNumber,
+        createdAt: tasks.createdAt,
+        // بيانات الترحيل
+        isTransferred: tasks.isTransferred,
+        transferredAt: tasks.transferredAt,
+        transferredBy: tasks.transferredBy,
+        transferNotes: tasks.transferNotes,
+        // بيانات العامل
+        workerName: workers.name,
+        workerCategory: workers.category,
+        // بيانات الزبون من customer_cars أو car_status
+        customerNameFromCars: customers.name,
+        customerPhone: customers.phoneNumber,
+        customerNameFromStatus: carStatus.customerName,
+      })
+      .from(tasks)
+      .leftJoin(workers, eq(tasks.workerId, workers.id))
+      .leftJoin(customerCars, eq(tasks.licensePlate, customerCars.licensePlate))
+      .leftJoin(customers, eq(customerCars.customerId, customers.id))
+      .leftJoin(carStatus, eq(tasks.licensePlate, carStatus.licensePlate))
+      .where(eq(tasks.isTransferred, true))
+      .orderBy(desc(tasks.transferredAt))
+      .limit(limit);
+
+    return tasksWithCustomers.map(task => ({
+      ...task,
+      // استخدام اسم العميل من car_status إذا لم يكن موجود في customer_cars
+      customerName: task.customerNameFromCars || task.customerNameFromStatus || 'غير محدد',
+      worker: {
+        id: task.workerId,
+        name: task.workerName,
+        category: task.workerCategory,
+      },
+      totalDuration: task.totalPausedDuration || 0,
+      technicians: this.parseJsonArray(task.technicians),
+      assistants: this.parseJsonArray(task.assistants),
+    }));
+  }
 }
 
 export const storage = new DatabaseStorage();
