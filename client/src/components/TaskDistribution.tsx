@@ -115,7 +115,10 @@ export default function TaskDistribution() {
       task.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
       task.licensePlate.toLowerCase().includes(searchTerm.toLowerCase()) ||
       task.customerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      task.carBrand.toLowerCase().includes(searchTerm.toLowerCase());
+      task.carBrand.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      task.carModel.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (task as any).chassisNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      task.taskNumber?.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesStaff = selectedStaff === "الكل" || 
       task.workerName === selectedStaff ||
@@ -293,7 +296,7 @@ export default function TaskDistribution() {
                   <Search className="absolute right-3 top-3 h-4 w-4 text-gray-400" />
                   <Input
                     type="text"
-                    placeholder="البحث في المهام..."
+                    placeholder="أدخل رقم اللوحة أو الشاسيه أو اسم الزبون..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pr-10"
@@ -377,15 +380,28 @@ export default function TaskDistribution() {
                         
                         <div className="flex items-center gap-2">
                           <Car className="h-4 w-4 text-gray-500" />
-                          <span className="text-sm">
-                            {task.carBrand} {task.carModel} - {task.licensePlate}
-                          </span>
+                          <div className="text-sm">
+                            <span className="font-medium">{task.carBrand} {task.carModel}</span>
+                            <span className="text-gray-500"> - لوحة: </span>
+                            <span className="font-mono bg-gray-100 px-1 rounded">{task.licensePlate}</span>
+                            {(task as any).chassisNumber && (
+                              <>
+                                <span className="text-gray-500"> - شاسيه: </span>
+                                <span className="font-mono text-xs bg-gray-100 px-1 rounded">{(task as any).chassisNumber}</span>
+                              </>
+                            )}
+                          </div>
                         </div>
                         
-                        {task.customerName && (
+                        {task.customerName ? (
                           <div className="flex items-center gap-2">
-                            <Users className="h-4 w-4 text-gray-500" />
-                            <span className="text-sm">{task.customerName}</span>
+                            <Users className="h-4 w-4 text-blue-500" />
+                            <span className="text-sm font-medium text-blue-700">الزبون: {task.customerName}</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <Users className="h-4 w-4 text-gray-400" />
+                            <span className="text-sm text-gray-500">غير محدد</span>
                           </div>
                         )}
 
