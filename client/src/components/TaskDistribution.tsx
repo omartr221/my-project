@@ -276,6 +276,17 @@ export default function TaskDistribution() {
             >
               حركة السيارة
             </button>
+            <button
+              onClick={() => setActiveTab("transferred")}
+              className={`px-4 py-2 border-b-2 font-medium text-sm ${
+                activeTab === "transferred"
+                  ? "border-blue-500 text-blue-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700"
+              } relative`}
+            >
+              المهام المرحلة
+              <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full w-2 h-2"></span>
+            </button>
           </div>
         </CardHeader>
         <CardContent>
@@ -909,8 +920,134 @@ export default function TaskDistribution() {
               })()}
             </div>
           )}
+
+          {/* Transferred Tasks Tab */}
+          {activeTab === "transferred" && (
+            <TransferredTasksView />
+          )}
         </CardContent>
       </Card>
+    </div>
+  );
+}
+
+// Component for transferred tasks
+function TransferredTasksView() {
+  const { data: transferredTasks = [] } = useQuery<TaskDistributionEntry[]>({
+    queryKey: ["/api/transferred"],
+    refetchInterval: 30000, // Refresh every 30 seconds
+  });
+
+  if (transferredTasks.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <div className="text-gray-400 mb-2">
+          <ArrowRight className="h-16 w-16 mx-auto" />
+        </div>
+        <p className="text-gray-500">لا توجد مهام مرحلة بعد</p>
+        <p className="text-sm text-gray-400">ستظهر المهام المرحلة هنا بعد قيام ملك بترحيلها</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-2">
+          <ArrowRight className="h-5 w-5 text-blue-500" />
+          <h3 className="text-lg font-semibold">المهام المرحلة ({transferredTasks.length})</h3>
+        </div>
+        <p className="text-sm text-gray-500">المهام التي راجعتها ملك</p>
+      </div>
+
+      <div className="grid gap-4">
+        {transferredTasks.map((task) => (
+          <Card key={task.id} className="border-r-4 border-r-blue-500">
+            <CardContent className="p-6">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Task Info */}
+                <div className="space-y-2">
+                  <div className="flex items-start gap-2">
+                    <Wrench className="h-4 w-4 text-blue-500 mt-1 flex-shrink-0" />
+                    <div>
+                      <h3 className="font-semibold">{task.description}</h3>
+                      <p className="text-sm text-gray-600">نوع: {task.taskType}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <Car className="h-4 w-4 text-gray-500" />
+                    <span className="text-sm">
+                      {task.carBrand} {task.carModel} - {task.licensePlate}
+                    </span>
+                  </div>
+                  
+                  {task.customerName && (
+                    <div className="flex items-center gap-2">
+                      <Users className="h-4 w-4 text-gray-500" />
+                      <span className="text-sm">{task.customerName}</span>
+                    </div>
+                  )}
+
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-blue-500" />
+                    <span className="text-sm font-medium text-blue-600">
+                      الوقت المقدر: {task.estimatedDuration ? `${task.estimatedDuration} دقيقة` : 'غير محدد'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Staff Assignment */}
+                <div className="space-y-2">
+                  <h4 className="font-medium text-gray-700 flex items-center gap-2">
+                    <Users className="h-4 w-4" />
+                    الفريق المكلف:
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {(() => {
+                      const staff = [];
+                      if (task.workerName) staff.push({ name: task.workerName, role: 'عامل' });
+                      if (task.engineerName) staff.push({ name: task.engineerName, role: 'مهندس' });
+                      if (task.supervisorName) staff.push({ name: task.supervisorName, role: 'مشرف' });
+                      if (task.technicianName) staff.push({ name: task.technicianName, role: 'فني' });
+                      if (task.assistantName) staff.push({ name: task.assistantName, role: 'مساعد' });
+                      return staff.map((member, index) => (
+                        <Badge key={index} variant="outline" className="text-xs">
+                          {member.name} ({member.role})
+                        </Badge>
+                      ));
+                    })()}
+                  </div>
+                </div>
+
+                {/* Transfer Info */}
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <ArrowRight className="h-4 w-4 text-blue-500" />
+                    <span className="text-sm">
+                      رُحّل {formatDistanceToNow(new Date((task as any).transferredAt), { locale: ar, addSuffix: true })}
+                    </span>
+                  </div>
+                  
+                  <div className="text-sm text-gray-600">
+                    بواسطة: {(task as any).transferredBy}
+                  </div>
+                  
+                  {(task as any).transferNotes && (
+                    <div className="text-sm text-gray-600 bg-blue-50 p-2 rounded">
+                      <strong>ملاحظات الترحيل:</strong> {(task as any).transferNotes}
+                    </div>
+                  )}
+
+                  <div className="bg-blue-50 p-2 rounded text-center">
+                    <span className="text-xs text-blue-600 font-medium">✓ تمت المراجعة</span>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
     </div>
   );
 }
