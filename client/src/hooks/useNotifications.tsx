@@ -81,17 +81,43 @@ export function useNotifications() {
     };
   }, []);
 
-  // طلب إذن الإشعارات
+  // Register Service Worker and request notifications permission
   useEffect(() => {
-    if ('Notification' in window && user?.username === 'هبة') {
-      if (Notification.permission === 'granted') {
-        setHasPermission(true);
-      } else if (Notification.permission !== 'denied') {
-        Notification.requestPermission().then(permission => {
-          setHasPermission(permission === 'granted');
-        });
+    const setupNotifications = async () => {
+      // Only run for هبة user
+      if (user?.username !== 'هبة') return;
+      
+      try {
+        // Register Service Worker
+        if ('serviceWorker' in navigator && 'PushManager' in window) {
+          const registration = await navigator.serviceWorker.register('/sw.js', {
+            scope: '/'
+          });
+          
+          console.log('✅ Service Worker registered:', registration.scope);
+          
+          // Wait for the service worker to be ready
+          await navigator.serviceWorker.ready;
+          console.log('✅ Service Worker ready');
+        }
+
+        // Request notification permission
+        if ('Notification' in window) {
+          if (Notification.permission === 'granted') {
+            setHasPermission(true);
+            console.log('✅ Notification permission: granted');
+          } else if (Notification.permission !== 'denied') {
+            const permission = await Notification.requestPermission();
+            setHasPermission(permission === 'granted');
+            console.log('📝 Notification permission requested:', permission);
+          }
+        }
+      } catch (error) {
+        console.error('❌ Error setting up notifications:', error);
       }
-    }
+    };
+
+    setupNotifications();
   }, [user]);
 
   // دالة تشغيل الصوت والاهتزاز
@@ -149,7 +175,7 @@ export function useNotifications() {
     setCurrentAlert(null);
   };
 
-  // دالة إرسال الإشعار العادي
+  // دالة إرسال الإشعار العادي مع Service Worker
   const sendNotification = async (title: string, body: string, options?: NotificationOptions) => {
     // إذا كان هناك تنبيه نشط، لا نرسل إشعار جديد
     if (isAlertActive) return;
@@ -159,14 +185,44 @@ export function useNotifications() {
 
     // إرسال إشعار المتصفح
     if (hasPermission && user?.username === 'هبة') {
-      new Notification(title, {
-        body,
-        icon: '/favicon.ico',
-        badge: '/favicon.ico',
-        tag: 'parts-request',
-        requireInteraction: true,
-        ...options
-      });
+      try {
+        // Try using Service Worker for persistent notifications
+        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+          navigator.serviceWorker.controller.postMessage({
+            type: 'SHOW_NOTIFICATION',
+            payload: {
+              title,
+              body,
+              icon: '/vite.svg',
+              badge: '/vite.svg',
+              tag: 'parts-request',
+              requireInteraction: true,
+              data: options?.data || {}
+            }
+          });
+        } else {
+          // Fallback to regular notification
+          new Notification(title, {
+            body,
+            icon: '/vite.svg',
+            badge: '/vite.svg',
+            tag: 'parts-request',
+            requireInteraction: true,
+            ...options
+          });
+        }
+      } catch (error) {
+        console.error('Error sending notification:', error);
+        // Fallback to regular notification
+        new Notification(title, {
+          body,
+          icon: '/vite.svg',
+          badge: '/vite.svg',
+          tag: 'parts-request',
+          requireInteraction: true,
+          ...options
+        });
+      }
     }
   };
 
