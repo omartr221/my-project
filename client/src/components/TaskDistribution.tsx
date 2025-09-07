@@ -451,19 +451,6 @@ export default function TaskDistribution() {
                           بواسطة: {task.archivedBy}
                         </div>
 
-                        {/* Transfer Button */}
-                        <div className="pt-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="w-full bg-blue-50 hover:bg-blue-100 text-blue-600 hover:text-blue-700 border-blue-200"
-                            onClick={() => transferTaskMutation.mutate(task.id)}
-                            disabled={transferTaskMutation.isPending}
-                          >
-                            <ArrowRight className="h-4 w-4 ml-1" />
-                            {transferTaskMutation.isPending ? "جاري الترحيل..." : "ترحيل"}
-                          </Button>
-                        </div>
                         
                         {task.rating && (
                           <div className="flex items-center gap-1">
@@ -655,7 +642,7 @@ export default function TaskDistribution() {
                         {workerTasks.map((task) => (
                           <Card key={task.id} className="border-r-4 border-r-blue-500">
                             <CardContent className="p-4">
-                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                                 <div>
                                   <h4 className="font-medium">{task.description}</h4>
                                   <p className="text-sm text-gray-600">{task.carBrand} {task.carModel} - {task.licensePlate}</p>
@@ -672,6 +659,18 @@ export default function TaskDistribution() {
                                   <p className="font-medium text-blue-600">
                                     {task.estimatedDuration ? `${task.estimatedDuration} دقيقة` : 'غير محدد'}
                                   </p>
+                                </div>
+                                <div className="flex items-center justify-center">
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="w-full bg-blue-50 hover:bg-blue-100 text-blue-600 hover:text-blue-700 border-blue-200"
+                                    onClick={() => transferTaskMutation.mutate(task.id)}
+                                    disabled={transferTaskMutation.isPending}
+                                  >
+                                    <ArrowRight className="h-4 w-4 ml-1" />
+                                    {transferTaskMutation.isPending ? "جاري الترحيل..." : "ترحيل"}
+                                  </Button>
                                 </div>
                               </div>
                             </CardContent>
