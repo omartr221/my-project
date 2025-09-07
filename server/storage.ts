@@ -387,7 +387,7 @@ export class DatabaseStorage implements IStorage {
     // Handle timer setup based on type
     if (insertTask.timerType === "manual") {
       // For manual timers, create a completed time entry with the consumed time
-      const consumedMinutes = insertTask.consumedTime || 0;
+      const consumedMinutes = insertTask.consumedTime || insertTask.estimatedDuration || 0;
       const startTime = new Date();
       const endTime = new Date(startTime.getTime() + (consumedMinutes * 60 * 1000));
       
@@ -395,16 +395,24 @@ export class DatabaseStorage implements IStorage {
         taskId: task.id,
         startTime: startTime.toISOString(),
         endTime: endTime.toISOString(),
+        duration: consumedMinutes * 60,
         entryType: "work",
       });
       
-      // Update the task to completed with end time
+      // أرشفة المهمة فوراً مع المؤقت اليدوي
       await db.update(tasks)
         .set({ 
           status: "completed",
-          endTime: endTime.toISOString()
+          endTime: endTime.toISOString(),
+          isArchived: true,
+          archivedAt: new Date().toISOString(),
+          archivedBy: "نظام المؤقت اليدوي",
+          archiveNotes: "تم أرشفة المهمة تلقائياً - مؤقت يدوي",
+          totalPausedDuration: consumedMinutes * 60
         })
         .where(eq(tasks.id, task.id));
+      
+      return task;
     }
 
     // For automatic timers, start the timer immediately after task creation
