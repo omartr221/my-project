@@ -114,39 +114,49 @@ export function useNotifications() {
         }
 
         // Register Service Worker after permissions
-        if ('serviceWorker' in navigator && 'PushManager' in window) {
+        if ('serviceWorker' in navigator) {
           console.log('🔧 تسجيل Service Worker...');
           
-          // Unregister any existing service workers first
-          const existingRegistrations = await navigator.serviceWorker.getRegistrations();
-          for (let registration of existingRegistrations) {
-            await registration.unregister();
-            console.log('🗑️ تم إلغاء تسجيل Service Worker قديم');
-          }
-          
-          const registration = await navigator.serviceWorker.register('/sw.js', {
-            scope: '/',
-            updateViaCache: 'none' // Always check for updates
-          });
-          
-          console.log('✅ تم تسجيل Service Worker جديد:', registration.scope);
-          
-          // Force update if needed
-          if (registration.waiting) {
-            registration.waiting.postMessage({ type: 'SKIP_WAITING' });
-          }
-          
-          // Wait for the service worker to be ready
-          await navigator.serviceWorker.ready;
-          console.log('✅ Service Worker جاهز للعمل');
-          
-          // Test if service worker is working
-          if (navigator.serviceWorker.controller) {
-            console.log('✅ Service Worker Controller متاح');
-          } else {
-            console.warn('⚠️ Service Worker Controller غير متاح - سيتم إعادة تحميل الصفحة');
-            // Reload page to activate service worker
-            window.location.reload();
+          try {
+            const registration = await navigator.serviceWorker.register('/sw.js', {
+              scope: '/',
+              updateViaCache: 'none' // Always check for updates
+            });
+            
+            console.log('✅ تم تسجيل Service Worker جديد:', registration.scope);
+            
+            // Handle updates
+            registration.addEventListener('updatefound', () => {
+              console.log('🔄 Service Worker update found');
+              const newWorker = registration.installing;
+              if (newWorker) {
+                newWorker.addEventListener('statechange', () => {
+                  if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                    console.log('🔄 New Service Worker installed, activating...');
+                    newWorker.postMessage({ type: 'SKIP_WAITING' });
+                  }
+                });
+              }
+            });
+            
+            // Wait for the service worker to be ready
+            await navigator.serviceWorker.ready;
+            console.log('✅ Service Worker جاهز للعمل');
+            
+            // Test notification right away to confirm working
+            if (hasPermission) {
+              setTimeout(() => {
+                registration.showNotification('🔔 النظام جاهز', {
+                  body: 'تم تفعيل التنبيهات الخارجية بنجاح',
+                  icon: '/vite.svg',
+                  tag: 'setup-test',
+                  requireInteraction: false,
+                  silent: true
+                } as any);
+              }, 1000);
+            }
+          } catch (error) {
+            console.error('❌ خطأ في تسجيل Service Worker:', error);
           }
         }
       } catch (error) {
@@ -242,7 +252,6 @@ export function useNotifications() {
               tag: 'parts-request-' + Date.now(), // Unique tag to avoid replacing
               requireInteraction: true,
               silent: false,
-              vibrate: [300, 100, 300],
               data: options?.data || {},
               actions: [
                 {
@@ -254,7 +263,7 @@ export function useNotifications() {
                   title: 'إغلاق'
                 }
               ]
-            });
+            } as any);
             
             console.log('✅ تم إرسال الإشعار عبر Service Worker');
             return;
@@ -271,9 +280,8 @@ export function useNotifications() {
             tag: 'parts-request-' + Date.now(),
             requireInteraction: true,
             silent: false,
-            vibrate: [300, 100, 300],
             ...options
-          });
+          } as any);
           console.log('✅ تم إرسال الإشعار العادي');
         } else {
           console.warn('⚠️ لا توجد صلاحيات للإشعارات');

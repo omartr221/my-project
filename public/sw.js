@@ -25,6 +25,13 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('push', (event) => {
   console.log('🔔 Service Worker: Push notification received');
   
+  // Play sound for push notifications too
+  try {
+    playNotificationSound();
+  } catch (error) {
+    console.warn('Could not play push notification sound:', error);
+  }
+  
   let notificationData = {
     title: 'إشعار نظام V POWER TUNING',
     body: 'لديك إشعار جديد',
@@ -32,6 +39,8 @@ self.addEventListener('push', (event) => {
     badge: '/vite.svg',
     tag: 'vpower-notification',
     requireInteraction: true,
+    silent: false,
+    vibrate: [300, 100, 300, 100, 300],
     actions: [
       {
         action: 'open',
@@ -96,12 +105,51 @@ self.addEventListener('notificationclose', (event) => {
   console.log('❌ Service Worker: Notification closed');
 });
 
+// Play notification sound function
+const playNotificationSound = () => {
+  // Create audio context for sound generation  
+  const audioContext = new (AudioContext || webkitAudioContext)();
+  
+  // Generate attention-grabbing beep sound
+  const createBeep = (frequency, duration, volume = 0.8) => {
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    oscillator.frequency.value = frequency;
+    oscillator.type = 'square';
+    
+    gainNode.gain.setValueAtTime(volume, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+    
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + duration);
+  };
+  
+  // Play sequence of beeps for urgent notification
+  const now = audioContext.currentTime;
+  createBeep(1000, 0.2); // High beep
+  setTimeout(() => createBeep(800, 0.2), 250); // Medium beep  
+  setTimeout(() => createBeep(1200, 0.3), 500); // Higher beep
+  setTimeout(() => createBeep(900, 0.2), 800); // Medium beep
+  setTimeout(() => createBeep(1400, 0.4), 1100); // Final urgent beep
+};
+
 // Handle message from main app
 self.addEventListener('message', (event) => {
   console.log('💬 Service Worker: Message received', event.data);
   
   if (event.data && event.data.type === 'SHOW_NOTIFICATION') {
     const notificationData = event.data.payload;
+    
+    // Play sound when notification is shown
+    try {
+      playNotificationSound();
+    } catch (error) {
+      console.warn('Could not play notification sound:', error);
+    }
     
     self.registration.showNotification(notificationData.title, {
       body: notificationData.body,
@@ -110,7 +158,7 @@ self.addEventListener('message', (event) => {
       tag: notificationData.tag || 'vpower-notification',
       requireInteraction: true,
       silent: false,
-      vibrate: [300, 100, 300],
+      vibrate: [300, 100, 300, 100, 300],
       data: notificationData.data || {},
       actions: [
         {
