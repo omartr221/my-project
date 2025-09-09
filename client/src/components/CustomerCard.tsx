@@ -195,7 +195,7 @@ export default function CustomerCard() {
         title: "تم إضافة الزبون بنجاح",
         description: `تم إضافة ${customerForm.name} والسيارة إلى قاعدة البيانات`,
       });
-      resetForm();
+      resetCustomerForm();
       setShowAddForm(false);
     },
     onError: (error: Error) => {
