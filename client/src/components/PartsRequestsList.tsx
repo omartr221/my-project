@@ -17,6 +17,7 @@ import { useNotifications } from "@/hooks/useNotifications";
 import { useEffect } from "react";
 import { formatDate, formatTime, createSyrianDate } from "@/lib/utils";
 import NotificationTester from './NotificationTester';
+import NotificationDebugger from './NotificationDebugger';
 
 const statusColors = {
   pending: "bg-yellow-100 text-yellow-800",
@@ -241,7 +242,12 @@ export default function PartsRequestsList() {
   return (
     <div className="space-y-6">
       {/* Notification Tester - للاختبار فقط */}
-      <NotificationTester />
+      {user?.username === "هبة" && (
+        <div className="space-y-4">
+          <NotificationTester />
+          <NotificationDebugger />
+        </div>
+      )}
 
       
       <Card>

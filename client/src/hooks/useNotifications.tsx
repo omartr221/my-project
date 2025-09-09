@@ -88,32 +88,69 @@ export function useNotifications() {
       if (user?.username !== 'هبة') return;
       
       try {
-        // Register Service Worker
+        console.log('🔧 بدء إعداد نظام الإشعارات لهبة...');
+        
+        // Request notification permission first
+        if ('Notification' in window) {
+          console.log('🔔 فحص صلاحيات الإشعارات...');
+          if (Notification.permission === 'granted') {
+            setHasPermission(true);
+            console.log('✅ الصلاحيات ممنوحة بالفعل');
+          } else if (Notification.permission !== 'denied') {
+            console.log('📝 طلب صلاحيات الإشعارات...');
+            const permission = await Notification.requestPermission();
+            setHasPermission(permission === 'granted');
+            console.log('📝 نتيجة طلب الصلاحية:', permission);
+            
+            if (permission === 'granted') {
+              // تنبيه تأكيد الإعداد
+              new Notification('✅ تم تفعيل الإشعارات', {
+                body: 'سيصلك الآن تنبيه عند وصول طلبات القطع حتى لو كنت خارج النظام',
+                icon: '/vite.svg',
+                tag: 'setup-confirmation'
+              });
+            }
+          }
+        }
+
+        // Register Service Worker after permissions
         if ('serviceWorker' in navigator && 'PushManager' in window) {
+          console.log('🔧 تسجيل Service Worker...');
+          
+          // Unregister any existing service workers first
+          const existingRegistrations = await navigator.serviceWorker.getRegistrations();
+          for (let registration of existingRegistrations) {
+            await registration.unregister();
+            console.log('🗑️ تم إلغاء تسجيل Service Worker قديم');
+          }
+          
           const registration = await navigator.serviceWorker.register('/sw.js', {
-            scope: '/'
+            scope: '/',
+            updateViaCache: 'none' // Always check for updates
           });
           
-          console.log('✅ Service Worker registered:', registration.scope);
+          console.log('✅ تم تسجيل Service Worker جديد:', registration.scope);
+          
+          // Force update if needed
+          if (registration.waiting) {
+            registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+          }
           
           // Wait for the service worker to be ready
           await navigator.serviceWorker.ready;
-          console.log('✅ Service Worker ready');
-        }
-
-        // Request notification permission
-        if ('Notification' in window) {
-          if (Notification.permission === 'granted') {
-            setHasPermission(true);
-            console.log('✅ Notification permission: granted');
-          } else if (Notification.permission !== 'denied') {
-            const permission = await Notification.requestPermission();
-            setHasPermission(permission === 'granted');
-            console.log('📝 Notification permission requested:', permission);
+          console.log('✅ Service Worker جاهز للعمل');
+          
+          // Test if service worker is working
+          if (navigator.serviceWorker.controller) {
+            console.log('✅ Service Worker Controller متاح');
+          } else {
+            console.warn('⚠️ Service Worker Controller غير متاح - سيتم إعادة تحميل الصفحة');
+            // Reload page to activate service worker
+            window.location.reload();
           }
         }
       } catch (error) {
-        console.error('❌ Error setting up notifications:', error);
+        console.error('❌ خطأ في إعداد الإشعارات:', error);
       }
     };
 
@@ -180,49 +217,82 @@ export function useNotifications() {
     // إذا كان هناك تنبيه نشط، لا نرسل إشعار جديد
     if (isAlertActive) return;
     
+    console.log('🔔 محاولة إرسال إشعار:', title);
+    
     // تشغيل الصوت أولاً
     await playAlertSound();
 
     // إرسال إشعار المتصفح
-    if (hasPermission && user?.username === 'هبة') {
+    if (user?.username === 'هبة') {
+      console.log('🔔 المستخدم هبة - إرسال إشعار...');
+      
       try {
-        // Try using Service Worker for persistent notifications
-        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-          navigator.serviceWorker.controller.postMessage({
-            type: 'SHOW_NOTIFICATION',
-            payload: {
-              title,
+        // First, try using Service Worker for persistent notifications
+        if ('serviceWorker' in navigator) {
+          const registration = await navigator.serviceWorker.getRegistration('/');
+          
+          if (registration && registration.active) {
+            console.log('🔔 استخدام Service Worker للإشعار');
+            
+            // Use registration.showNotification for better persistence
+            await registration.showNotification(title, {
               body,
               icon: '/vite.svg',
               badge: '/vite.svg',
-              tag: 'parts-request',
+              tag: 'parts-request-' + Date.now(), // Unique tag to avoid replacing
               requireInteraction: true,
-              data: options?.data || {}
-            }
-          });
-        } else {
-          // Fallback to regular notification
+              silent: false,
+              vibrate: [300, 100, 300],
+              data: options?.data || {},
+              actions: [
+                {
+                  action: 'open',
+                  title: 'فتح النظام'
+                },
+                {
+                  action: 'dismiss',
+                  title: 'إغلاق'
+                }
+              ]
+            });
+            
+            console.log('✅ تم إرسال الإشعار عبر Service Worker');
+            return;
+          }
+        }
+        
+        // Fallback to regular notification
+        if (hasPermission) {
+          console.log('🔔 استخدام الإشعار العادي كبديل');
           new Notification(title, {
             body,
             icon: '/vite.svg',
             badge: '/vite.svg',
-            tag: 'parts-request',
+            tag: 'parts-request-' + Date.now(),
             requireInteraction: true,
+            silent: false,
+            vibrate: [300, 100, 300],
+            ...options
+          });
+          console.log('✅ تم إرسال الإشعار العادي');
+        } else {
+          console.warn('⚠️ لا توجد صلاحيات للإشعارات');
+        }
+      } catch (error) {
+        console.error('❌ خطأ في إرسال الإشعار:', error);
+        
+        // Final fallback
+        if (hasPermission) {
+          new Notification(title, {
+            body,
+            icon: '/vite.svg',
+            tag: 'parts-request-fallback',
             ...options
           });
         }
-      } catch (error) {
-        console.error('Error sending notification:', error);
-        // Fallback to regular notification
-        new Notification(title, {
-          body,
-          icon: '/vite.svg',
-          badge: '/vite.svg',
-          tag: 'parts-request',
-          requireInteraction: true,
-          ...options
-        });
       }
+    } else {
+      console.log('🔔 المستخدم ليس هبة - لا إشعار');
     }
   };
 

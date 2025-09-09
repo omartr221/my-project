@@ -109,7 +109,24 @@ self.addEventListener('message', (event) => {
       badge: notificationData.badge || '/vite.svg',
       tag: notificationData.tag || 'vpower-notification',
       requireInteraction: true,
-      data: notificationData.data || {}
+      silent: false,
+      vibrate: [300, 100, 300],
+      data: notificationData.data || {},
+      actions: [
+        {
+          action: 'open',
+          title: 'فتح النظام'
+        },
+        {
+          action: 'dismiss',
+          title: 'إغلاق'
+        }
+      ]
     });
+  }
+  
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    console.log('🔄 Service Worker: Skipping waiting...');
+    self.skipWaiting();
   }
 });
