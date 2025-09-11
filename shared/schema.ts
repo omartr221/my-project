@@ -254,6 +254,7 @@ export const partsRequests = pgTable("parts_requests", {
   returnedBy: text("returned_by"),
   returnReason: text("return_reason"),
   userNotes: text("user_notes"),
+  forWorkshop: text("for_workshop"), // للورشة - اختياري
 });
 
 export const insertUserSchema = createInsertSchema(users).omit({
@@ -289,6 +290,7 @@ export const insertPartsRequestSchema = createInsertSchema(partsRequests).omit({
   returnedBy: true,
   returnReason: true,
   userNotes: true,
+  forWorkshop: true,
 });
 
 // Base types from database

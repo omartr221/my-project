@@ -340,6 +340,7 @@ export default function PartsRequestsList() {
                   <TableHead>اسم القطعة</TableHead>
                   <TableHead>العدد</TableHead>
                   <TableHead>سبب الطلب</TableHead>
+                  <TableHead>للورشة</TableHead>
                   <TableHead>الحالة</TableHead>
                   <TableHead>الملاحظات</TableHead>
                   <TableHead>سجل المهام</TableHead>
@@ -349,7 +350,7 @@ export default function PartsRequestsList() {
               <TableBody>
                 {filteredRequests.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={11} className="text-center py-8 text-muted-foreground">
                       لا توجد طلبات قطع
                     </TableCell>
                   </TableRow>
@@ -395,6 +396,11 @@ export default function PartsRequestsList() {
                         <Badge variant="outline">
                           {reasonLabels[request.reasonType as keyof typeof reasonLabels]}
                         </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm font-medium">
+                          {(request as any).forWorkshop || "-"}
+                        </div>
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-col gap-1">

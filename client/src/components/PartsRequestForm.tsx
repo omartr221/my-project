@@ -29,6 +29,7 @@ const partsRequestFormSchema = insertPartsRequestSchema.extend({
   chassisNumber: true,
   engineCode: true,
   notes: true,
+  forWorkshop: true,
 });
 
 type PartsRequestFormData = z.infer<typeof partsRequestFormSchema>;
@@ -85,6 +86,7 @@ export default function PartsRequestForm() {
       partName: "",
       quantity: 1,
       notes: "",
+      forWorkshop: "",
     },
   });
 
@@ -103,7 +105,8 @@ export default function PartsRequestForm() {
         reasonType: data.reasonType,
         partName: data.partName,
         quantity: Number(data.quantity),
-        notes: data.notes || ""
+        notes: data.notes || "",
+        forWorkshop: data.forWorkshop || ""
       };
       
       console.log('Sending parts request data:', requestData);
@@ -549,6 +552,25 @@ export default function PartsRequestForm() {
                       min="1"
                       placeholder="1"
                       {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* للورشة */}
+            <FormField
+              control={form.control}
+              name="forWorkshop"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>للورشة (اختياري)</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="اكتب اسم الورشة أو اتركه فارغاً..."
+                      {...field}
+                      value={field.value || ""}
                     />
                   </FormControl>
                   <FormMessage />
