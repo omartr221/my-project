@@ -393,8 +393,8 @@ export class DatabaseStorage implements IStorage {
       
       await db.insert(timeEntries).values({
         taskId: task.id,
-        startTime: startTime.toISOString(),
-        endTime: endTime.toISOString(),
+        startTime: startTime,
+        endTime: endTime,
         duration: consumedMinutes * 60,
         entryType: "work",
       });
@@ -403,9 +403,9 @@ export class DatabaseStorage implements IStorage {
       await db.update(tasks)
         .set({ 
           status: "completed",
-          endTime: endTime.toISOString(),
+          endTime: endTime,
           isArchived: true,
-          archivedAt: new Date().toISOString(),
+          archivedAt: new Date(),
           archivedBy: "نظام المؤقت اليدوي",
           archiveNotes: "تم أرشفة المهمة تلقائياً - مؤقت يدوي",
           totalPausedDuration: consumedMinutes * 60
