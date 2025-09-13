@@ -6,15 +6,23 @@ This is a full-stack web application for task distribution and time tracking for
 ## User Preferences
 Preferred communication style: Simple, everyday language.
 
-## Worker Names (Updated September 6, 2025)
+## Worker Names (Updated September 13, 2025)
 Current active workers in the system:
 - خالد
 - حكيم
 - محمد العلي
-- يزن
 - عامر
 - زياد
 - علي
+- بدوي
+- حسام
+- عبد الحفيظ
+- مصطفى
+- نواف
+
+Deactivated workers (for historical records):
+- سليمان (deactivated September 13, 2025)
+- يزن (deactivated September 13, 2025)
 
 ## Recent Changes (September 3, 2025)
 ### Task Duration Tracking System Improvements (Complete Fix)
