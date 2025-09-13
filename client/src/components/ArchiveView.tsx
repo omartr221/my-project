@@ -913,7 +913,8 @@ export default function ArchiveView() {
                     <FormLabel>الفنيون</FormLabel>
                     <div className="flex flex-wrap gap-2 mt-2">
                       {workerNames?.map(name => {
-                        const isSelected = editForm.watch("technicians").includes(name);
+                        const technicians = editForm.watch("technicians") || [];
+                        const isSelected = technicians.includes(name);
                         return (
                           <Button
                             key={name}
@@ -921,7 +922,7 @@ export default function ArchiveView() {
                             size="sm"
                             variant={isSelected ? "default" : "outline"}
                             onClick={() => {
-                              const current = editForm.getValues("technicians");
+                              const current = editForm.getValues("technicians") || [];
                               if (isSelected) {
                                 editForm.setValue("technicians", current.filter(t => t !== name));
                               } else {
@@ -943,7 +944,8 @@ export default function ArchiveView() {
                   <FormLabel>المساعدون</FormLabel>
                   <div className="flex flex-wrap gap-2 mt-2">
                     {workerNames?.map(name => {
-                      const isSelected = editForm.watch("assistants").includes(name);
+                      const assistants = editForm.watch("assistants") || [];
+                      const isSelected = assistants.includes(name);
                       return (
                         <Button
                           key={name}
@@ -951,7 +953,7 @@ export default function ArchiveView() {
                           size="sm"
                           variant={isSelected ? "default" : "outline"}
                           onClick={() => {
-                            const current = editForm.getValues("assistants");
+                            const current = editForm.getValues("assistants") || [];
                             if (isSelected) {
                               editForm.setValue("assistants", current.filter(a => a !== name));
                             } else {

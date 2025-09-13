@@ -119,7 +119,7 @@ export interface IStorage {
   getReceptionEntry(id: number): Promise<ReceptionEntry | undefined>;
   createReceptionEntry(entry: InsertReceptionEntry): Promise<ReceptionEntry>;
   getWorkshopNotifications(): Promise<ReceptionEntry[]>;
-  enterReceptionCarToWorkshop(entryId: number, workshopUserId: number): Promise<ReceptionEntry>;
+  enterReceptionCarToWorkshop(entryId: number, workshopUserId: number): Promise<ReceptionEntry & { customerName?: string; carBrand?: string; carModel?: string }>;
 
   
   // Reception workflow management
@@ -135,7 +135,6 @@ export interface IStorage {
   updateCarStatus(id: number, updates: Partial<CarStatus>): Promise<CarStatus>;
 
   deleteCarStatus(id: number): Promise<void>;
-  enterReceptionCarToWorkshop(id: number, workshopUserId: number): Promise<ReceptionEntry>;
   getWorkshopNotifications(): Promise<ReceptionEntry[]>;
   
   // Session store
@@ -1568,7 +1567,7 @@ export class DatabaseStorage implements IStorage {
     return entry;
   }
 
-  async enterReceptionCarToWorkshop(id: number, workshopUserId: number): Promise<ReceptionEntry> {
+  async enterReceptionCarToWorkshop(id: number, workshopUserId: number): Promise<ReceptionEntry & { customerName?: string; carBrand?: string; carModel?: string }> {
     const now = new Date();
     
     const [entry] = await db
@@ -1581,7 +1580,42 @@ export class DatabaseStorage implements IStorage {
       .where(eq(receptionEntries.id, id))
       .returning();
     
-    return entry;
+    // Enrich the entry with customer and car data
+    let enrichedEntry = { ...entry, customerName: entry.carOwnerName, carBrand: undefined, carModel: undefined };
+    
+    try {
+      // Get customer data if customerId exists
+      if (entry.customerId) {
+        const [customer] = await db
+          .select()
+          .from(customers)
+          .where(eq(customers.id, entry.customerId))
+          .limit(1);
+        
+        if (customer) {
+          enrichedEntry.customerName = customer.name;
+        }
+      }
+      
+      // Get car data if carId exists
+      if (entry.carId) {
+        const [car] = await db
+          .select()
+          .from(customerCars)
+          .where(eq(customerCars.id, entry.carId))
+          .limit(1);
+        
+        if (car) {
+          enrichedEntry.carBrand = car.carBrand;
+          enrichedEntry.carModel = car.carModel;
+        }
+      }
+    } catch (error) {
+      console.error("Error enriching reception entry data:", error);
+      // Continue with basic data if enrichment fails
+    }
+    
+    return enrichedEntry;
   }
 
   async getWorkshopNotifications(): Promise<ReceptionEntry[]> {
