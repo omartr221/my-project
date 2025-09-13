@@ -832,72 +832,58 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getArchivedTasks(limit: number = 100): Promise<TaskHistory[]> {
-    // استخدام SQL مباشر للحصول على معلومات الزبون من مصادر متعددة
-    const tasksWithCustomers = await db
-      .select({
-        // بيانات المهمة
-        id: tasks.id,
-        taskNumber: tasks.taskNumber,
-        workerId: tasks.workerId,
-        workerRole: tasks.workerRole,
-        description: tasks.description,
-        carBrand: tasks.carBrand,
-        carModel: tasks.carModel,
-        licensePlate: tasks.licensePlate,
-        estimatedDuration: tasks.estimatedDuration,
-        engineerName: tasks.engineerName,
-        supervisorName: tasks.supervisorName,
-        assistantName: tasks.assistantName,
-        technicianName: tasks.technicianName,
-        technicians: tasks.technicians,
-        assistants: tasks.assistants,
-        repairOperation: tasks.repairOperation,
-        taskType: tasks.taskType,
-        invoiceType: tasks.invoiceType,
-        color: tasks.color,
-        timerType: tasks.timerType,
-        consumedTime: tasks.consumedTime,
-        status: tasks.status,
-        startTime: tasks.startTime,
-        endTime: tasks.endTime,
-        totalPausedDuration: tasks.totalPausedDuration,
-        isArchived: tasks.isArchived,
-        archivedAt: tasks.archivedAt,
-        archivedBy: tasks.archivedBy,
-        archiveNotes: tasks.archiveNotes,
-        rating: tasks.rating,
-        deliveryNumber: tasks.deliveryNumber,
-        createdAt: tasks.createdAt,
-        // بيانات العامل
-        workerName: workers.name,
-        workerCategory: workers.category,
-        // بيانات الزبون من customer_cars أو car_status
-        customerNameFromCars: customers.name,
-        customerPhone: customers.phoneNumber,
-        customerNameFromStatus: carStatus.customerName,
-      })
-      .from(tasks)
-      .leftJoin(workers, eq(tasks.workerId, workers.id))
-      .leftJoin(customerCars, eq(tasks.licensePlate, customerCars.licensePlate))
-      .leftJoin(customers, eq(customerCars.customerId, customers.id))
-      .leftJoin(carStatus, eq(tasks.licensePlate, carStatus.licensePlate))
-      .where(eq(tasks.isArchived, true))
-      .orderBy(desc(tasks.archivedAt))
-      .limit(limit);
-
-    return tasksWithCustomers.map(task => ({
-      ...task,
-      // استخدام اسم العميل من car_status إذا لم يكن موجود في customer_cars
-      customerName: task.customerNameFromCars || task.customerNameFromStatus || 'غير محدد',
-      worker: {
-        id: task.workerId,
-        name: task.workerName,
-        category: task.workerCategory,
+    const tasksData = await db.query.tasks.findMany({
+      where: eq(tasks.isArchived, true),
+      with: {
+        worker: true,
       },
-      totalDuration: task.totalPausedDuration || 0,
-      technicians: this.parseJsonArray(task.technicians),
-      assistants: this.parseJsonArray(task.assistants),
-    }));
+      orderBy: [desc(tasks.archivedAt)],
+      limit,
+    });
+
+    // تحسين الأداء بجمع كل license plates مرة واحدة
+    const licensePlates = tasksData.map(t => t.licensePlate).filter(Boolean);
+    
+    // الحصول على بيانات العملاء
+    const customerCarsData = await db.query.customerCars.findMany({
+      where: inArray(customerCars.licensePlate, licensePlates),
+      with: {
+        customer: true,
+      },
+    });
+
+    const carStatusData = await db.query.carStatus.findMany({
+      where: inArray(carStatus.licensePlate, licensePlates),
+    });
+
+    // إنشاء maps للبحث السريع
+    const customerMap = new Map<string, any>();
+    const carStatusMap = new Map<string, any>();
+
+    customerCarsData.forEach(car => {
+      if (car.licensePlate) {
+        customerMap.set(car.licensePlate, car.customer);
+      }
+    });
+
+    carStatusData.forEach(car => {
+      if (car.licensePlate) {
+        carStatusMap.set(car.licensePlate, car);
+      }
+    });
+
+    return tasksData.map(task => {
+      const customerFromCars = customerMap.get(task.licensePlate || '');
+      const carFromStatus = carStatusMap.get(task.licensePlate || '');
+      
+      return {
+        ...task,
+        customerName: customerFromCars?.name || carFromStatus?.customerName || 'غير محدد',
+        totalDuration: task.totalPausedDuration || 0,
+        technicians: this.parseJsonArray(task.technicians),
+        assistants: this.parseJsonArray(task.assistants),
+      };
+    });
   }
 
   async searchArchive(searchTerm: string): Promise<TaskHistory[]> {
