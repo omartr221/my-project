@@ -256,7 +256,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/tasks/:id/edit-manual", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const { description, estimatedDuration, consumedTime, repairOperation, taskType } = req.body;
+      const { description, estimatedDuration, consumedTime, repairOperation, taskType, invoiceType, engineerName, supervisorName, technicians, assistants } = req.body;
       
       console.log(`Editing manual task ${id} with data:`, req.body);
       
@@ -289,6 +289,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         consumedTime: consumedTime * 60, // تحويل من دقائق إلى ثواني للتخزين
         repairOperation: repairOperation || null,
         taskType: taskType || null,
+        invoiceType: invoiceType || null,
+        engineerName: engineerName || null,
+        supervisorName: supervisorName || null,
+        technicians: technicians || [],
+        assistants: assistants || [],
         // إعادة حساب totalDuration بناءً على consumedTime الجديد
         totalDuration: consumedTime * 60, // تحويل من دقائق إلى ثواني
       };

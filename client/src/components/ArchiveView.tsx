@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Archive, Search, Download, FolderArchive, Calendar as CalendarIcon, Printer, FileText, Star, Edit } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -31,6 +32,11 @@ const editManualTaskSchema = z.object({
   consumedTime: z.coerce.number().min(1, "يجب إدخال الوقت المستهلك"),
   repairOperation: z.string().optional(),
   taskType: z.string().optional(),
+  invoiceType: z.string().optional(),
+  engineerName: z.string().optional(),
+  supervisorName: z.string().optional(),
+  technicians: z.array(z.string()).default([]),
+  assistants: z.array(z.string()).default([]),
 });
 
 type ArchiveFormData = z.infer<typeof archiveFormSchema>;
@@ -67,6 +73,12 @@ export default function ArchiveView() {
     refetchInterval: 30000,
   });
 
+  // Fetch worker names for dropdowns
+  const { data: workerNames } = useQuery<string[]>({
+    queryKey: ['/api/workers/names'],
+    refetchInterval: 60000,
+  });
+
   const form = useForm<ArchiveFormData>({
     resolver: zodResolver(archiveFormSchema),
     defaultValues: {
@@ -83,6 +95,11 @@ export default function ArchiveView() {
       consumedTime: 1,
       repairOperation: "",
       taskType: "",
+      invoiceType: "",
+      engineerName: "",
+      supervisorName: "",
+      technicians: [],
+      assistants: [],
     },
   });
 
@@ -213,6 +230,11 @@ export default function ArchiveView() {
       consumedTime: consumedTimeInMinutes,
       repairOperation: (task as any).repairOperation || "",
       taskType: (task as any).taskType || "",
+      invoiceType: (task as any).invoiceType || "",
+      engineerName: (task as any).engineerName || "",
+      supervisorName: (task as any).supervisorName || "",
+      technicians: Array.isArray((task as any).technicians) ? (task as any).technicians : [],
+      assistants: Array.isArray((task as any).assistants) ? (task as any).assistants : [],
     });
     setEditTaskOpen(true);
   };
@@ -812,6 +834,137 @@ export default function ArchiveView() {
                     </FormItem>
                   )}
                 />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={editForm.control}
+                  name="invoiceType"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>نوع الفاتورة</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value || ""}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="اختر نوع الفاتورة" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="NB">NB</SelectItem>
+                          <SelectItem value="NBP">NBP</SelectItem>
+                          <SelectItem value="NBC">NBC</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={editForm.control}
+                  name="engineerName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>المهندس</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value || ""}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="اختر المهندس" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {workerNames?.map(name => (
+                            <SelectItem key={name} value={name}>{name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={editForm.control}
+                  name="supervisorName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>المشرف</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value || ""}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="اختر المشرف" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {workerNames?.map(name => (
+                            <SelectItem key={name} value={name}>{name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <div className="grid grid-cols-1 gap-4">
+                  <div>
+                    <FormLabel>الفنيون</FormLabel>
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {workerNames?.map(name => {
+                        const isSelected = editForm.watch("technicians").includes(name);
+                        return (
+                          <Button
+                            key={name}
+                            type="button"
+                            size="sm"
+                            variant={isSelected ? "default" : "outline"}
+                            onClick={() => {
+                              const current = editForm.getValues("technicians");
+                              if (isSelected) {
+                                editForm.setValue("technicians", current.filter(t => t !== name));
+                              } else {
+                                editForm.setValue("technicians", [...current, name]);
+                              }
+                            }}
+                          >
+                            {name}
+                          </Button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4">
+                <div>
+                  <FormLabel>المساعدون</FormLabel>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {workerNames?.map(name => {
+                      const isSelected = editForm.watch("assistants").includes(name);
+                      return (
+                        <Button
+                          key={name}
+                          type="button"
+                          size="sm"
+                          variant={isSelected ? "default" : "outline"}
+                          onClick={() => {
+                            const current = editForm.getValues("assistants");
+                            if (isSelected) {
+                              editForm.setValue("assistants", current.filter(a => a !== name));
+                            } else {
+                              editForm.setValue("assistants", [...current, name]);
+                            }
+                          }}
+                        >
+                          {name}
+                        </Button>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
 
               <div className="flex justify-end gap-2 pt-4">
