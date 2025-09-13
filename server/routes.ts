@@ -70,6 +70,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Force refresh workers cache and broadcast update
+  app.post("/api/workers/refresh", async (req, res) => {
+    try {
+      const workers = await storage.getWorkers();
+      const workerNames = await storage.getAllWorkerNames();
+      
+      // Broadcast update to all clients to refresh worker cache
+      broadcastUpdate("workers_updated", { workers, workerNames });
+      
+      res.json({ message: "Worker cache refreshed", workers, workerNames });
+    } catch (error) {
+      console.error("Error refreshing worker cache:", error);
+      res.status(500).json({ message: "Failed to refresh worker cache" });
+    }
+  });
+
   app.post("/api/workers", async (req, res) => {
     try {
       const workerData = insertWorkerSchema.parse(req.body);
