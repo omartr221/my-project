@@ -252,6 +252,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // تعديل مهمة يدوية (Manual Task Edit)
+  app.patch("/api/tasks/:id/edit-manual", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { description, estimatedDuration, consumedTime, repairOperation, taskType } = req.body;
+      
+      console.log(`Editing manual task ${id} with data:`, req.body);
+      
+      // التحقق من صحة البيانات
+      if (!description || typeof description !== 'string') {
+        return res.status(400).json({ error: "وصف المهمة مطلوب ويجب أن يكون نص" });
+      }
+      
+      if (!consumedTime || typeof consumedTime !== 'number' || consumedTime <= 0) {
+        return res.status(400).json({ error: "الوقت المستهلك مطلوب ويجب أن يكون رقم موجب" });
+      }
+
+      // التحقق من أن المهمة يدوية
+      const existingTask = await storage.getTask(id);
+      if (!existingTask) {
+        return res.status(404).json({ error: "المهمة غير موجودة" });
+      }
+
+      if ((existingTask as any).timerType !== 'manual') {
+        return res.status(400).json({ error: "يمكن تعديل المهام اليدوية فقط" });
+      }
+
+      if (!existingTask.archivedAt) {
+        return res.status(400).json({ error: "يمكن تعديل المهام المؤرشفة فقط" });
+      }
+
+      const updates = {
+        description,
+        estimatedDuration: estimatedDuration || null,
+        consumedTime: consumedTime * 60, // تحويل من دقائق إلى ثواني للتخزين
+        repairOperation: repairOperation || null,
+        taskType: taskType || null,
+        // إعادة حساب totalDuration بناءً على consumedTime الجديد
+        totalDuration: consumedTime * 60, // تحويل من دقائق إلى ثواني
+      };
+
+      const task = await storage.updateTask(id, updates);
+      console.log("Manual task updated successfully:", task);
+      
+      broadcastUpdate('manual_task_updated', task);
+      res.json(task);
+    } catch (error: any) {
+      console.error("Error updating manual task:", error);
+      res.status(500).json({ error: error.message || "فشل في تعديل المهمة اليدوية" });
+    }
+  });
+
   // Statistics route
   app.get("/api/stats", async (req, res) => {
     try {
