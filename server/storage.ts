@@ -1,6 +1,6 @@
 import { workers, tasks, timeEntries, customers, customerCars, users, partsRequests, receptionEntries, carStatus, type Worker, type InsertWorker, type Task, type InsertTask, type TimeEntry, type InsertTimeEntry, type WorkerWithTasks, type TaskWithWorker, type TaskHistory, type Customer, type InsertCustomer, type CustomerCar, type InsertCustomerCar, type CustomerWithCars, type User, type InsertUser, type PartsRequest, type InsertPartsRequest, type ReceptionEntry, type InsertReceptionEntry, type CarStatus, type InsertCarStatus } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, isNull, or, like, isNotNull, asc, sql } from "drizzle-orm";
+import { eq, desc, and, isNull, or, like, isNotNull, asc, sql, inArray } from "drizzle-orm";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
 import { pool } from "./db";
