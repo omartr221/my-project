@@ -156,12 +156,32 @@ export class DatabaseStorage implements IStorage {
 
   private parseJsonArray(jsonString: string | null | undefined): string[] {
     if (!jsonString) return [];
-    try {
-      const parsed = JSON.parse(jsonString);
-      return Array.isArray(parsed) ? parsed : [];
-    } catch {
-      return [];
+    
+    // إذا كانت البيانات string عادي، قم بتحويله لـ array
+    if (typeof jsonString === 'string') {
+      // تنظيف البيانات من المسافات الزائدة
+      const cleaned = jsonString.trim();
+      
+      // محاولة تحليله كـ JSON أولاً
+      if (cleaned.startsWith('[') && cleaned.endsWith(']')) {
+        try {
+          const parsed = JSON.parse(cleaned);
+          return Array.isArray(parsed) ? parsed : [];
+        } catch {
+          return [];
+        }
+      }
+      
+      // إذا كان string عادي، قم بتقسيمه على الفاصلة
+      if (cleaned.includes(',')) {
+        return cleaned.split(',').map(item => item.trim()).filter(Boolean);
+      }
+      
+      // إذا كان string واحد، ارجعه كـ array element
+      return cleaned ? [cleaned] : [];
     }
+    
+    return [];
   }
   async getWorkers(): Promise<WorkerWithTasks[]> {
     const workersData = await db.query.workers.findMany({
