@@ -451,12 +451,51 @@ export class DatabaseStorage implements IStorage {
       processedUpdates.createdAt = new Date(updates.createdAt);
     }
     
+    // معالجة حقول technicians و assistants
+    if (updates.technicians !== undefined) {
+      if (Array.isArray(updates.technicians)) {
+        processedUpdates.technicians = JSON.stringify(updates.technicians);
+      } else if (typeof updates.technicians === 'string') {
+        // إذا كان string، حاول تحليله كـ JSON أو comma-separated values
+        try {
+          JSON.parse(updates.technicians);
+          processedUpdates.technicians = updates.technicians;
+        } catch {
+          // إذا فشل، افترض أنه comma-separated
+          const techArray = updates.technicians.split(',').map(t => t.trim()).filter(Boolean);
+          processedUpdates.technicians = JSON.stringify(techArray);
+        }
+      }
+    }
+    
+    if (updates.assistants !== undefined) {
+      if (Array.isArray(updates.assistants)) {
+        processedUpdates.assistants = JSON.stringify(updates.assistants);
+      } else if (typeof updates.assistants === 'string') {
+        // إذا كان string، حاول تحليله كـ JSON أو comma-separated values
+        try {
+          JSON.parse(updates.assistants);
+          processedUpdates.assistants = updates.assistants;
+        } catch {
+          // إذا فشل، افترض أنه comma-separated
+          const assistArray = updates.assistants.split(',').map(a => a.trim()).filter(Boolean);
+          processedUpdates.assistants = JSON.stringify(assistArray);
+        }
+      }
+    }
+    
     const [task] = await db
       .update(tasks)
       .set(processedUpdates)
       .where(eq(tasks.id, id))
       .returning();
-    return task;
+    
+    // تحويل البيانات المُرجعة ليتم عرضها بشكل صحيح
+    return {
+      ...task,
+      technicians: this.parseJsonArray(task.technicians),
+      assistants: this.parseJsonArray(task.assistants),
+    };
   }
 
   async startTask(taskId: number): Promise<TimeEntry> {
