@@ -380,37 +380,28 @@ export class DatabaseStorage implements IStorage {
         consumedTime: insertTask.timerType === "manual" ? (insertTask.consumedTime || 0) : null,
         taskNumber,
         startTime: insertTask.timerType === "manual" ? null : null, // سيتم تعيينه في startTask
-        status: insertTask.timerType === "manual" ? "completed" : "paused",
+        status: "paused", // سيتم تحديث المهام اليدوية بواسطة finishTask
       })
       .returning();
 
     // Handle timer setup based on type
     if (insertTask.timerType === "manual") {
-      // For manual timers, create a completed time entry with the consumed time
+      // For manual timers, create a completed time entry with correct timestamps
       const consumedMinutes = insertTask.consumedTime || insertTask.estimatedDuration || 0;
-      const startTime = new Date();
-      const endTime = new Date(startTime.getTime() + (consumedMinutes * 60 * 1000));
+      const now = new Date();
+      const startTime = new Date(now.getTime() - (consumedMinutes * 60 * 1000)); // الماضي
       
       await db.insert(timeEntries).values({
         taskId: task.id,
         startTime: startTime,
-        endTime: endTime,
+        endTime: now, // الوقت الحالي
         duration: consumedMinutes * 60,
         entryType: "work",
       });
       
-      // أرشفة المهمة فوراً مع المؤقت اليدوي
-      await db.update(tasks)
-        .set({ 
-          status: "completed",
-          endTime: endTime,
-          isArchived: true,
-          archivedAt: new Date(),
-          archivedBy: "نظام المؤقت اليدوي",
-          archiveNotes: "تم أرشفة المهمة تلقائياً - مؤقت يدوي",
-          totalPausedDuration: consumedMinutes * 60
-        })
-        .where(eq(tasks.id, task.id));
+      // استخدام finishTask ثم archiveTask للحفاظ على التماسك
+      await this.finishTask(task.id);
+      await this.archiveTask(task.id, "نظام المؤقت اليدوي", "تم أرشفة المهمة تلقائياً - مؤقت يدوي");
       
       return task;
     }
