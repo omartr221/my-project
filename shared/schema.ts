@@ -146,6 +146,21 @@ export const users = pgTable("users", {
   updatedAt: text("updated_at").notNull().default("CURRENT_TIMESTAMP"),
 });
 
+export const maintenanceGuides = pgTable("maintenance_guides", {
+  id: serial("id").primaryKey(),
+  carBrand: text("car_brand").notNull(), // audi, seat, skoda, volkswagen
+  carPart: text("car_part").notNull(), // engine, brakes, exhaust, transmission, etc.
+  title: text("title").notNull(),
+  content: text("content").notNull(), // Detailed maintenance steps
+  tools: text("tools"), // JSON string of required tools
+  safetyTips: text("safety_tips"), // JSON string of safety instructions
+  estimatedTime: integer("estimated_time"), // in minutes
+  difficulty: text("difficulty").notNull().default("medium"), // easy, medium, hard
+  generatedAt: timestamp("generated_at").defaultNow(),
+  lastUsed: timestamp("last_used"),
+  useCount: integer("use_count").default(0),
+});
+
 
 
 
@@ -451,3 +466,20 @@ export const insertCarStatusSchema = createInsertSchema(carStatus).omit({
 
 export type CarStatus = typeof carStatus.$inferSelect;
 export type InsertCarStatus = z.infer<typeof insertCarStatusSchema>;
+
+// Insert schema for maintenance guides
+export const insertMaintenanceGuideSchema = createInsertSchema(maintenanceGuides).omit({
+  id: true,
+  generatedAt: true,
+  lastUsed: true,
+  useCount: true,
+}).extend({
+  carBrand: z.enum(["audi", "seat", "skoda", "volkswagen"]),
+  carPart: z.string().min(1, "يجب تحديد قطعة السيارة"),
+  title: z.string().min(1, "يجب إدخال عنوان دليل الصيانة"),
+  content: z.string().min(1, "يجب إدخال محتوى دليل الصيانة"),
+  difficulty: z.enum(["easy", "medium", "hard"]).default("medium"),
+});
+
+export type MaintenanceGuide = typeof maintenanceGuides.$inferSelect;
+export type InsertMaintenanceGuide = z.infer<typeof insertMaintenanceGuideSchema>;
