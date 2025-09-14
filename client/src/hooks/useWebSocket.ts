@@ -12,6 +12,11 @@ export function useWebSocket() {
   const reconnectTimeout = useRef<NodeJS.Timeout>();
 
   const connect = useCallback(() => {
+    // WebSocket temporarily disabled - skip connection attempts
+    console.log('WebSocket temporarily disabled for system stability');
+    return;
+    
+    /* Commented out WebSocket connection code
     try {
       const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
       const wsUrl = `${protocol}//${window.location.host}/ws`;
@@ -59,6 +64,7 @@ export function useWebSocket() {
         connect();
       }, 5000);
     }
+    */
   }, []);
 
   const handleMessage = useCallback((message: WebSocketMessage) => {
