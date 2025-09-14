@@ -23,7 +23,7 @@ export const pool = new Pool({
 });
 
 // Handle pool errors
-pool.on('error', (err) => {
+pool.on('error', (err: Error) => {
   console.error('Database pool error:', err);
   if (process.env.NODE_ENV === "production") {
     // In production, attempt to reconnect rather than crash
