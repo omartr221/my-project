@@ -1,35 +1,34 @@
-import Database from 'better-sqlite3';
-import { drizzle } from 'drizzle-orm/better-sqlite3';
+import { Pool, neonConfig } from '@neondatabase/serverless';
+import { drizzle } from 'drizzle-orm/neon-serverless';
+import ws from "ws";
 import * as schema from "@shared/schema";
 
-// إنشاء قاعدة بيانات SQLite
-const sqlite = new Database('v-power-tuning.db');
+neonConfig.webSocketConstructor = ws;
 
-// تمكين Foreign Keys
-sqlite.pragma('foreign_keys = ON');
-
-export const db = drizzle(sqlite, { schema });
-
-// دالة تهيئة قاعدة البيانات
-export async function initDatabase() {
-  console.log('🔧 تهيئة قاعدة البيانات SQLite...');
-  
-  try {
-    // الجداول منشئة مسبقاً - فقط التحقق من وجودها
-    const tables = sqlite.prepare("SELECT name FROM sqlite_master WHERE type='table'").all();
-    
-    if (tables.length > 0) {
-      console.log('✅ تم إنشاء جداول قاعدة البيانات بنجاح');
-      return true;
-    } else {
-      console.log('⚠️ لا توجد جداول - سيتم إنشاؤها من خلال Drizzle');
-      return false;
-    }
-  } catch (error) {
-    console.error('❌ خطأ في تهيئة قاعدة البيانات:', error);
-    throw error;
+if (!process.env.DATABASE_URL) {
+  console.error("DATABASE_URL must be set. Did you forget to provision a database?");
+  if (process.env.NODE_ENV === "production") {
+    process.exit(1);
+  } else {
+    throw new Error("DATABASE_URL must be set. Did you forget to provision a database?");
   }
 }
 
-// تصدير SQLite database للاستخدام المباشر
-export { sqlite };
+// Add connection error handling
+export const pool = new Pool({ 
+  connectionString: process.env.DATABASE_URL,
+  max: 20,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 5000,
+});
+
+// Handle pool errors
+pool.on('error', (err) => {
+  console.error('Database pool error:', err);
+  if (process.env.NODE_ENV === "production") {
+    // In production, attempt to reconnect rather than crash
+    console.log('Attempting to reconnect to database...');
+  }
+});
+
+export const db = drizzle({ client: pool, schema });

@@ -8,8 +8,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Archive, Search, Download, FolderArchive, Calendar as CalendarIcon, Printer, FileText, Star, Edit } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Archive, Search, Download, FolderArchive, Calendar as CalendarIcon, Printer, FileText, Star } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -26,21 +25,7 @@ const archiveFormSchema = z.object({
   notes: z.string().optional(),
 });
 
-const editManualTaskSchema = z.object({
-  description: z.string().min(1, "يجب إدخال وصف المهمة"),
-  estimatedDuration: z.coerce.number().min(1, "يجب إدخال الوقت المقدر").optional(),
-  consumedTime: z.coerce.number().min(1, "يجب إدخال الوقت المستهلك"),
-  repairOperation: z.string().optional(),
-  taskType: z.string().optional(),
-  invoiceType: z.string().optional(),
-  engineerName: z.string().optional(),
-  supervisorName: z.string().optional(),
-  technicians: z.array(z.string()).default([]),
-  assistants: z.array(z.string()).default([]),
-});
-
 type ArchiveFormData = z.infer<typeof archiveFormSchema>;
-type EditManualTaskData = z.infer<typeof editManualTaskSchema>;
 
 export default function ArchiveView() {
   const { toast } = useToast();
@@ -52,31 +37,23 @@ export default function ArchiveView() {
     to: undefined
   });
   const [viewMode, setViewMode] = useState<"all" | "date" | "range">("all");
-  const [editTaskOpen, setEditTaskOpen] = useState(false);
-  const [selectedEditTask, setSelectedEditTask] = useState<TaskHistory | null>(null);
 
   // Fetch archived tasks
-  const { data: archivedTasks, isLoading: loadingArchive } = useQuery<TaskHistory[]>({
+  const { data: archivedTasks, isLoading: loadingArchive } = useQuery({
     queryKey: ['/api/archive'],
     refetchInterval: 30000,
   });
 
   // Fetch search results
-  const { data: searchResults, isLoading: loadingSearch } = useQuery<TaskHistory[]>({
+  const { data: searchResults, isLoading: loadingSearch } = useQuery({
     queryKey: ['/api/archive/search', searchTerm],
     enabled: searchTerm.length > 2,
   });
 
   // Fetch task history for archiving
-  const { data: taskHistory } = useQuery<TaskHistory[]>({
+  const { data: taskHistory } = useQuery({
     queryKey: ['/api/tasks/history'],
     refetchInterval: 30000,
-  });
-
-  // Fetch worker names for dropdowns
-  const { data: workerNames } = useQuery<string[]>({
-    queryKey: ['/api/workers/names'],
-    refetchInterval: 60000,
   });
 
   const form = useForm<ArchiveFormData>({
@@ -84,22 +61,6 @@ export default function ArchiveView() {
     defaultValues: {
       archivedBy: "",
       notes: "",
-    },
-  });
-
-  const editForm = useForm<EditManualTaskData>({
-    resolver: zodResolver(editManualTaskSchema),
-    defaultValues: {
-      description: "",
-      estimatedDuration: undefined,
-      consumedTime: 1,
-      repairOperation: "",
-      taskType: "",
-      invoiceType: "",
-      engineerName: "",
-      supervisorName: "",
-      technicians: [],
-      assistants: [],
     },
   });
 
@@ -127,33 +88,6 @@ export default function ArchiveView() {
       toast({
         title: "خطأ في الأرشفة",
         description: "حدث خطأ أثناء أرشفة المهمة",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const editManualTaskMutation = useMutation({
-    mutationFn: async (data: EditManualTaskData) => {
-      if (!selectedEditTask) throw new Error("لم يتم اختيار مهمة للتعديل");
-      
-      const response = await apiRequest("PATCH", `/api/tasks/${selectedEditTask.id}/edit-manual`, data);
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/archive'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/tasks/history'] });
-      editForm.reset();
-      setSelectedEditTask(null);
-      setEditTaskOpen(false);
-      toast({
-        title: "تم تعديل المهمة",
-        description: "تم تعديل المهمة اليدوية بنجاح",
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "خطأ في التعديل",
-        description: `حدث خطأ أثناء تعديل المهمة: ${error.message}`,
         variant: "destructive",
       });
     },
@@ -212,31 +146,6 @@ export default function ArchiveView() {
 
   const onSubmit = (data: ArchiveFormData) => {
     archiveTaskMutation.mutate(data);
-  };
-
-  const onEditSubmit = (data: EditManualTaskData) => {
-    editManualTaskMutation.mutate(data);
-  };
-
-  const handleEditClick = (task: TaskHistory) => {
-    setSelectedEditTask(task);
-    // Convert from seconds to minutes for display (consumedTime is stored in seconds)
-    const consumedTimeInMinutes = (task as any).consumedTime ? Math.round((task as any).consumedTime / 60) : 
-                                  task.totalDuration ? Math.round(task.totalDuration / 60) : 1;
-    
-    editForm.reset({
-      description: task.description,
-      estimatedDuration: task.estimatedDuration || undefined,
-      consumedTime: consumedTimeInMinutes,
-      repairOperation: (task as any).repairOperation || "",
-      taskType: (task as any).taskType || "",
-      invoiceType: (task as any).invoiceType || "",
-      engineerName: (task as any).engineerName || "",
-      supervisorName: (task as any).supervisorName || "",
-      technicians: Array.isArray((task as any).technicians) ? (task as any).technicians : [],
-      assistants: Array.isArray((task as any).assistants) ? (task as any).assistants : [],
-    });
-    setEditTaskOpen(true);
   };
 
   const generatePrintContent = (tasks: TaskHistory[]) => {
@@ -530,9 +439,9 @@ export default function ArchiveView() {
               </div>
             ) : (
               <div className="space-y-4">
-                {displayTasks.map((task: TaskHistory) => (
+                {displayTasks.map((task) => (
                   <div key={task.id} className="p-4 border rounded-lg bg-gray-50">
-                    <div className="mb-3 pb-2 border-b border-gray-300 flex justify-between items-start">
+                    <div className="mb-3 pb-2 border-b border-gray-300">
                       <h3 className={`text-lg font-semibold ${(task as any).isCancelled ? 'text-red-600' : 'text-blue-800'}`}>
                         {(task as any).isCancelled ? 'مهمة ملغاة - ' : 'تسليم رقم: '}{(task as any).deliveryNumber || 'غير محدد'}
                         {(task as any).isCancelled && (
@@ -541,17 +450,6 @@ export default function ArchiveView() {
                           </span>
                         )}
                       </h3>
-                      {(task as any).timerType === 'manual' && !(task as any).isCancelled && (
-                        <Button
-                          onClick={() => handleEditClick(task)}
-                          variant="outline"
-                          size="sm"
-                          className="flex items-center gap-1 text-blue-600 hover:text-blue-800 hover:bg-blue-50"
-                        >
-                          <Edit className="w-4 h-4" />
-                          تعديل
-                        </Button>
-                      )}
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                       <div>
@@ -648,7 +546,7 @@ export default function ArchiveView() {
                               <Star 
                                 key={star}
                                 className={`w-4 h-4 ${
-                                  star <= (task.rating || 0) 
+                                  star <= task.rating 
                                     ? "fill-yellow-400 text-yellow-400" 
                                     : "fill-gray-200 text-gray-200"
                                 }`}
@@ -728,267 +626,6 @@ export default function ArchiveView() {
           </div>
         )}
       </CardContent>
-
-      {/* Edit Manual Task Dialog */}
-      <Dialog open={editTaskOpen} onOpenChange={setEditTaskOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>تعديل المهمة اليدوية</DialogTitle>
-          </DialogHeader>
-          <Form {...editForm}>
-            <form onSubmit={editForm.handleSubmit(onEditSubmit)} className="space-y-4">
-              <FormField
-                control={editForm.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>وصف المهمة *</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="أدخل وصف المهمة..."
-                        {...field}
-                        className="resize-none"
-                        rows={3}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={editForm.control}
-                  name="estimatedDuration"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>الوقت المقدر (دقيقة)</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          min="1"
-                          placeholder="60"
-                          {...field}
-                          value={field.value || ""}
-                          onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={editForm.control}
-                  name="consumedTime"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>الوقت المستهلك (دقيقة) *</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          min="1"
-                          placeholder="30"
-                          {...field}
-                          value={field.value || ""}
-                          onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : 1)}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={editForm.control}
-                  name="repairOperation"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>عملية الإصلاح</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="أدخل عملية الإصلاح..."
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={editForm.control}
-                  name="taskType"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>نوع المهمة</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="ميكانيك، كهربا، إلخ..."
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={editForm.control}
-                  name="invoiceType"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>نوع الفاتورة</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value || ""}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="اختر نوع الفاتورة" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="NB">NB</SelectItem>
-                          <SelectItem value="NBP">NBP</SelectItem>
-                          <SelectItem value="NBC">NBC</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={editForm.control}
-                  name="engineerName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>المهندس</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value || ""}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="اختر المهندس" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {workerNames?.map(name => (
-                            <SelectItem key={name} value={name}>{name}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={editForm.control}
-                  name="supervisorName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>المشرف</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value || ""}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="اختر المشرف" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {workerNames?.map(name => (
-                            <SelectItem key={name} value={name}>{name}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <div className="grid grid-cols-1 gap-4">
-                  <div>
-                    <FormLabel>الفنيون</FormLabel>
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      {workerNames?.map(name => {
-                        const technicians = editForm.watch("technicians") || [];
-                        const isSelected = technicians.includes(name);
-                        return (
-                          <Button
-                            key={name}
-                            type="button"
-                            size="sm"
-                            variant={isSelected ? "default" : "outline"}
-                            onClick={() => {
-                              const current = editForm.getValues("technicians") || [];
-                              if (isSelected) {
-                                editForm.setValue("technicians", current.filter(t => t !== name));
-                              } else {
-                                editForm.setValue("technicians", [...current, name]);
-                              }
-                            }}
-                          >
-                            {name}
-                          </Button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 gap-4">
-                <div>
-                  <FormLabel>المساعدون</FormLabel>
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {workerNames?.map(name => {
-                      const assistants = editForm.watch("assistants") || [];
-                      const isSelected = assistants.includes(name);
-                      return (
-                        <Button
-                          key={name}
-                          type="button"
-                          size="sm"
-                          variant={isSelected ? "default" : "outline"}
-                          onClick={() => {
-                            const current = editForm.getValues("assistants") || [];
-                            if (isSelected) {
-                              editForm.setValue("assistants", current.filter(a => a !== name));
-                            } else {
-                              editForm.setValue("assistants", [...current, name]);
-                            }
-                          }}
-                        >
-                          {name}
-                        </Button>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex justify-end gap-2 pt-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setEditTaskOpen(false)}
-                  disabled={editManualTaskMutation.isPending}
-                >
-                  إلغاء
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={editManualTaskMutation.isPending}
-                >
-                  {editManualTaskMutation.isPending ? "جاري الحفظ..." : "حفظ التعديل"}
-                </Button>
-              </div>
-            </form>
-          </Form>
-        </DialogContent>
-      </Dialog>
     </Card>
   );
 }

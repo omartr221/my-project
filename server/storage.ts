@@ -2,7 +2,8 @@ import { workers, tasks, timeEntries, customers, customerCars, users, partsReque
 import { db } from "./db";
 import { eq, desc, and, isNull, or, like, isNotNull, asc, sql, inArray } from "drizzle-orm";
 import session from "express-session";
-import MemoryStore from "memorystore";
+import connectPg from "connect-pg-simple";
+import { pool } from "./db";
 
 // Helper functions for data conversion
 function parseTaskFromDB(taskFromDB: any): Task {
@@ -118,7 +119,7 @@ export interface IStorage {
   getReceptionEntry(id: number): Promise<ReceptionEntry | undefined>;
   createReceptionEntry(entry: InsertReceptionEntry): Promise<ReceptionEntry>;
   getWorkshopNotifications(): Promise<ReceptionEntry[]>;
-  enterReceptionCarToWorkshop(entryId: number, workshopUserId: number): Promise<ReceptionEntry & { customerName?: string; carBrand?: string; carModel?: string }>;
+  enterReceptionCarToWorkshop(entryId: number, workshopUserId: number): Promise<ReceptionEntry>;
 
   
   // Reception workflow management
@@ -134,19 +135,23 @@ export interface IStorage {
   updateCarStatus(id: number, updates: Partial<CarStatus>): Promise<CarStatus>;
 
   deleteCarStatus(id: number): Promise<void>;
+  enterReceptionCarToWorkshop(id: number, workshopUserId: number): Promise<ReceptionEntry>;
   getWorkshopNotifications(): Promise<ReceptionEntry[]>;
   
   // Session store
   sessionStore: any;
 }
 
-// Using MemoryStore for sessions (SQLite-compatible)
+const PostgresSessionStore = connectPg(session);
 
 export class DatabaseStorage implements IStorage {
   sessionStore: any;
   
   constructor() {
-    this.sessionStore = new session.MemoryStore();
+    this.sessionStore = new PostgresSessionStore({ 
+      pool, 
+      createTableIfMissing: true 
+    });
   }
 
   private parseJsonArray(jsonString: string | null | undefined): string[] {
@@ -446,51 +451,12 @@ export class DatabaseStorage implements IStorage {
       processedUpdates.createdAt = new Date(updates.createdAt);
     }
     
-    // معالجة حقول technicians و assistants
-    if (updates.technicians !== undefined) {
-      if (Array.isArray(updates.technicians)) {
-        processedUpdates.technicians = JSON.stringify(updates.technicians);
-      } else if (typeof updates.technicians === 'string') {
-        // إذا كان string، حاول تحليله كـ JSON أو comma-separated values
-        try {
-          JSON.parse(updates.technicians);
-          processedUpdates.technicians = updates.technicians;
-        } catch {
-          // إذا فشل، افترض أنه comma-separated
-          const techArray = updates.technicians.split(',').map(t => t.trim()).filter(Boolean);
-          processedUpdates.technicians = JSON.stringify(techArray);
-        }
-      }
-    }
-    
-    if (updates.assistants !== undefined) {
-      if (Array.isArray(updates.assistants)) {
-        processedUpdates.assistants = JSON.stringify(updates.assistants);
-      } else if (typeof updates.assistants === 'string') {
-        // إذا كان string، حاول تحليله كـ JSON أو comma-separated values
-        try {
-          JSON.parse(updates.assistants);
-          processedUpdates.assistants = updates.assistants;
-        } catch {
-          // إذا فشل، افترض أنه comma-separated
-          const assistArray = updates.assistants.split(',').map(a => a.trim()).filter(Boolean);
-          processedUpdates.assistants = JSON.stringify(assistArray);
-        }
-      }
-    }
-    
     const [task] = await db
       .update(tasks)
       .set(processedUpdates)
       .where(eq(tasks.id, id))
       .returning();
-    
-    // تحويل البيانات المُرجعة ليتم عرضها بشكل صحيح
-    return {
-      ...task,
-      technicians: this.parseJsonArray(task.technicians),
-      assistants: this.parseJsonArray(task.assistants),
-    };
+    return task;
   }
 
   async startTask(taskId: number): Promise<TimeEntry> {
@@ -1223,22 +1189,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createUser(user: InsertUser): Promise<User> {
-    console.log('🔧 إنشاء مستخدم جديد:', {
-      username: user.username,
-      role: user.role,
-      permissions: user.permissions,
-      permissionsType: typeof user.permissions
-    });
-    
-    // تحويل permissions array إلى JSON string إذا لزم الأمر
-    const userData = {
-      ...user,
-      permissions: Array.isArray(user.permissions) ? JSON.stringify(user.permissions) : user.permissions
-    };
-    
-    console.log('📝 البيانات المحوّلة:', userData);
-    
-    const [newUser] = await db.insert(users).values(userData).returning();
+    const [newUser] = await db.insert(users).values(user).returning();
     return newUser;
   }
 
@@ -1578,7 +1529,7 @@ export class DatabaseStorage implements IStorage {
     return entry;
   }
 
-  async enterReceptionCarToWorkshop(id: number, workshopUserId: number): Promise<ReceptionEntry & { customerName?: string; carBrand?: string; carModel?: string }> {
+  async enterReceptionCarToWorkshop(id: number, workshopUserId: number): Promise<ReceptionEntry> {
     const now = new Date();
     
     const [entry] = await db
@@ -1591,42 +1542,7 @@ export class DatabaseStorage implements IStorage {
       .where(eq(receptionEntries.id, id))
       .returning();
     
-    // Enrich the entry with customer and car data
-    let enrichedEntry = { ...entry, customerName: entry.carOwnerName, carBrand: undefined, carModel: undefined };
-    
-    try {
-      // Get customer data if customerId exists
-      if (entry.customerId) {
-        const [customer] = await db
-          .select()
-          .from(customers)
-          .where(eq(customers.id, entry.customerId))
-          .limit(1);
-        
-        if (customer) {
-          enrichedEntry.customerName = customer.name;
-        }
-      }
-      
-      // Get car data if carId exists
-      if (entry.carId) {
-        const [car] = await db
-          .select()
-          .from(customerCars)
-          .where(eq(customerCars.id, entry.carId))
-          .limit(1);
-        
-        if (car) {
-          enrichedEntry.carBrand = car.carBrand;
-          enrichedEntry.carModel = car.carModel;
-        }
-      }
-    } catch (error) {
-      console.error("Error enriching reception entry data:", error);
-      // Continue with basic data if enrichment fails
-    }
-    
-    return enrichedEntry;
+    return entry;
   }
 
   async getWorkshopNotifications(): Promise<ReceptionEntry[]> {
