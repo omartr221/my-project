@@ -1,10 +1,10 @@
-import { pgTable, text, integer, serial, timestamp, boolean, json } from "drizzle-orm/pg-core";
+import { sqliteTable, text, integer, primaryKey, real, blob } from "drizzle-orm/sqlite-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-export const workers = pgTable("workers", {
-  id: serial("id").primaryKey(),
+export const workers = sqliteTable("workers", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
   category: text("category").notNull(), // فني، مساعد، مشرف، فني تحت الإشراف
   supervisor: text("supervisor"),
@@ -13,13 +13,13 @@ export const workers = pgTable("workers", {
   nationalId: text("national_id"),
   phoneNumber: text("phone_number"),
   address: text("address"),
-  isActive: boolean("is_active").default(true),
-  isPredefined: boolean("is_predefined").default(false),
-  createdAt: timestamp("created_at").defaultNow(),
+  isActive: integer("is_active", { mode: "boolean" }).default(true),
+  isPredefined: integer("is_predefined", { mode: "boolean" }).default(false),
+  createdAt: text("created_at").default("CURRENT_TIMESTAMP"),
 });
 
-export const tasks = pgTable("tasks", {
-  id: serial("id").primaryKey(),
+export const tasks = sqliteTable("tasks", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   taskNumber: text("task_number").notNull().unique(),
   workerId: integer("worker_id").notNull().references(() => workers.id),
   workerRole: text("worker_role").notNull().default("technician"), // assistant, technician, supervisor, engineer
@@ -47,26 +47,26 @@ export const tasks = pgTable("tasks", {
   pauseReason: text("pause_reason"),
   pauseNotes: text("pause_notes"),
   totalPausedDuration: integer("total_paused_duration").default(0), // in seconds
-  isArchived: boolean("is_archived").default(false),
-  archivedAt: timestamp("archived_at"),
+  isArchived: integer("is_archived", { mode: "boolean" }).default(false),
+  archivedAt: text("archived_at"),
   archivedBy: text("archived_by"),
   archiveNotes: text("archive_notes"),
   rating: integer("rating"), // 1-3 stars rating
   deliveryNumber: integer("delivery_number"), // Sequential number for delivered tasks
-  isCancelled: boolean("is_cancelled").default(false),
+  isCancelled: integer("is_cancelled", { mode: "boolean" }).default(false),
   cancellationReason: text("cancellation_reason"),
   cancelledAt: text("cancelled_at"),
   cancelledBy: text("cancelled_by"),
   // حقول الترحيل
-  isTransferred: boolean("is_transferred").default(false),
-  transferredAt: timestamp("transferred_at"),
+  isTransferred: integer("is_transferred", { mode: "boolean" }).default(false),
+  transferredAt: text("transferred_at"),
   transferredBy: text("transferred_by"),
   transferNotes: text("transfer_notes"),
   createdAt: text("created_at").default("CURRENT_TIMESTAMP"),
 });
 
-export const timeEntries = pgTable("time_entries", {
-  id: serial("id").primaryKey(),
+export const timeEntries = sqliteTable("time_entries", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   taskId: integer("task_id").notNull().references(() => tasks.id),
   startTime: text("start_time").notNull(),
   endTime: text("end_time"),
@@ -75,19 +75,19 @@ export const timeEntries = pgTable("time_entries", {
   createdAt: text("created_at").default("CURRENT_TIMESTAMP"),
 });
 
-export const customers = pgTable("customers", {
-  id: serial("id").primaryKey(),
+export const customers = sqliteTable("customers", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
   phoneNumber: text("phone_number").notNull(),
   address: text("address"),
   notes: text("notes"),
   customerStatus: text("customer_status").default("A"), // A, B, C
-  isFavorite: boolean("is_favorite").default(false),
+  isFavorite: integer("is_favorite", { mode: "boolean" }).default(false),
   createdAt: text("created_at").default("CURRENT_TIMESTAMP"),
 });
 
-export const customerCars = pgTable("customer_cars", {
-  id: serial("id").primaryKey(),
+export const customerCars = sqliteTable("customer_cars", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   customerId: integer("customer_id").references(() => customers.id, { onDelete: "cascade" }),
   carBrand: text("car_brand").notNull(),
   carModel: text("car_model").notNull(),
@@ -136,8 +136,8 @@ export const customerCarsRelations = relations(customerCars, ({ one }) => ({
 
 
 // Users table for authentication
-export const users = pgTable("users", {
-  id: serial("id").primaryKey(),
+export const users = sqliteTable("users", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
   role: text("role").notNull(),
@@ -219,8 +219,8 @@ export const insertCustomerCarSchema = createInsertSchema(customerCars).omit({
   previousLicensePlate: true,
 });
 
-export const partsRequests = pgTable("parts_requests", {
-  id: serial("id").primaryKey(),
+export const partsRequests = sqliteTable("parts_requests", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   requestNumber: text("request_number").unique(),
   engineerName: text("engineer_name").notNull(),
   customerName: text("customer_name"), // اسم الزبون
@@ -350,8 +350,8 @@ export type CustomerWithCars = Customer & {
 };
 
 // Reception entries table for car intake workflow
-export const receptionEntries = pgTable("reception_entries", {
-  id: serial("id").primaryKey(),
+export const receptionEntries = sqliteTable("reception_entries", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   carOwnerName: text("car_owner_name").notNull(),
   licensePlate: text("license_plate").notNull(),
   serviceType: text("service_type").notNull(), // نوع الصيانة
@@ -361,8 +361,8 @@ export const receptionEntries = pgTable("reception_entries", {
   status: text("status").notNull().default("reception"), // reception, workshop, completed
   receptionUserId: integer("reception_user_id").references(() => users.id),
   workshopUserId: integer("workshop_user_id").references(() => users.id),
-  entryTime: timestamp("entry_time").defaultNow(),
-  workshopEntryTime: timestamp("workshop_entry_time"),
+  entryTime: text("entry_time").default("CURRENT_TIMESTAMP"),
+  workshopEntryTime: text("workshop_entry_time"),
   customerId: integer("customer_id").references(() => customers.id),
   carId: integer("car_id").references(() => customerCars.id),
 });
@@ -410,8 +410,8 @@ export type ReceptionEntry = typeof receptionEntries.$inferSelect;
 export type InsertReceptionEntry = z.infer<typeof insertReceptionEntrySchema>;
 
 // Car Status Table - تتبع وضع السيارات بشكل آني
-export const carStatus = pgTable("car_status", {
-  id: serial("id").primaryKey(),
+export const carStatus = sqliteTable("car_status", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
 
   customerName: text("customer_name").notNull(),
   carBrand: text("car_brand").notNull(),
@@ -424,14 +424,14 @@ export const carStatus = pgTable("car_status", {
   fuelLevel: text("fuel_level"), // مستوى البنزين
   partsRequestsCount: integer("parts_requests_count").default(0), // عدد طلبات القطع
   completedPartsCount: integer("completed_parts_count").default(0), // عدد القطع المكتملة
-  receivedAt: timestamp("received_at").defaultNow(), // وقت الاستقبال
-  enteredWorkshopAt: timestamp("entered_workshop_at"), // وقت دخول الورشة
-  completedAt: timestamp("completed_at"), // وقت الانتهاء
-  returnedToReceptionAt: timestamp("returned_to_reception_at"), // وقت الإرجاع للاستقبال
+  receivedAt: text("received_at").default("CURRENT_TIMESTAMP"), // وقت الاستقبال
+  enteredWorkshopAt: text("entered_workshop_at"), // وقت دخول الورشة
+  completedAt: text("completed_at"), // وقت الانتهاء
+  returnedToReceptionAt: text("returned_to_reception_at"), // وقت الإرجاع للاستقبال
   returnedBy: text("returned_by"), // من قام بالإرجاع
-  deliveredAt: timestamp("delivered_at"), // وقت التسليم
-  updatedAt: timestamp("updated_at").defaultNow(), // آخر تحديث
-  createdAt: timestamp("created_at").defaultNow(),
+  deliveredAt: text("delivered_at"), // وقت التسليم
+  updatedAt: text("updated_at").default("CURRENT_TIMESTAMP"), // آخر تحديث
+  createdAt: text("created_at").default("CURRENT_TIMESTAMP"),
 });
 
 
