@@ -1897,9 +1897,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async generateMaintenanceGuide(carBrand: string, carPart: string): Promise<MaintenanceGuide> {
-    // Import the OpenAI service here to avoid circular dependencies
-    const { generateMaintenanceGuide } = await import('./openai-service');
-    
     // Check if guide already exists
     const existingGuide = await db.query.maintenanceGuides.findFirst({
       where: and(
@@ -1914,21 +1911,47 @@ export class DatabaseStorage implements IStorage {
       return existingGuide;
     }
 
-    // Generate new guide using AI
-    const aiResponse = await generateMaintenanceGuide({ carBrand, carPart });
-    
-    const newGuide: InsertMaintenanceGuide = {
-      carBrand,
-      carPart,
-      title: aiResponse.title,
-      content: aiResponse.content,
-      tools: JSON.stringify(aiResponse.tools),
-      safetyTips: JSON.stringify(aiResponse.safetyTips),
-      estimatedTime: aiResponse.estimatedTime,
-      difficulty: aiResponse.difficulty,
-    };
+    try {
+      // Try to generate new guide using AI
+      const { generateMaintenanceGuide } = await import('./openai-service');
+      const aiResponse = await generateMaintenanceGuide({ carBrand, carPart });
+      
+      const newGuide: InsertMaintenanceGuide = {
+        carBrand,
+        carPart,
+        title: aiResponse.title,
+        content: aiResponse.content,
+        tools: JSON.stringify(aiResponse.tools),
+        safetyTips: JSON.stringify(aiResponse.safetyTips),
+        estimatedTime: aiResponse.estimatedTime,
+        difficulty: aiResponse.difficulty,
+      };
 
-    return await this.createMaintenanceGuide(newGuide);
+      return await this.createMaintenanceGuide(newGuide);
+    } catch (error) {
+      console.warn('OpenAI API not available, using demo data:', error.message);
+      
+      // Fallback to demo data when OpenAI API is not available
+      const { getDemoMaintenanceGuide } = await import('./demo-maintenance-data');
+      const demoGuide = getDemoMaintenanceGuide(carBrand, carPart);
+      
+      if (!demoGuide) {
+        throw new Error(`لا يوجد دليل صيانة متاح لـ ${carBrand} - ${carPart}. يرجى التحقق من إعدادات OpenAI API أو المحاولة لاحقاً.`);
+      }
+      
+      const newGuide: InsertMaintenanceGuide = {
+        carBrand,
+        carPart,
+        title: `${demoGuide.title} (نموذج تجريبي)`,
+        content: demoGuide.content,
+        tools: JSON.stringify(demoGuide.tools),
+        safetyTips: JSON.stringify(demoGuide.safetyTips),
+        estimatedTime: demoGuide.estimatedTime,
+        difficulty: demoGuide.difficulty,
+      };
+
+      return await this.createMaintenanceGuide(newGuide);
+    }
   }
 
   async searchMaintenanceGuides(carBrand?: string, carPart?: string): Promise<MaintenanceGuide[]> {
