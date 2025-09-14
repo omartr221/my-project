@@ -7,7 +7,6 @@ import { z } from "zod";
 import multer from 'multer';
 import * as XLSX from 'xlsx';
 import { setupAuth } from "./auth";
-import { getMaintenanceGuide } from "./anthropic-service";
 // import { createBackup, restoreFromBackup } from "./backup"; // Disabled for memory storage
 
 interface WebSocketClient extends WebSocket {
@@ -1806,26 +1805,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return null;
     }
   }
-
-  // Maintenance Guide endpoint
-  app.post('/api/maintenance-guide', async (req, res) => {
-    try {
-      const { part, query } = req.body;
-      
-      if (!query) {
-        return res.status(400).json({ error: 'Query is required' });
-      }
-
-      const guide = await getMaintenanceGuide(query, part);
-      res.json({ guide });
-    } catch (error) {
-      console.error('Error generating maintenance guide:', error);
-      res.status(500).json({ 
-        error: 'Failed to generate maintenance guide',
-        details: error instanceof Error ? error.message : 'Unknown error'
-      });
-    }
-  });
 
   return httpServer;
 }

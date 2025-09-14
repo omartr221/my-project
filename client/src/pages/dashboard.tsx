@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Clock, Users, UserCheck, Watch, ListTodo, Archive, LogOut, Package2, Car, ArrowLeft, CheckCircle, Wrench } from "lucide-react";
+import { Clock, Users, UserCheck, Watch, ListTodo, Archive, LogOut, Package2, Car, ArrowLeft, CheckCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
@@ -28,13 +28,12 @@ import CarStatusDisplay from "@/components/CarStatusDisplay";
 import CarPositionsView from "@/components/CarPositionsView";
 import CarDeliveryView from "@/components/CarDeliveryView";
 import CustomerDeliveryView from "@/components/CustomerDeliveryView";
-import MaintenanceGuide from "@/components/MaintenanceGuide";
 
 import Reception from "@/pages/Reception";
 import Workshop from "@/pages/Workshop";
 import { useNotifications } from "@/hooks/useNotifications";
 
-type TabType = "dashboard" | "timers" | "history" | "archive" | "addworker" | "customercard" | "customer-account" | "task-distribution" | "parts-requests" | "requests" | "car-status" | "car-positions" | "car-receipts" | "reception" | "workshop" | "car-delivery" | "customer-delivery" | "maintenance-guide";
+type TabType = "dashboard" | "timers" | "history" | "archive" | "addworker" | "customercard" | "customer-account" | "task-distribution" | "parts-requests" | "requests" | "car-status" | "car-positions" | "car-receipts" | "reception" | "workshop" | "car-delivery" | "customer-delivery";
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<TabType>("dashboard");
@@ -272,9 +271,6 @@ export default function Dashboard() {
       
       case "customer-delivery":
         return <CustomerDeliveryView />;
-      
-      case "maintenance-guide":
-        return <MaintenanceGuide />;
       
       default:
         return null;
@@ -560,18 +556,6 @@ export default function Dashboard() {
               >
                 <ArrowLeft className="ml-2 h-4 w-4" />
                 تسليم السيارة
-              </Button>
-            )}
-
-            {/* تبويب دليل الصيانة - لبدوي فقط */}
-            {user?.username === "بدوي" && (
-              <Button
-                variant={activeTab === "maintenance-guide" ? "default" : "ghost"}
-                onClick={() => setActiveTab("maintenance-guide")}
-                className="font-medium"
-              >
-                <Wrench className="ml-2 h-4 w-4" />
-                دليل الصيانة
               </Button>
             )}
 
