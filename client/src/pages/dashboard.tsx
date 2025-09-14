@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Clock, Users, UserCheck, Watch, ListTodo, Archive, LogOut, Package2, Car, ArrowLeft, CheckCircle } from "lucide-react";
+import { Clock, Users, UserCheck, Watch, ListTodo, Archive, LogOut, Package2, Car, ArrowLeft, CheckCircle, BookOpen } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
@@ -31,9 +31,10 @@ import CustomerDeliveryView from "@/components/CustomerDeliveryView";
 
 import Reception from "@/pages/Reception";
 import Workshop from "@/pages/Workshop";
+import { MaintenanceGuides } from "@/components/MaintenanceGuides";
 import { useNotifications } from "@/hooks/useNotifications";
 
-type TabType = "dashboard" | "timers" | "history" | "archive" | "addworker" | "customercard" | "customer-account" | "task-distribution" | "parts-requests" | "requests" | "car-status" | "car-positions" | "car-receipts" | "reception" | "workshop" | "car-delivery" | "customer-delivery";
+type TabType = "dashboard" | "timers" | "history" | "archive" | "addworker" | "customercard" | "customer-account" | "task-distribution" | "parts-requests" | "requests" | "car-status" | "car-positions" | "car-receipts" | "reception" | "workshop" | "car-delivery" | "customer-delivery" | "maintenance";
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<TabType>("dashboard");
@@ -265,6 +266,9 @@ export default function Dashboard() {
       
       case "workshop":
         return <Workshop />;
+      
+      case "maintenance":
+        return <MaintenanceGuides />;
       
       case "car-delivery":
         return <CarDeliveryView />;
@@ -546,6 +550,17 @@ export default function Dashboard() {
                 الورشة
               </Button>
             )}
+
+            {/* دليل الصيانة - متاح للجميع */}
+            <Button
+              variant={activeTab === "maintenance" ? "default" : "ghost"}
+              onClick={() => setActiveTab("maintenance")}
+              className="font-medium"
+              data-testid="tab-maintenance"
+            >
+              <BookOpen className="ml-2 h-4 w-4" />
+              دليل الصيانة
+            </Button>
 
             {/* تبويب تسليم السيارة - لبدوي وفارس */}
             {(user?.username === "بدوي" || user?.username === "فارس") && (
