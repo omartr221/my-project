@@ -1223,7 +1223,22 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createUser(user: InsertUser): Promise<User> {
-    const [newUser] = await db.insert(users).values(user).returning();
+    console.log('🔧 إنشاء مستخدم جديد:', {
+      username: user.username,
+      role: user.role,
+      permissions: user.permissions,
+      permissionsType: typeof user.permissions
+    });
+    
+    // تحويل permissions array إلى JSON string إذا لزم الأمر
+    const userData = {
+      ...user,
+      permissions: Array.isArray(user.permissions) ? JSON.stringify(user.permissions) : user.permissions
+    };
+    
+    console.log('📝 البيانات المحوّلة:', userData);
+    
+    const [newUser] = await db.insert(users).values(userData).returning();
     return newUser;
   }
 
