@@ -6,7 +6,7 @@ import { createServer } from "http";
 import { setupVite, serveStatic } from "./vite.js";
 
 // Check if we should use SQLite instead of PostgreSQL (مؤقت لحل مشكلة قاعدة البيانات)
-const USE_SQLITE = true; // تفعيل SQLite مؤقتاً
+const USE_SQLITE = true; // مؤقت - حتى نحل مشكلة Neon PostgreSQL
 
 // Conditional imports based on database type
 let setupAuth: any;
