@@ -1733,6 +1733,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   }
 
+  // Maintenance guides routes
+  app.get("/api/maintenance-guides", async (req, res) => {
+    try {
+      const { carBrand, carPart } = req.query;
+      
+      if (carBrand || carPart) {
+        const guides = await storage.searchMaintenanceGuides(
+          carBrand as string,
+          carPart as string
+        );
+        res.json(guides);
+      } else {
+        const guides = await storage.getMaintenanceGuides();
+        res.json(guides);
+      }
+    } catch (error) {
+      console.error("Error fetching maintenance guides:", error);
+      res.status(500).json({ error: "خطأ في جلب أدلة الصيانة" });
+    }
+  });
+
+  app.get("/api/maintenance-guides/:id", async (req, res) => {
+    try {
+      const guideId = parseInt(req.params.id);
+      const guide = await storage.getMaintenanceGuide(guideId);
+      
+      if (!guide) {
+        return res.status(404).json({ error: "دليل الصيانة غير موجود" });
+      }
+
+      // Update usage counter
+      await storage.updateMaintenanceGuideUsage(guideId);
+      
+      res.json(guide);
+    } catch (error) {
+      console.error("Error fetching maintenance guide:", error);
+      res.status(500).json({ error: "خطأ في جلب دليل الصيانة" });
+    }
+  });
+
+  app.post("/api/maintenance-guides/generate", async (req, res) => {
+    try {
+      const { carBrand, carPart } = req.body;
+      
+      if (!carBrand || !carPart) {
+        return res.status(400).json({ 
+          error: "نوع السيارة وقطعة السيارة مطلوبان" 
+        });
+      }
+
+      const guide = await storage.generateMaintenanceGuide(carBrand, carPart);
+      res.json(guide);
+    } catch (error) {
+      console.error("Error generating maintenance guide:", error);
+      res.status(500).json({ 
+        error: "خطأ في توليد دليل الصيانة. تحقق من إعدادات الذكاء الاصطناعي." 
+      });
+    }
+  });
+
   return httpServer;
 }
 

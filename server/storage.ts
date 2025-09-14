@@ -1,4 +1,4 @@
-import { workers, tasks, timeEntries, customers, customerCars, users, partsRequests, receptionEntries, carStatus, type Worker, type InsertWorker, type Task, type InsertTask, type TimeEntry, type InsertTimeEntry, type WorkerWithTasks, type TaskWithWorker, type TaskHistory, type Customer, type InsertCustomer, type CustomerCar, type InsertCustomerCar, type CustomerWithCars, type User, type InsertUser, type PartsRequest, type InsertPartsRequest, type ReceptionEntry, type InsertReceptionEntry, type CarStatus, type InsertCarStatus } from "@shared/schema";
+import { workers, tasks, timeEntries, customers, customerCars, users, partsRequests, receptionEntries, carStatus, maintenanceGuides, type Worker, type InsertWorker, type Task, type InsertTask, type TimeEntry, type InsertTimeEntry, type WorkerWithTasks, type TaskWithWorker, type TaskHistory, type Customer, type InsertCustomer, type CustomerCar, type InsertCustomerCar, type CustomerWithCars, type User, type InsertUser, type PartsRequest, type InsertPartsRequest, type ReceptionEntry, type InsertReceptionEntry, type CarStatus, type InsertCarStatus, type MaintenanceGuide, type InsertMaintenanceGuide } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, isNull, or, like, isNotNull, asc, sql, inArray } from "drizzle-orm";
 import session from "express-session";
@@ -137,6 +137,14 @@ export interface IStorage {
   deleteCarStatus(id: number): Promise<void>;
   enterReceptionCarToWorkshop(id: number, workshopUserId: number): Promise<ReceptionEntry>;
   getWorkshopNotifications(): Promise<ReceptionEntry[]>;
+  
+  // Maintenance guides management
+  getMaintenanceGuides(): Promise<MaintenanceGuide[]>;
+  getMaintenanceGuide(id: number): Promise<MaintenanceGuide | undefined>;
+  createMaintenanceGuide(guide: InsertMaintenanceGuide): Promise<MaintenanceGuide>;
+  generateMaintenanceGuide(carBrand: string, carPart: string): Promise<MaintenanceGuide>;
+  searchMaintenanceGuides(carBrand?: string, carPart?: string): Promise<MaintenanceGuide[]>;
+  updateMaintenanceGuideUsage(id: number): Promise<void>;
   
   // Session store
   sessionStore: any;
@@ -1864,6 +1872,90 @@ export class DatabaseStorage implements IStorage {
       technicians: this.parseJsonArray(task.technicians),
       assistants: this.parseJsonArray(task.assistants),
     }));
+  }
+
+  // Maintenance guides implementation
+  async getMaintenanceGuides(): Promise<MaintenanceGuide[]> {
+    return await db.query.maintenanceGuides.findMany({
+      orderBy: [desc(maintenanceGuides.generatedAt)],
+    });
+  }
+
+  async getMaintenanceGuide(id: number): Promise<MaintenanceGuide | undefined> {
+    return await db.query.maintenanceGuides.findFirst({
+      where: eq(maintenanceGuides.id, id),
+    });
+  }
+
+  async createMaintenanceGuide(guide: InsertMaintenanceGuide): Promise<MaintenanceGuide> {
+    const [newGuide] = await db
+      .insert(maintenanceGuides)
+      .values(guide)
+      .returning();
+
+    return newGuide;
+  }
+
+  async generateMaintenanceGuide(carBrand: string, carPart: string): Promise<MaintenanceGuide> {
+    // Import the OpenAI service here to avoid circular dependencies
+    const { generateMaintenanceGuide } = await import('./openai-service');
+    
+    // Check if guide already exists
+    const existingGuide = await db.query.maintenanceGuides.findFirst({
+      where: and(
+        eq(maintenanceGuides.carBrand, carBrand),
+        eq(maintenanceGuides.carPart, carPart)
+      ),
+    });
+
+    if (existingGuide) {
+      // Update usage and return existing guide
+      await this.updateMaintenanceGuideUsage(existingGuide.id);
+      return existingGuide;
+    }
+
+    // Generate new guide using AI
+    const aiResponse = await generateMaintenanceGuide({ carBrand, carPart });
+    
+    const newGuide: InsertMaintenanceGuide = {
+      carBrand,
+      carPart,
+      title: aiResponse.title,
+      content: aiResponse.content,
+      tools: JSON.stringify(aiResponse.tools),
+      safetyTips: JSON.stringify(aiResponse.safetyTips),
+      estimatedTime: aiResponse.estimatedTime,
+      difficulty: aiResponse.difficulty,
+    };
+
+    return await this.createMaintenanceGuide(newGuide);
+  }
+
+  async searchMaintenanceGuides(carBrand?: string, carPart?: string): Promise<MaintenanceGuide[]> {
+    const conditions = [];
+    
+    if (carBrand) {
+      conditions.push(eq(maintenanceGuides.carBrand, carBrand));
+    }
+    
+    if (carPart) {
+      conditions.push(eq(maintenanceGuides.carPart, carPart));
+    }
+
+    return await db.query.maintenanceGuides.findMany({
+      where: conditions.length > 0 ? and(...conditions) : undefined,
+      orderBy: [desc(maintenanceGuides.useCount), desc(maintenanceGuides.lastUsed)],
+    });
+  }
+
+  async updateMaintenanceGuideUsage(id: number): Promise<void> {
+    await db
+      .update(maintenanceGuides)
+      .set({
+        lastUsed: new Date(),
+        useCount: sql`${maintenanceGuides.useCount} + 1`,
+      })
+      .where(eq(maintenanceGuides.id, id));
   }
 }
 
