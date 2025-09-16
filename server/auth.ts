@@ -33,6 +33,44 @@ async function comparePasswords(supplied: string, stored: string) {
   return timingSafeEqual(hashedBuf, suppliedBuf);
 }
 
+// Authorization middleware functions
+export function requireAuth(req: any, res: any, next: any) {
+  if (!req.isAuthenticated()) {
+    return res.status(401).json({ error: "غير مسموح - يجب تسجيل الدخول أولاً" });
+  }
+  next();
+}
+
+export function requirePermission(permission: string) {
+  return (req: any, res: any, next: any) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: "غير مسموح - يجب تسجيل الدخول أولاً" });
+    }
+    
+    const user = req.user;
+    const userPermissions = Array.isArray(user.permissions) ? user.permissions : JSON.parse(user.permissions || '[]');
+    
+    if (!userPermissions.includes(permission)) {
+      return res.status(403).json({ error: `غير مسموح - تحتاج إلى صلاحية ${permission}` });
+    }
+    
+    next();
+  };
+}
+
+export function requireAdmin(req: any, res: any, next: any) {
+  if (!req.isAuthenticated()) {
+    return res.status(401).json({ error: "غير مسموح - يجب تسجيل الدخول أولاً" });
+  }
+  
+  const user = req.user;
+  if (user.role !== 'admin') {
+    return res.status(403).json({ error: "غير مسموح - تحتاج إلى صلاحيات إدارية" });
+  }
+  
+  next();
+}
+
 export function setupAuth(app: Express) {
   app.use(session({
     secret: process.env.SESSION_SECRET || "v-power-tuning-secret-key",

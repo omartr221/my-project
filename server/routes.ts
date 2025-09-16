@@ -6,7 +6,7 @@ import { insertWorkerSchema, insertTaskSchema, insertCustomerSchema, insertCusto
 import { z } from "zod";
 import multer from 'multer';
 import * as XLSX from 'xlsx';
-import { setupAuth } from "./auth";
+import { setupAuth, requirePermission } from "./auth";
 // import { createBackup, restoreFromBackup } from "./backup"; // Disabled for memory storage
 
 interface WebSocketClient extends WebSocket {
@@ -249,6 +249,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       console.error("Error updating task:", error);
       res.status(500).json({ error: error.message || "فشل في تعديل المهمة" });
+    }
+  });
+
+  // DELETE endpoint for tasks - Admin only with enhanced security
+  app.delete("/api/tasks/:id", requirePermission("tasks:delete"), async (req, res) => {
+    try {
+      const taskId = parseInt(req.params.id);
+      const user = req.user as any;
+      
+      // Validate task ID
+      if (isNaN(taskId) || taskId <= 0) {
+        return res.status(400).json({ 
+          error: "معرف المهمة غير صالح" 
+        });
+      }
+
+      // Double-check user has admin privileges (defense in depth)
+      if (!user || user.role !== 'admin') {
+        console.error(`🚨 SECURITY ALERT: Non-admin user ${user?.username || 'unknown'} attempted to delete task ${taskId}`);
+        return res.status(403).json({ 
+          error: "غير مسموح - حذف المهام مقتصر على المدراء فقط" 
+        });
+      }
+
+      // Additional verification that user has the specific permission
+      const userPermissions = Array.isArray(user.permissions) ? user.permissions : JSON.parse(user.permissions || '[]');
+      if (!userPermissions.includes("tasks:delete")) {
+        console.error(`🚨 SECURITY ALERT: User ${user.username} lacks tasks:delete permission but attempted deletion of task ${taskId}`);
+        return res.status(403).json({ 
+          error: "غير مسموح - ليس لديك صلاحية حذف المهام" 
+        });
+      }
+
+      // Log the deletion attempt for security audit
+      console.log(`🛡️  SECURITY LOG: Admin ${user.username} (ID: ${user.id}) attempting to delete task ${taskId} from IP: ${req.ip || req.connection.remoteAddress}`);
+
+      // Perform the deletion with full audit trail
+      await storage.deleteTask(taskId, user.username);
+      
+      // Broadcast the deletion to all connected clients
+      broadcastUpdate("task_deleted", { 
+        id: taskId, 
+        deletedBy: user.username, 
+        deletedAt: new Date().toISOString() 
+      });
+      
+      // Return success response
+      res.status(200).json({ 
+        success: true, 
+        message: `تم حذف المهمة ${taskId} بنجاح`,
+        deletedBy: user.username,
+        deletedAt: new Date().toISOString()
+      });
+      
+    } catch (error: any) {
+      console.error(`❌ Error deleting task:`, {
+        taskId: req.params.id,
+        error: error.message,
+        user: req.user?.username,
+        timestamp: new Date().toISOString()
+      });
+      
+      // Don't expose internal error details to client
+      if (error.message.includes('غير موجودة')) {
+        return res.status(404).json({ error: error.message });
+      }
+      
+      res.status(500).json({ 
+        error: "حدث خطأ أثناء حذف المهمة" 
+      });
     }
   });
 
@@ -1790,6 +1860,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ 
         error: "خطأ في توليد دليل الصيانة. تحقق من إعدادات الذكاء الاصطناعي." 
       });
+    }
+  });
+
+  // Delete task permanently
+  app.delete("/api/tasks/:id", async (req, res) => {
+    try {
+      const taskId = parseInt(req.params.id);
+      
+      if (isNaN(taskId)) {
+        return res.status(400).json({ error: "معرف المهمة غير صحيح" });
+      }
+
+      // Check if task exists
+      const task = await storage.getTask(taskId);
+      if (!task) {
+        return res.status(404).json({ error: "المهمة غير موجودة" });
+      }
+
+      await storage.deleteTask(taskId);
+      
+      // Broadcast update to all clients
+      broadcastUpdate("task_deleted", { taskId });
+      
+      res.json({ success: true, message: "تم حذف المهمة نهائياً" });
+    } catch (error) {
+      console.error("Error deleting task:", error);
+      res.status(500).json({ error: "خطأ في حذف المهمة" });
     }
   });
 

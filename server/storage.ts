@@ -69,6 +69,7 @@ export interface IStorage {
   // Archive management
   archiveTask(taskId: number, archivedBy: string, notes?: string, rating?: number): Promise<Task>;
   cancelTask(taskId: number, cancelledBy: string, reason: string): Promise<Task>;
+  deleteTask(taskId: number, deletedBy: string): Promise<void>;
   getArchivedTasks(limit?: number): Promise<TaskHistory[]>;
   searchArchive(searchTerm: string): Promise<TaskHistory[]>;
   
@@ -1979,6 +1980,91 @@ export class DatabaseStorage implements IStorage {
         useCount: sql`${maintenanceGuides.useCount} + 1`,
       })
       .where(eq(maintenanceGuides.id, id));
+  }
+
+  // Delete task permanently with enhanced security and audit logging
+  async deleteTask(taskId: number, deletedBy: string): Promise<void> {
+    // Start transaction for atomic deletion
+    await db.transaction(async (trx) => {
+      try {
+        // First, verify the task exists and get its details for audit logging
+        const [taskToDelete] = await trx
+          .select({
+            id: tasks.id,
+            taskNumber: tasks.taskNumber,
+            licensePlate: tasks.licensePlate,
+            carBrand: tasks.carBrand,
+            carModel: tasks.carModel,
+            description: tasks.description,
+            workerId: tasks.workerId,
+            status: tasks.status,
+            createdAt: tasks.createdAt
+          })
+          .from(tasks)
+          .where(eq(tasks.id, taskId))
+          .limit(1);
+
+        if (!taskToDelete) {
+          throw new Error(`المهمة رقم ${taskId} غير موجودة`);
+        }
+
+        // Log the task details before deletion for audit trail
+        console.log(`🗑️  AUDIT LOG - Task Deletion:`, {
+          action: 'DELETE_TASK',
+          taskId: taskToDelete.id,
+          taskNumber: taskToDelete.taskNumber,
+          licensePlate: taskToDelete.licensePlate,
+          carBrand: taskToDelete.carBrand,
+          carModel: taskToDelete.carModel,
+          description: taskToDelete.description,
+          workerId: taskToDelete.workerId,
+          status: taskToDelete.status,
+          deletedBy,
+          deletedAt: new Date().toISOString(),
+          timestamp: new Date().toISOString()
+        });
+
+        // Check if task has active time entries
+        const timeEntriesCount = await trx
+          .select({ count: sql`count(*)` })
+          .from(timeEntries)
+          .where(eq(timeEntries.taskId, taskId));
+          
+        if (timeEntriesCount[0] && parseInt(timeEntriesCount[0].count as string) > 0) {
+          console.log(`🕐 Deleting ${timeEntriesCount[0].count} time entries for task ${taskId}`);
+          
+          // Delete all associated time entries first to maintain referential integrity
+          await trx.delete(timeEntries).where(eq(timeEntries.taskId, taskId));
+        }
+
+        // Check for any other potential references
+        // Note: We should also check for parts requests that might reference this task
+        const partsRequestsWithSamePlate = await trx
+          .select({ count: sql`count(*)` })
+          .from(partsRequests)
+          .where(eq(partsRequests.licensePlate, taskToDelete.licensePlate));
+          
+        if (partsRequestsWithSamePlate[0] && parseInt(partsRequestsWithSamePlate[0].count as string) > 0) {
+          console.log(`⚠️  Warning: There are ${partsRequestsWithSamePlate[0].count} parts requests for license plate ${taskToDelete.licensePlate}. Task deletion will proceed, but parts requests will remain.`);
+        }
+
+        // Finally, delete the task itself
+        await trx.delete(tasks).where(eq(tasks.id, taskId));
+
+        // Final audit log entry
+        console.log(`✅ Task ${taskToDelete.taskNumber} successfully deleted by ${deletedBy} at ${new Date().toISOString()}`);
+        
+      } catch (error) {
+        console.error(`❌ AUDIT LOG - Task Deletion Failed:`, {
+          action: 'DELETE_TASK_FAILED',
+          taskId,
+          deletedBy,
+          error: error.message,
+          timestamp: new Date().toISOString()
+        });
+        throw error; // Re-throw to trigger transaction rollback
+      }
+    });
   }
 }
 
