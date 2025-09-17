@@ -1863,6 +1863,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get archived tasks by date range
+  app.get("/api/archive/by-date", async (req, res) => {
+    try {
+      const { startDate, endDate } = req.query;
+      
+      if (!startDate || !endDate) {
+        return res.status(400).json({ 
+          error: "تاريخ البداية والنهاية مطلوبان" 
+        });
+      }
+
+      const tasks = await storage.getArchivedTasksByDate(startDate as string, endDate as string);
+      res.json(tasks);
+    } catch (error) {
+      console.error("Error fetching tasks by date:", error);
+      res.status(500).json({ error: "خطأ في جلب المهام حسب التاريخ" });
+    }
+  });
+
   // Delete task permanently
   app.delete("/api/tasks/:id", async (req, res) => {
     try {

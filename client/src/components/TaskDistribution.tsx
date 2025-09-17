@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -53,9 +53,29 @@ export default function TaskDistribution() {
   const [showSearchSuggestions, setShowSearchSuggestions] = useState(false);
   const [costCenterTaskType, setCostCenterTaskType] = useState(""); // For cost center task type filter
 
-  // Fetch archived tasks
+  // Set default dates to today
+  useEffect(() => {
+    const today = new Date().toISOString().split('T')[0];
+    if (!startDate) setStartDate(today);
+    if (!endDate) setEndDate(today);
+  }, []);
+
+  // Fetch archived tasks by date or all if no date selected
   const { data: archivedTasks = [] } = useQuery<TaskDistributionEntry[]>({
-    queryKey: ["/api/archive"],
+    queryKey: startDate && endDate ? 
+      ["/api/archive/by-date", { startDate, endDate }] : 
+      ["/api/archive"],
+    queryFn: async () => {
+      if (startDate && endDate) {
+        const response = await fetch(`/api/archive/by-date?startDate=${startDate}&endDate=${endDate}`);
+        if (!response.ok) throw new Error('Failed to fetch tasks by date');
+        return response.json();
+      } else {
+        const response = await fetch('/api/archive');
+        if (!response.ok) throw new Error('Failed to fetch tasks');
+        return response.json();
+      }
+    },
     refetchInterval: 30000, // تحديث كل 30 ثانية
   });
 
@@ -292,7 +312,30 @@ export default function TaskDistribution() {
           {/* Tab Content */}
           {activeTab === "distribution" && (
             <>
-              {/* Filters */}
+              {/* Date Filter */}
+              <div className="flex gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
+                <div className="flex gap-2 items-center">
+                  <Calendar className="h-4 w-4 text-blue-500" />
+                  <label className="text-sm font-medium">من تاريخ:</label>
+                  <input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="px-3 py-2 border rounded-md"
+                    data-testid="input-start-date"
+                  />
+                  <label className="text-sm font-medium">إلى تاريخ:</label>
+                  <input
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className="px-3 py-2 border rounded-md"
+                    data-testid="input-end-date"
+                  />
+                </div>
+              </div>
+
+              {/* Search and Staff Filters */}
               <div className="flex gap-4 mb-6">
                 <div className="flex-1 relative">
                   <Search className="absolute right-3 top-3 h-4 w-4 text-gray-400" />
@@ -329,7 +372,31 @@ export default function TaskDistribution() {
             <Card>
               <CardContent className="p-4">
                 <div className="text-center">
-                  <p className="text-2xl font-bold text-green-600">{allStaff.length}</p>
+                  <p className="text-2xl font-bold text-green-600">
+                    {(() => {
+                      // حساب عدد الموظفين الفريد الذين عملوا في المهام المفلترة  
+                      const uniqueWorkers = new Set();
+                      filteredTasks.forEach(task => {
+                        // إضافة العامل الأساسي
+                        if (task.workerName) uniqueWorkers.add(task.workerName);
+                        // إضافة المهندس
+                        if (task.engineerName) uniqueWorkers.add(task.engineerName);
+                        // إضافة المشرف
+                        if (task.supervisorName) uniqueWorkers.add(task.supervisorName);
+                        // إضافة الفنيين
+                        if (Array.isArray((task as any).technicians)) {
+                          (task as any).technicians.forEach((tech: string) => uniqueWorkers.add(tech));
+                        }
+                        if (task.technicianName) uniqueWorkers.add(task.technicianName);
+                        // إضافة المساعدين
+                        if (Array.isArray((task as any).assistants)) {
+                          (task as any).assistants.forEach((assist: string) => uniqueWorkers.add(assist));
+                        }
+                        if (task.assistantName) uniqueWorkers.add(task.assistantName);
+                      });
+                      return uniqueWorkers.size;
+                    })()}
+                  </p>
                   <p className="text-sm text-gray-600">إجمالي الموظفين</p>
                 </div>
               </CardContent>
@@ -338,7 +405,7 @@ export default function TaskDistribution() {
               <CardContent className="p-4">
                 <div className="text-center">
                   <p className="text-2xl font-bold text-blue-600">
-                    {formatDuration(filteredTasks.reduce((total, task) => total + (task.consumedTime || task.totalDuration || 0), 0))}
+                    {formatDuration(filteredTasks.reduce((total, task) => total + (task.totalDuration || 0), 0))}
                   </p>
                   <p className="text-sm text-gray-600">إجمالي الوقت</p>
                 </div>
@@ -348,7 +415,7 @@ export default function TaskDistribution() {
               <CardContent className="p-4">
                 <div className="text-center">
                   <p className="text-2xl font-bold text-orange-600">
-                    {(filteredTasks.reduce((sum, task) => sum + (task.rating || 0), 0) / filteredTasks.length || 0).toFixed(1)}
+                    {filteredTasks.length > 0 ? (filteredTasks.reduce((sum, task) => sum + (task.rating || 0), 0) / filteredTasks.length).toFixed(1) : "0.0"}
                   </p>
                   <p className="text-sm text-gray-600">متوسط التقييم</p>
                 </div>
@@ -411,6 +478,13 @@ export default function TaskDistribution() {
                           <Clock className="h-4 w-4 text-blue-500" />
                           <span className="text-sm font-medium text-blue-600">
                             الوقت المقدر: {task.estimatedDuration ? `${task.estimatedDuration} دقيقة` : 'غير محدد'}
+                          </span>
+                        </div>
+                        
+                        <div className="flex items-center gap-2">
+                          <Clock className="h-4 w-4 text-green-500" />
+                          <span className="text-sm font-medium text-green-600">
+                            الوقت الفعلي: {formatDuration(task.totalDuration || 0)}
                           </span>
                         </div>
                       </div>

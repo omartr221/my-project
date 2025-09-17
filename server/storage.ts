@@ -71,6 +71,7 @@ export interface IStorage {
   cancelTask(taskId: number, cancelledBy: string, reason: string): Promise<Task>;
   deleteTask(taskId: number, deletedBy: string): Promise<void>;
   getArchivedTasks(limit?: number): Promise<TaskHistory[]>;
+  getArchivedTasksByDate(startDate: string, endDate: string): Promise<TaskHistory[]>;
   searchArchive(searchTerm: string): Promise<TaskHistory[]>;
   
   // History and reporting  
@@ -868,6 +869,69 @@ export class DatabaseStorage implements IStorage {
       },
       orderBy: [desc(tasks.archivedAt)],
       limit,
+    });
+
+    // تحسين الأداء بجمع كل license plates مرة واحدة
+    const licensePlates = tasksData.map(t => t.licensePlate).filter(Boolean);
+    
+    // الحصول على بيانات العملاء
+    const customerCarsData = await db.query.customerCars.findMany({
+      where: inArray(customerCars.licensePlate, licensePlates),
+      with: {
+        customer: true,
+      },
+    });
+
+    const carStatusData = await db.query.carStatus.findMany({
+      where: inArray(carStatus.licensePlate, licensePlates),
+    });
+
+    // إنشاء maps للبحث السريع
+    const customerMap = new Map<string, any>();
+    const carStatusMap = new Map<string, any>();
+
+    customerCarsData.forEach(car => {
+      if (car.licensePlate) {
+        customerMap.set(car.licensePlate, car.customer);
+      }
+    });
+
+    carStatusData.forEach(car => {
+      if (car.licensePlate) {
+        carStatusMap.set(car.licensePlate, car);
+      }
+    });
+
+    return tasksData.map(task => {
+      const customerFromCars = customerMap.get(task.licensePlate || '');
+      const carFromStatus = carStatusMap.get(task.licensePlate || '');
+      
+      return {
+        ...task,
+        customerName: customerFromCars?.name || carFromStatus?.customerName || 'غير محدد',
+        totalDuration: task.totalPausedDuration || 0,
+        technicians: this.parseJsonArray(task.technicians),
+        assistants: this.parseJsonArray(task.assistants),
+      };
+    });
+  }
+
+  // Get archived tasks by date range
+  async getArchivedTasksByDate(startDate: string, endDate: string): Promise<TaskHistory[]> {
+    const startDateTime = new Date(startDate);
+    const endDateTime = new Date(endDate);
+    endDateTime.setHours(23, 59, 59, 999); // End of day
+
+    const tasksData = await db.query.tasks.findMany({
+      where: and(
+        eq(tasks.isArchived, true),
+        sql`${tasks.archivedAt} >= ${startDateTime.toISOString()}`,
+        sql`${tasks.archivedAt} <= ${endDateTime.toISOString()}`
+      ),
+      with: {
+        worker: true,
+      },
+      orderBy: [desc(tasks.archivedAt)],
     });
 
     // تحسين الأداء بجمع كل license plates مرة واحدة
