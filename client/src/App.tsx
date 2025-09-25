@@ -8,6 +8,7 @@ import PartsRequestsPage from "@/pages/parts-requests-page";
 import Reception from "@/pages/Reception";
 import Workshop from "@/pages/Workshop";
 import MaintenancePage from "@/pages/maintenance-page";
+import BackupPage from "@/pages/BackupPage";
 import AuthPage from "@/pages/auth-page";
 import SimpleLogin from "@/pages/simple-login";
 import NotFound from "@/pages/not-found";
@@ -24,6 +25,7 @@ function Router() {
       <ProtectedRoute path="/reception" component={Reception} />
       <ProtectedRoute path="/workshop" component={Workshop} />
       <ProtectedRoute path="/maintenance" component={MaintenancePage} />
+      <ProtectedRoute path="/backup" component={BackupPage} />
       <Route path="/auth" component={AuthPage} />
       <Route path="/simple" component={SimpleLogin} />
       <Route component={NotFound} />

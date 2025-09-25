@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Clock, Users, UserCheck, Watch, ListTodo, Archive, LogOut, Package2, Car, ArrowLeft, CheckCircle, BookOpen } from "lucide-react";
+import { Clock, Users, UserCheck, Watch, ListTodo, Archive, LogOut, Package2, Car, ArrowLeft, CheckCircle, BookOpen, Database } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
@@ -32,9 +32,10 @@ import CustomerDeliveryView from "@/components/CustomerDeliveryView";
 import Reception from "@/pages/Reception";
 import Workshop from "@/pages/Workshop";
 import { MaintenanceGuides } from "@/components/MaintenanceGuides";
+import BackupPage from "@/pages/BackupPage";
 import { useNotifications } from "@/hooks/useNotifications";
 
-type TabType = "dashboard" | "timers" | "history" | "archive" | "addworker" | "customercard" | "customer-account" | "task-distribution" | "parts-requests" | "requests" | "car-status" | "car-positions" | "car-receipts" | "reception" | "workshop" | "car-delivery" | "customer-delivery" | "maintenance";
+type TabType = "dashboard" | "timers" | "history" | "archive" | "addworker" | "customercard" | "customer-account" | "task-distribution" | "parts-requests" | "requests" | "car-status" | "car-positions" | "car-receipts" | "reception" | "workshop" | "car-delivery" | "customer-delivery" | "maintenance" | "backup";
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<TabType>("dashboard");
@@ -275,6 +276,9 @@ export default function Dashboard() {
       
       case "customer-delivery":
         return <CustomerDeliveryView />;
+      
+      case "backup":
+        return <BackupPage />;
       
       default:
         return null;
@@ -561,6 +565,19 @@ export default function Dashboard() {
               <BookOpen className="ml-2 h-4 w-4" />
               دليل الصيانة
             </Button>
+
+            {/* النسخ الاحتياطي - متاح لفارس فقط */}
+            {user?.username === "فارس" && (
+              <Button
+                variant={activeTab === "backup" ? "default" : "ghost"}
+                onClick={() => setActiveTab("backup")}
+                className="font-medium"
+                data-testid="tab-backup"
+              >
+                <Database className="ml-2 h-4 w-4" />
+                النسخ الاحتياطي
+              </Button>
+            )}
 
             {/* تبويب تسليم السيارة - لبدوي وفارس */}
             {(user?.username === "بدوي" || user?.username === "فارس") && (
