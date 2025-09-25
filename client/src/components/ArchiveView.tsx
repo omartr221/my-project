@@ -40,6 +40,7 @@ const editTaskSchema = z.object({
   licensePlate: z.string().optional(),
   color: z.string().optional(),
   estimatedDuration: z.number().optional(),
+  totalDuration: z.number().optional(),
   rating: z.number().min(1).max(3).optional(),
   archiveNotes: z.string().optional(),
 });
@@ -102,6 +103,7 @@ export default function ArchiveView() {
       licensePlate: "",
       color: "",
       estimatedDuration: undefined,
+      totalDuration: undefined,
       rating: undefined,
       archiveNotes: "",
     },
@@ -140,7 +142,13 @@ export default function ArchiveView() {
     mutationFn: async (data: EditTaskFormData) => {
       if (!editTaskId) throw new Error("لم يتم اختيار مهمة للتعديل");
       
-      const response = await apiRequest("PATCH", `/api/archive/${editTaskId}`, data);
+      // Convert totalDuration from minutes to seconds for database storage
+      const updatedData = {
+        ...data,
+        totalDuration: data.totalDuration ? data.totalDuration * 60 : undefined,
+      };
+      
+      const response = await apiRequest("PATCH", `/api/archive/${editTaskId}`, updatedData);
       return response.json();
     },
     onSuccess: () => {
@@ -239,6 +247,7 @@ export default function ArchiveView() {
       licensePlate: task.licensePlate || "",
       color: (task as any).color || "",
       estimatedDuration: task.estimatedDuration || undefined,
+      totalDuration: task.totalDuration ? Math.round(task.totalDuration / 60) : undefined, // Convert seconds to minutes
       rating: task.rating || undefined,
       archiveNotes: task.archiveNotes || "",
     });
@@ -902,6 +911,25 @@ export default function ArchiveView() {
                                           {...field} 
                                           type="number" 
                                           placeholder="أدخل الوقت المقدر"
+                                          onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                                        />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                                
+                                <FormField
+                                  control={editForm.control}
+                                  name="totalDuration"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>الوقت الفعلي (بالدقائق)</FormLabel>
+                                      <FormControl>
+                                        <Input 
+                                          {...field} 
+                                          type="number" 
+                                          placeholder="الوقت الفعلي المستغرق"
                                           onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
                                         />
                                       </FormControl>
