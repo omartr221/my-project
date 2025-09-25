@@ -70,6 +70,7 @@ export interface IStorage {
   archiveTask(taskId: number, archivedBy: string, notes?: string, rating?: number): Promise<Task>;
   cancelTask(taskId: number, cancelledBy: string, reason: string): Promise<Task>;
   deleteTask(taskId: number, deletedBy: string): Promise<void>;
+  updateArchivedTask(id: number, updates: Partial<Task>): Promise<Task>;
   getArchivedTasks(limit?: number): Promise<TaskHistory[]>;
   getArchivedTasksByDate(startDate: string, endDate: string): Promise<TaskHistory[]>;
   searchArchive(searchTerm: string): Promise<TaskHistory[]>;
@@ -1154,6 +1155,40 @@ export class DatabaseStorage implements IStorage {
     }
 
     return null;
+  }
+
+  async updateArchivedTask(id: number, updates: Partial<Task>): Promise<Task> {
+    // Prepare normalized updates
+    const normalizedUpdates: any = { ...updates };
+    
+    // Normalize array fields
+    if (updates.technicians) {
+      normalizedUpdates.technicians = Array.isArray(updates.technicians) 
+        ? updates.technicians 
+        : [updates.technicians];
+    }
+    
+    if (updates.assistants) {
+      normalizedUpdates.assistants = Array.isArray(updates.assistants) 
+        ? updates.assistants 
+        : [updates.assistants];
+    }
+
+    // Only update archived tasks
+    const [updatedTask] = await db
+      .update(tasks)
+      .set(normalizedUpdates)
+      .where(and(
+        eq(tasks.id, id),
+        eq(tasks.isArchived, true)
+      ))
+      .returning();
+
+    if (!updatedTask) {
+      throw new Error("المهمة غير موجودة أو غير مؤرشفة");
+    }
+
+    return parseTaskFromDB(updatedTask);
   }
 
   // Customer management methods
