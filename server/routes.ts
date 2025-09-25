@@ -557,6 +557,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update archived task
+  app.patch("/api/archive/:id", async (req, res) => {
+    try {
+      const taskId = parseInt(req.params.id);
+      const updates = req.body;
+      
+      if (isNaN(taskId)) {
+        return res.status(400).json({ message: "معرف المهمة غير صحيح" });
+      }
+      
+      const updatedTask = await storage.updateArchivedTask(taskId, updates);
+      
+      // Broadcast update to all connected clients
+      broadcastUpdate("archive_updated", updatedTask);
+      
+      res.json(updatedTask);
+    } catch (error) {
+      console.error("Error updating archived task:", error);
+      res.status(500).json({ 
+        message: error instanceof Error ? error.message : "فشل في تحديث المهمة المؤرشفة" 
+      });
+    }
+  });
+
   // Get car data by license plate for autofill
   app.get("/api/cars/:licensePlate", async (req, res) => {
     try {

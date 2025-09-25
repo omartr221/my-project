@@ -8,7 +8,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Archive, Search, Download, FolderArchive, Calendar as CalendarIcon, Printer, FileText, Star } from "lucide-react";
+import { Archive, Search, Download, FolderArchive, Calendar as CalendarIcon, Printer, FileText, Star, Edit2 } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -25,12 +25,33 @@ const archiveFormSchema = z.object({
   notes: z.string().optional(),
 });
 
+const editTaskSchema = z.object({
+  description: z.string().min(1, "وصف المهمة مطلوب"),
+  engineerName: z.string().optional(),
+  supervisorName: z.string().optional(),
+  technicianName: z.string().optional(),
+  assistantName: z.string().optional(),
+  technicians: z.array(z.string()).optional(),
+  assistants: z.array(z.string()).optional(),
+  repairOperation: z.string().optional(),
+  taskType: z.string().optional(),
+  carBrand: z.string().min(1, "ماركة السيارة مطلوبة"),
+  carModel: z.string().min(1, "موديل السيارة مطلوب"),
+  licensePlate: z.string().optional(),
+  color: z.string().optional(),
+  estimatedDuration: z.number().optional(),
+  rating: z.number().min(1).max(3).optional(),
+  archiveNotes: z.string().optional(),
+});
+
 type ArchiveFormData = z.infer<typeof archiveFormSchema>;
+type EditTaskFormData = z.infer<typeof editTaskSchema>;
 
 export default function ArchiveView() {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
+  const [editTaskId, setEditTaskId] = useState<number | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [dateRange, setDateRange] = useState<{from: Date | undefined, to: Date | undefined}>({
     from: undefined,
@@ -64,6 +85,28 @@ export default function ArchiveView() {
     },
   });
 
+  const editForm = useForm<EditTaskFormData>({
+    resolver: zodResolver(editTaskSchema),
+    defaultValues: {
+      description: "",
+      engineerName: "",
+      supervisorName: "",
+      technicianName: "",
+      assistantName: "",
+      technicians: [],
+      assistants: [],
+      repairOperation: "",
+      taskType: "",
+      carBrand: "",
+      carModel: "",
+      licensePlate: "",
+      color: "",
+      estimatedDuration: undefined,
+      rating: undefined,
+      archiveNotes: "",
+    },
+  });
+
   const archiveTaskMutation = useMutation({
     mutationFn: async (data: ArchiveFormData) => {
       if (!selectedTaskId) throw new Error("لم يتم اختيار مهمة");
@@ -88,6 +131,33 @@ export default function ArchiveView() {
       toast({
         title: "خطأ في الأرشفة",
         description: "حدث خطأ أثناء أرشفة المهمة",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const editTaskMutation = useMutation({
+    mutationFn: async (data: EditTaskFormData) => {
+      if (!editTaskId) throw new Error("لم يتم اختيار مهمة للتعديل");
+      
+      const response = await apiRequest("PATCH", `/api/archive/${editTaskId}`, data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/archive'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/tasks/history'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/task-distribution'] });
+      editForm.reset();
+      setEditTaskId(null);
+      toast({
+        title: "تم تحديث المهمة",
+        description: "تم تحديث المهمة المؤرشفة بنجاح",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "خطأ في التحديث",
+        description: error?.message || "حدث خطأ أثناء تحديث المهمة",
         variant: "destructive",
       });
     },
@@ -146,6 +216,32 @@ export default function ArchiveView() {
 
   const onSubmit = (data: ArchiveFormData) => {
     archiveTaskMutation.mutate(data);
+  };
+
+  const onEditSubmit = (data: EditTaskFormData) => {
+    editTaskMutation.mutate(data);
+  };
+
+  const handleEditTask = (task: TaskHistory) => {
+    setEditTaskId(task.id);
+    editForm.reset({
+      description: task.description || "",
+      engineerName: task.engineerName || "",
+      supervisorName: task.supervisorName || "",
+      technicianName: task.technicianName || "",
+      assistantName: task.assistantName || "",
+      technicians: Array.isArray((task as any).technicians) ? (task as any).technicians : [],
+      assistants: Array.isArray((task as any).assistants) ? (task as any).assistants : [],
+      repairOperation: (task as any).repairOperation || "",
+      taskType: (task as any).taskType || "",
+      carBrand: task.carBrand || "",
+      carModel: task.carModel || "",
+      licensePlate: task.licensePlate || "",
+      color: (task as any).color || "",
+      estimatedDuration: task.estimatedDuration || undefined,
+      rating: task.rating || undefined,
+      archiveNotes: task.archiveNotes || "",
+    });
   };
 
   const generatePrintContent = (tasks: TaskHistory[]) => {
@@ -618,6 +714,253 @@ export default function ArchiveView() {
                           </div>
                         </div>
                       )}
+                    </div>
+                    
+                    {/* زر التعديل */}
+                    <div className="mt-4 flex justify-end">
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleEditTask(task)}
+                            className="flex items-center gap-2"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                            تعديل المهمة
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                          <DialogHeader>
+                            <DialogTitle>تعديل المهمة المؤرشفة</DialogTitle>
+                          </DialogHeader>
+                          <Form {...editForm}>
+                            <form onSubmit={editForm.handleSubmit(onEditSubmit)} className="space-y-4">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <FormField
+                                  control={editForm.control}
+                                  name="description"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>وصف المهمة</FormLabel>
+                                      <FormControl>
+                                        <Textarea {...field} placeholder="أدخل وصف المهمة" />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                                
+                                <FormField
+                                  control={editForm.control}
+                                  name="repairOperation"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>عملية الإصلاح</FormLabel>
+                                      <FormControl>
+                                        <Input {...field} placeholder="أدخل عملية الإصلاح" />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                                
+                                <FormField
+                                  control={editForm.control}
+                                  name="taskType"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>نوع المهمة</FormLabel>
+                                      <FormControl>
+                                        <Input {...field} placeholder="أدخل نوع المهمة" />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                                
+                                <FormField
+                                  control={editForm.control}
+                                  name="carBrand"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>ماركة السيارة</FormLabel>
+                                      <FormControl>
+                                        <Input {...field} placeholder="أدخل ماركة السيارة" />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                                
+                                <FormField
+                                  control={editForm.control}
+                                  name="carModel"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>موديل السيارة</FormLabel>
+                                      <FormControl>
+                                        <Input {...field} placeholder="أدخل موديل السيارة" />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                                
+                                <FormField
+                                  control={editForm.control}
+                                  name="licensePlate"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>رقم اللوحة</FormLabel>
+                                      <FormControl>
+                                        <Input {...field} placeholder="أدخل رقم اللوحة" />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                                
+                                <FormField
+                                  control={editForm.control}
+                                  name="color"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>اللون</FormLabel>
+                                      <FormControl>
+                                        <Input {...field} placeholder="أدخل لون السيارة" />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                                
+                                <FormField
+                                  control={editForm.control}
+                                  name="engineerName"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>اسم المهندس</FormLabel>
+                                      <FormControl>
+                                        <Input {...field} placeholder="أدخل اسم المهندس" />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                                
+                                <FormField
+                                  control={editForm.control}
+                                  name="supervisorName"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>اسم المشرف</FormLabel>
+                                      <FormControl>
+                                        <Input {...field} placeholder="أدخل اسم المشرف" />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                                
+                                <FormField
+                                  control={editForm.control}
+                                  name="technicianName"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>اسم الفني</FormLabel>
+                                      <FormControl>
+                                        <Input {...field} placeholder="أدخل اسم الفني" />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                                
+                                <FormField
+                                  control={editForm.control}
+                                  name="assistantName"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>اسم المساعد</FormLabel>
+                                      <FormControl>
+                                        <Input {...field} placeholder="أدخل اسم المساعد" />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                                
+                                <FormField
+                                  control={editForm.control}
+                                  name="estimatedDuration"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>الوقت المقدر (بالدقائق)</FormLabel>
+                                      <FormControl>
+                                        <Input 
+                                          {...field} 
+                                          type="number" 
+                                          placeholder="أدخل الوقت المقدر"
+                                          onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                                        />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                                
+                                <FormField
+                                  control={editForm.control}
+                                  name="rating"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>التقييم (1-3)</FormLabel>
+                                      <FormControl>
+                                        <Input 
+                                          {...field} 
+                                          type="number" 
+                                          min="1" 
+                                          max="3" 
+                                          placeholder="أدخل التقييم"
+                                          onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                                        />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                              </div>
+                              
+                              <FormField
+                                control={editForm.control}
+                                name="archiveNotes"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>ملاحظات التسليم</FormLabel>
+                                    <FormControl>
+                                      <Textarea {...field} placeholder="أدخل ملاحظات التسليم" />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              
+                              <div className="flex gap-2 justify-end">
+                                <Button type="button" variant="outline" onClick={() => setEditTaskId(null)}>
+                                  إلغاء
+                                </Button>
+                                <Button 
+                                  type="submit" 
+                                  disabled={editTaskMutation.isPending}
+                                >
+                                  {editTaskMutation.isPending ? "جاري الحفظ..." : "حفظ التعديلات"}
+                                </Button>
+                              </div>
+                            </form>
+                          </Form>
+                        </DialogContent>
+                      </Dialog>
                     </div>
                   </div>
                 ))}
