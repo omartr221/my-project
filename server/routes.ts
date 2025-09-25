@@ -37,13 +37,131 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
-  // Backup endpoints (disabled for memory storage)
+  // Backup and Export endpoints
   app.post("/api/backup/create", async (req, res) => {
-    return res.status(501).json({ message: "النسخ الاحتياطية معطلة مؤقتاً" });
+    try {
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const backup = {
+        timestamp,
+        version: "1.0.0",
+        data: {
+          workers: await storage.getWorkers(),
+          tasks: await storage.getTasks(),
+          customers: await storage.getCustomers(),
+          customerCars: await storage.getCustomerCars(),
+          partsRequests: await storage.getPartsRequests(),
+          users: [], // Users excluded from backup for security
+          receptionEntries: await storage.getReceptionEntries(),
+          maintenanceGuides: await storage.getMaintenanceGuides()
+        }
+      };
+      
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Content-Disposition', `attachment; filename="v-power-backup-${timestamp}.json"`);
+      res.json(backup);
+    } catch (error) {
+      console.error("Error creating backup:", error);
+      res.status(500).json({ message: "فشل في إنشاء النسخة الاحتياطية" });
+    }
   });
 
-  app.post("/api/backup/restore", async (req, res) => {
-    return res.status(501).json({ message: "استعادة النسخ الاحتياطية معطلة مؤقتاً" });
+  // Export specific table data
+  app.get("/api/export/:table", async (req, res) => {
+    try {
+      const { table } = req.params;
+      const { format = 'json' } = req.query;
+      
+      let data;
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      
+      switch (table) {
+        case 'workers':
+          data = await storage.getWorkers();
+          break;
+        case 'tasks':
+          data = await storage.getTasks();
+          break;
+        case 'customers':
+          data = await storage.getCustomers();
+          break;
+        case 'customer-cars':
+          data = await storage.getCustomerCars();
+          break;
+        case 'parts-requests':
+          data = await storage.getPartsRequests();
+          break;
+        case 'users':
+          return res.status(403).json({ message: "بيانات المستخدمين محظورة لأسباب أمنية" });
+          break;
+        case 'reception-entries':
+          data = await storage.getReceptionEntries();
+          break;
+        case 'maintenance-guides':
+          data = await storage.getMaintenanceGuides();
+          break;
+        default:
+          return res.status(400).json({ message: "جدول غير صحيح" });
+      }
+
+      if (format === 'csv') {
+        // Convert to CSV
+        if (!data || data.length === 0) {
+          return res.status(404).json({ message: "لا توجد بيانات" });
+        }
+        
+        const headers = Object.keys(data[0]).join(',');
+        const rows = data.map((row: any) => 
+          Object.values(row).map(val => 
+            typeof val === 'string' && val.includes(',') ? `"${val}"` : val
+          ).join(',')
+        );
+        const csv = [headers, ...rows].join('\n');
+        
+        res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+        res.setHeader('Content-Disposition', `attachment; filename="${table}-${timestamp}.csv"`);
+        res.send('\ufeff' + csv); // Add BOM for proper UTF-8 encoding
+      } else if (format === 'excel') {
+        // Convert to Excel
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.json_to_sheet(data || []);
+        XLSX.utils.book_append_sheet(wb, ws, table);
+        
+        const buffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+        
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        res.setHeader('Content-Disposition', `attachment; filename="${table}-${timestamp}.xlsx"`);
+        res.send(buffer);
+      } else {
+        // Default JSON format
+        res.setHeader('Content-Type', 'application/json');
+        res.setHeader('Content-Disposition', `attachment; filename="${table}-${timestamp}.json"`);
+        res.json(data);
+      }
+    } catch (error) {
+      console.error("Error exporting data:", error);
+      res.status(500).json({ message: "فشل في تصدير البيانات" });
+    }
+  });
+
+  // Database statistics endpoint
+  app.get("/api/database/stats", async (req, res) => {
+    try {
+      const stats = {
+        workers: (await storage.getWorkers()).length,
+        tasks: (await storage.getTasks()).length,
+        customers: (await storage.getCustomers()).length,
+        customerCars: (await storage.getCustomerCars()).length,
+        partsRequests: (await storage.getPartsRequests()).length,
+        users: 0, // Users excluded from stats for security
+        receptionEntries: (await storage.getReceptionEntries()).length,
+        maintenanceGuides: (await storage.getMaintenanceGuides()).length,
+        lastBackup: new Date().toISOString()
+      };
+      res.json(stats);
+    } catch (error) {
+      console.error("Error getting database stats:", error);
+      res.status(500).json({ message: "فشل في الحصول على إحصائيات قاعدة البيانات" });
+    }
   });
 
   // Note: Root path "/" is handled by Vite in development and static files in production
