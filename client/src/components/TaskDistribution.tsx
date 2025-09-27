@@ -36,6 +36,7 @@ type TaskDistributionEntry = {
   archivedBy: string;
   rating?: number;
   notes?: string;
+  dueDate?: string; // تاريخ انتهاء المهمة
 };
 
 export default function TaskDistribution() {
@@ -532,6 +533,15 @@ export default function TaskDistribution() {
                             أُرشف {formatDistanceToNow(new Date(task.archivedAt), { locale: ar, addSuffix: true })}
                           </span>
                         </div>
+                        
+                        {task.dueDate && (
+                          <div className="flex items-center gap-2">
+                            <Calendar className="h-4 w-4 text-blue-500" />
+                            <span className="text-sm text-blue-600">
+                              تاريخ الانتهاء: {new Date(task.dueDate).toLocaleDateString('ar-SY')}
+                            </span>
+                          </div>
+                        )}
                         
                         <div className="text-sm text-gray-600">
                           بواسطة: {task.archivedBy}
