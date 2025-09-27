@@ -74,6 +74,7 @@ export interface IStorage {
   getArchivedTasks(limit?: number): Promise<TaskHistory[]>;
   getArchivedTasksByDate(startDate: string, endDate: string): Promise<TaskHistory[]>;
   searchArchive(searchTerm: string): Promise<TaskHistory[]>;
+  searchArchiveRestricted(searchTerm: string): Promise<TaskHistory[]>;
   
   // History and reporting  
   getTaskHistory(limit?: number): Promise<TaskHistory[]>;
@@ -1031,6 +1032,81 @@ export class DatabaseStorage implements IStorage {
           like(customers.name, `%${searchTerm}%`), // البحث في اسم الزبون من customer_cars
           like(carStatus.customerName, `%${searchTerm}%`), // البحث في اسم الزبون من car_status
           like(customerCars.chassisNumber, `%${searchTerm}%`) // البحث في رقم الشاسيه
+        )
+      ))
+      .orderBy(desc(tasks.archivedAt))
+      .limit(50);
+
+    return tasksWithCustomers.map(task => ({
+      ...task,
+      // استخدام اسم العميل من car_status إذا لم يكن موجود في customer_cars
+      customerName: task.customerNameFromCars || task.customerNameFromStatus || 'غير محدد',
+      worker: {
+        id: task.workerId,
+        name: task.workerName,
+        category: task.workerCategory,
+      },
+      totalDuration: task.totalPausedDuration || 0,
+      technicians: this.parseJsonArray(task.technicians),
+      assistants: this.parseJsonArray(task.assistants),
+    }));
+  }
+
+  async searchArchiveRestricted(searchTerm: string): Promise<TaskHistory[]> {
+    // البحث المحدود لحساب بدوي (رقم اللوحة ووصف المهمة فقط)
+    const tasksWithCustomers = await db
+      .select({
+        // بيانات المهمة
+        id: tasks.id,
+        taskNumber: tasks.taskNumber,
+        workerId: tasks.workerId,
+        workerRole: tasks.workerRole,
+        description: tasks.description,
+        carBrand: tasks.carBrand,
+        carModel: tasks.carModel,
+        licensePlate: tasks.licensePlate,
+        estimatedDuration: tasks.estimatedDuration,
+        engineerName: tasks.engineerName,
+        supervisorName: tasks.supervisorName,
+        assistantName: tasks.assistantName,
+        technicianName: tasks.technicianName,
+        technicians: tasks.technicians,
+        assistants: tasks.assistants,
+        repairOperation: tasks.repairOperation,
+        taskType: tasks.taskType,
+        invoiceType: tasks.invoiceType,
+        color: tasks.color,
+        timerType: tasks.timerType,
+        consumedTime: tasks.consumedTime,
+        status: tasks.status,
+        startTime: tasks.startTime,
+        endTime: tasks.endTime,
+        totalPausedDuration: tasks.totalPausedDuration,
+        isArchived: tasks.isArchived,
+        archivedAt: tasks.archivedAt,
+        archivedBy: tasks.archivedBy,
+        archiveNotes: tasks.archiveNotes,
+        rating: tasks.rating,
+        deliveryNumber: tasks.deliveryNumber,
+        createdAt: tasks.createdAt,
+        // بيانات العامل
+        workerName: workers.name,
+        workerCategory: workers.category,
+        // بيانات الزبون من customer_cars أو car_status
+        customerNameFromCars: customers.name,
+        customerPhone: customers.phoneNumber,
+        customerNameFromStatus: carStatus.customerName,
+      })
+      .from(tasks)
+      .leftJoin(workers, eq(tasks.workerId, workers.id))
+      .leftJoin(customerCars, eq(tasks.licensePlate, customerCars.licensePlate))
+      .leftJoin(customers, eq(customerCars.customerId, customers.id))
+      .leftJoin(carStatus, eq(tasks.licensePlate, carStatus.licensePlate))
+      .where(and(
+        eq(tasks.isArchived, true),
+        or(
+          like(tasks.description, `%${searchTerm}%`), // البحث في وصف المهمة فقط
+          like(tasks.licensePlate, `%${searchTerm}%`)  // البحث في رقم اللوحة فقط
         )
       ))
       .orderBy(desc(tasks.archivedAt))
