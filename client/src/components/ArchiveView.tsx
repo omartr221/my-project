@@ -42,6 +42,7 @@ const editTaskSchema = z.object({
   color: z.string().optional(),
   estimatedDuration: z.number().optional(),
   totalDuration: z.number().optional(),
+  dueDate: z.string().optional(),
   rating: z.number().min(1).max(3).optional(),
   archiveNotes: z.string().optional(),
 });
@@ -114,6 +115,7 @@ export default function ArchiveView() {
       color: "",
       estimatedDuration: undefined,
       totalDuration: undefined,
+      dueDate: "",
       rating: undefined,
       archiveNotes: "",
     },
@@ -258,6 +260,7 @@ export default function ArchiveView() {
       color: (task as any).color || "",
       estimatedDuration: task.estimatedDuration || undefined,
       totalDuration: task.totalDuration ? Math.round(task.totalDuration / 60) : undefined, // Convert seconds to minutes
+      dueDate: (task as any).dueDate || "",
       rating: task.rating || undefined,
       archiveNotes: task.archiveNotes || "",
     });
@@ -941,6 +944,24 @@ export default function ArchiveView() {
                                           type="number" 
                                           placeholder="الوقت الفعلي المستغرق"
                                           onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                                        />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                                
+                                <FormField
+                                  control={editForm.control}
+                                  name="dueDate"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>تاريخ انتهاء المهمة</FormLabel>
+                                      <FormControl>
+                                        <Input 
+                                          {...field} 
+                                          type="date" 
+                                          placeholder="أدخل تاريخ انتهاء المهمة"
                                         />
                                       </FormControl>
                                       <FormMessage />
