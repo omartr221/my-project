@@ -16,6 +16,7 @@ import { z } from "zod";
 import { formatDuration, formatTime, formatDate, getCarBrandInArabic, getTaskStatusInArabic, getTaskStatusColor, cn } from "@/lib/utils";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 import { type TaskHistory } from "@shared/schema";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
@@ -50,10 +51,19 @@ type EditTaskFormData = z.infer<typeof editTaskSchema>;
 
 export default function ArchiveView() {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
   const [editTaskId, setEditTaskId] = useState<number | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  
+  // تحديد نص البحث المناسب حسب المستخدم
+  const getSearchPlaceholder = () => {
+    if (user?.username === 'بدوي') {
+      return "ابحث برقم اللوحة أو اسم المهمة فقط...";
+    }
+    return "ابحث في المهام المؤرشفة...";
+  };
   const [dateRange, setDateRange] = useState<{from: Date | undefined, to: Date | undefined}>({
     from: undefined,
     to: undefined
@@ -479,7 +489,7 @@ export default function ArchiveView() {
           <div className="flex gap-4">
             <form onSubmit={handleSearch} className="flex gap-2 flex-1">
               <Input
-                placeholder="ابحث في المهام المؤرشفة..."
+                placeholder={getSearchPlaceholder()}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="flex-1"
