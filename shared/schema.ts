@@ -53,6 +53,7 @@ export const tasks = pgTable("tasks", {
   archiveNotes: text("archive_notes"),
   rating: integer("rating"), // 1-3 stars rating
   deliveryNumber: integer("delivery_number"), // Sequential number for delivered tasks
+  dueDate: text("due_date"), // تاريخ انتهاء المهمة
   isCancelled: boolean("is_cancelled").default(false),
   cancellationReason: text("cancellation_reason"),
   cancelledAt: text("cancelled_at"),
