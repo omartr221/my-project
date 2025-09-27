@@ -78,7 +78,7 @@ export default function ArchiveView() {
 
   // Fetch search results
   const { data: searchResults, isLoading: loadingSearch } = useQuery({
-    queryKey: ['/api/archive/search', searchTerm],
+    queryKey: [`/api/archive/search?q=${encodeURIComponent(searchTerm)}`],
     enabled: searchTerm.length > 2,
   });
 
@@ -184,7 +184,7 @@ export default function ArchiveView() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchTerm.length > 2) {
-      queryClient.invalidateQueries({ queryKey: ['/api/archive/search', searchTerm] });
+      queryClient.invalidateQueries({ queryKey: [`/api/archive/search?q=${encodeURIComponent(searchTerm)}`] });
     }
   };
 
