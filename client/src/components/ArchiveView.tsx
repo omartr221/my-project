@@ -164,7 +164,12 @@ export default function ArchiveView() {
       return response.json();
     },
     onSuccess: () => {
+      // Invalidate all archive-related queries
       queryClient.invalidateQueries({ queryKey: ['/api/archive'] });
+      queryClient.invalidateQueries({ predicate: (query) => 
+        query.queryKey[0] === '/api/archive/by-date' || 
+        query.queryKey[0] === '/api/archive/search'
+      });
       queryClient.invalidateQueries({ queryKey: ['/api/tasks/history'] });
       queryClient.invalidateQueries({ queryKey: ['/api/task-distribution'] });
       editForm.reset();
