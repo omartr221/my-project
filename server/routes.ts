@@ -549,7 +549,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Search term is required" });
       }
       
-      const results = await storage.searchArchive(searchTerm);
+      // التحقق من دور المستخدم - إذا كان بدوي استخدم البحث المحدود
+      const user = req.user as any;
+      const isBadawi = user?.username === 'بدوي';
+      
+      let results;
+      if (isBadawi) {
+        // استخدام البحث المحدود لبدوي (رقم اللوحة ووصف المهمة فقط)
+        results = await storage.searchArchiveRestricted(searchTerm);
+      } else {
+        // استخدام البحث الكامل للمستخدمين الآخرين
+        results = await storage.searchArchive(searchTerm);
+      }
+      
       res.json(results);
     } catch (error) {
       console.error("Error searching archive:", error);
