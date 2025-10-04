@@ -1,0 +1,42 @@
+{
+  "name": "v-power-tuning-desktop",
+  "version": "1.0.0",
+  "description": "V POWER TUNING Desktop Application - نظام إدارة المهام والخدمات",
+  "main": "main.js",
+  "author": "V POWER TUNING",
+  "license": "MIT",
+  "homepage": "./",
+  "build": {
+    "appId": "com.vpowertuning.desktop",
+    "productName": "V POWER TUNING",
+    "directories": {
+      "output": "dist-electron"
+    },
+    "files": [
+      "main.js",
+      "dist/**/*",
+      "server/**/*",
+      "node_modules/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "assets/icon.ico"
+    },
+    "mac": {
+      "target": "dmg",
+      "icon": "assets/icon.icns"
+    },
+    "linux": {
+      "target": "AppImage",
+      "icon": "assets/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "V POWER TUNING"
+    }
+  }
+}

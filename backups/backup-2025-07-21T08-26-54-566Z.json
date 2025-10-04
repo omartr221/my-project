@@ -1,0 +1,257 @@
+{
+  "timestamp": "2025-07-21T08:26:55.157Z",
+  "customers": [
+    {
+      "id": 1,
+      "name": "عادل الغفري",
+      "phoneNumber": "0992113654",
+      "address": null,
+      "notes": null,
+      "createdAt": "2025-07-15T13:17:29.076Z"
+    },
+    {
+      "id": 3,
+      "name": "طلال مخول",
+      "phoneNumber": "0991135368",
+      "address": null,
+      "notes": null,
+      "createdAt": "2025-07-19T08:28:08.060Z"
+    },
+    {
+      "id": 4,
+      "name": "محمد قاسم دياب",
+      "phoneNumber": "0933433913",
+      "address": null,
+      "notes": null,
+      "createdAt": "2025-07-19T08:30:00.141Z"
+    },
+    {
+      "id": 5,
+      "name": "سيف الدين المذيب",
+      "phoneNumber": "0995526915",
+      "address": null,
+      "notes": null,
+      "createdAt": "2025-07-19T08:33:51.572Z"
+    },
+    {
+      "id": 6,
+      "name": "حسان ملوك ",
+      "phoneNumber": "0959490600",
+      "address": null,
+      "notes": null,
+      "createdAt": "2025-07-19T08:37:33.767Z"
+    },
+    {
+      "id": 7,
+      "name": "محمد الجوجة",
+      "phoneNumber": "0944464519",
+      "address": null,
+      "notes": null,
+      "createdAt": "2025-07-19T10:37:33.935Z"
+    },
+    {
+      "id": 8,
+      "name": "احمد جنيد",
+      "phoneNumber": "0933511905",
+      "address": null,
+      "notes": null,
+      "createdAt": "2025-07-19T10:45:54.138Z"
+    },
+    {
+      "id": 9,
+      "name": "محمود ياسين ",
+      "phoneNumber": "0955594442",
+      "address": null,
+      "notes": null,
+      "createdAt": "2025-07-20T07:01:35.133Z"
+    },
+    {
+      "id": 10,
+      "name": "ايمن العويد",
+      "phoneNumber": "0969417705",
+      "address": null,
+      "notes": null,
+      "createdAt": "2025-07-20T08:24:52.143Z"
+    },
+    {
+      "id": 11,
+      "name": "رانية الشرابي",
+      "phoneNumber": "0944489799",
+      "address": null,
+      "notes": null,
+      "createdAt": "2025-07-20T09:25:59.741Z"
+    }
+  ],
+  "customerCars": [
+    {
+      "id": 1,
+      "customerId": 1,
+      "carBrand": "VOLKSWAGEN",
+      "carModel": "Passat",
+      "licensePlate": "لايوجد",
+      "color": "بني",
+      "year": 2012,
+      "engineCode": "لايوجد",
+      "chassisNumber": "WVWRV1161CM106990",
+      "previousOwner": "لايوجد",
+      "notes": null,
+      "createdAt": "2025-07-15T13:17:29.809Z"
+    },
+    {
+      "id": 3,
+      "customerId": 3,
+      "carBrand": "AUDI",
+      "carModel": "A4",
+      "licensePlate": "434782 طرطوس",
+      "color": "أسود",
+      "year": 2008,
+      "engineCode": "لم يتم الكشف عنه",
+      "chassisNumber": "WAUZZZ8E38A116281",
+      "previousOwner": "لايوجد",
+      "notes": null,
+      "createdAt": "2025-07-19T08:28:09.115Z"
+    },
+    {
+      "id": 4,
+      "customerId": 4,
+      "carBrand": "AUDI",
+      "carModel": "A4",
+      "licensePlate": "860571",
+      "color": "فضي",
+      "year": 2007,
+      "engineCode": "ALT",
+      "chassisNumber": "WAUZZZ8EX7A280660",
+      "previousOwner": "لايوجد",
+      "notes": null,
+      "createdAt": "2025-07-19T08:30:01.218Z"
+    },
+    {
+      "id": 5,
+      "customerId": 5,
+      "carBrand": "AUDI",
+      "carModel": "A8",
+      "licensePlate": "518-1577",
+      "color": "فضي",
+      "year": 2015,
+      "engineCode": "CTGA",
+      "chassisNumber": "WAUY2BFD4FN000272",
+      "previousOwner": "لايوجد",
+      "notes": null,
+      "createdAt": "2025-07-19T08:33:52.249Z"
+    },
+    {
+      "id": 6,
+      "customerId": 6,
+      "carBrand": "AUDI",
+      "carModel": "Q7",
+      "licensePlate": "520-8677",
+      "color": "أسود",
+      "year": 2015,
+      "engineCode": "3.0 TFSI",
+      "chassisNumber": "WA1LGAFE8FD009218",
+      "previousOwner": "لايوجد",
+      "notes": null,
+      "createdAt": "2025-07-19T08:37:34.552Z"
+    },
+    {
+      "id": 7,
+      "customerId": 7,
+      "carBrand": "AUDI",
+      "carModel": "Q5",
+      "licensePlate": "44892",
+      "color": "أبيض",
+      "year": 2015,
+      "engineCode": "CPM",
+      "chassisNumber": "WA1LFAFP5EA107272",
+      "previousOwner": "لايوجد",
+      "notes": null,
+      "createdAt": "2025-07-19T10:37:34.961Z"
+    },
+    {
+      "id": 8,
+      "customerId": 8,
+      "carBrand": "AUDI",
+      "carModel": "A8",
+      "licensePlate": "8406",
+      "color": "أبيض",
+      "year": 2015,
+      "engineCode": "CRE",
+      "chassisNumber": "WAUYGBFD0FN005051",
+      "previousOwner": "لا يوجد",
+      "notes": null,
+      "createdAt": "2025-07-19T10:45:55.183Z"
+    },
+    {
+      "id": 9,
+      "customerId": 7,
+      "carBrand": "VOLKSWAGEN",
+      "carModel": "Tiguan",
+      "licensePlate": "513-4851",
+      "color": "أسود",
+      "year": 2011,
+      "engineCode": "CC7",
+      "chassisNumber": "WVGCE25N3BW037229",
+      "previousOwner": "لايوجد",
+      "notes": null,
+      "createdAt": "2025-07-19T11:02:06.601Z"
+    },
+    {
+      "id": 10,
+      "customerId": 9,
+      "carBrand": "AUDI",
+      "carModel": "Q5",
+      "licensePlate": "513-4564",
+      "color": "أبيض",
+      "year": 2014,
+      "engineCode": "CTV",
+      "chassisNumber": "WA1CGCFP3EA006997",
+      "previousOwner": "لا يوجد",
+      "notes": null,
+      "createdAt": "2025-07-20T07:01:35.834Z"
+    },
+    {
+      "id": 11,
+      "customerId": 10,
+      "carBrand": "VOLKSWAGEN",
+      "carModel": "Passat",
+      "licensePlate": "7123",
+      "color": "رمادي",
+      "year": 2013,
+      "engineCode": "CAX",
+      "chassisNumber": "WVWZZZ16ZDM002038",
+      "previousOwner": "لايوجد",
+      "notes": null,
+      "createdAt": "2025-07-20T08:24:52.881Z"
+    },
+    {
+      "id": 12,
+      "customerId": 11,
+      "carBrand": "VOLKSWAGEN",
+      "carModel": "Passat",
+      "licensePlate": "646-270",
+      "color": "رمادي",
+      "year": 2011,
+      "engineCode": "غير معروف",
+      "chassisNumber": "WVWZZZ3CZBP001395",
+      "previousOwner": "لا يوجد",
+      "notes": null,
+      "createdAt": "2025-07-20T09:26:00.489Z"
+    },
+    {
+      "id": 13,
+      "customerId": 1,
+      "carBrand": "VOLKSWAGEN",
+      "carModel": "Passat",
+      "licensePlate": "لا يوجد",
+      "color": "بني",
+      "year": 2012,
+      "engineCode": null,
+      "chassisNumber": "WVWRV1161CM106990",
+      "previousOwner": "لا يوجد",
+      "notes": "لايوجد",
+      "createdAt": "2025-07-20T09:33:39.394Z"
+    }
+  ],
+  "partsRequests": [],
+  "version": "1.0"
+}
