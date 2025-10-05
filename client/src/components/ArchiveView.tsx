@@ -274,7 +274,12 @@ export default function ArchiveView() {
             }
           }
           if (typeof cleanItem === 'string' && cleanItem.trim() !== '') {
-            results.push(cleanItem);
+            // If the string contains commas, split it into multiple items
+            if (cleanItem.includes(',')) {
+              results.push(...cleanItem.split(',').map(s => s.trim()).filter(s => s !== ''));
+            } else {
+              results.push(cleanItem);
+            }
           }
         } else if (item) {
           results.push(String(item));
