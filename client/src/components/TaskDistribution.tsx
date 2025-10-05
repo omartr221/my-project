@@ -472,7 +472,7 @@ export default function TaskDistribution() {
               <CardContent className="p-4">
                 <div className="text-center">
                   <p className="text-2xl font-bold text-blue-600">
-                    {formatDuration(filteredTasks.reduce((total, task) => total + (task.totalDuration || 0), 0))}
+                    {formatDuration(filteredTasks.reduce((total, task) => total + ((task.estimatedDuration || 0) * 60), 0))}
                   </p>
                   <p className="text-sm text-gray-600">إجمالي الوقت</p>
                 </div>
