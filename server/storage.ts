@@ -170,11 +170,7 @@ export class DatabaseStorage implements IStorage {
     if (!jsonString) return [];
     
     // Use the same cleaning logic as cleanCorruptedArray
-    const result = this.cleanCorruptedArray(jsonString);
-    if (jsonString && jsonString.length < 30) {
-      console.log(`parseJsonArray input: "${jsonString}" -> output:`, result);
-    }
-    return result;
+    return this.cleanCorruptedArray(jsonString);
   }
   async getWorkers(): Promise<WorkerWithTasks[]> {
     const workersData = await db.query.workers.findMany({

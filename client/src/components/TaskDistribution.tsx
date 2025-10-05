@@ -62,19 +62,21 @@ export default function TaskDistribution() {
     if (!endDate) setEndDate(today);
   }, []);
 
-  // Fetch archived tasks by date or all if no date selected
+  // Fetch all archived tasks (without date limit) for vehicle history
+  // But use date filter for cost center and distribution tabs
   const { data: archivedTasks = [] } = useQuery<TaskDistributionEntry[]>({
-    queryKey: startDate && endDate ? 
+    queryKey: startDate && endDate && activeTab !== "vehicle-history" ? 
       ["/api/archive/by-date", { startDate, endDate }] : 
       ["/api/archive"],
     queryFn: async () => {
-      if (startDate && endDate) {
-        const response = await fetch(`/api/archive/by-date?startDate=${startDate}&endDate=${endDate}`);
-        if (!response.ok) throw new Error('Failed to fetch tasks by date');
+      // For vehicle history tab, always fetch all archived tasks
+      if (activeTab === "vehicle-history" || !startDate || !endDate) {
+        const response = await fetch('/api/archive?limit=1000');
+        if (!response.ok) throw new Error('Failed to fetch tasks');
         return response.json();
       } else {
-        const response = await fetch('/api/archive');
-        if (!response.ok) throw new Error('Failed to fetch tasks');
+        const response = await fetch(`/api/archive/by-date?startDate=${startDate}&endDate=${endDate}`);
+        if (!response.ok) throw new Error('Failed to fetch tasks by date');
         return response.json();
       }
     },
@@ -1008,7 +1010,8 @@ export default function TaskDistribution() {
                   displayTasks = vehicleFilteredTasks.filter(task => task.taskType === selectedTaskType);
                 }
                 
-                const totalHours = displayTasks.reduce((total, task) => total + (task.totalDuration || 0), 0);
+                // حساب إجمالي الساعات باستخدام الوقت المقدر (بالدقائق) وتحويله إلى ثواني
+                const totalHours = displayTasks.reduce((total, task) => total + ((task.estimatedDuration || 0) * 60), 0);
                 
                 return displayTasks.length > 0 ? (
                   <div className="space-y-6">
