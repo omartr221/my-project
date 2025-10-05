@@ -563,13 +563,13 @@ export default function TaskDistribution() {
                           الفريق المكلف:
                         </h4>
                         <div className="flex flex-wrap gap-2">
-                          {getTaskStaff(task).map((member, index) => (
+                          {Array.from(new Set(getTaskStaff(task).map(m => m.name))).map((name, index) => (
                             <Badge 
                               key={index}
-                              variant={member.name === selectedStaff ? "default" : "secondary"}
+                              variant={name === selectedStaff ? "default" : "secondary"}
                               className="text-xs"
                             >
-                              {member.name} ({member.role})
+                              {name}
                             </Badge>
                           ))}
                         </div>
